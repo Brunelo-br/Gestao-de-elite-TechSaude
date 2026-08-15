@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde - Entrar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F4EEDB;
+    --cream-card:#F6F1E2;
+    --forest:#173626;
+    --forest-2:#1F4632;
+    --teal:#3FA79A;
+    --sage:#8AC06B;
+    --border:rgba(23,54,38,0.28);
+    --border-soft:rgba(23,54,38,0.16);
+    --muted:#4B5A4F;
+    --error:#B23A2E;
+    --error-bg:#FBE7E4;
+    --success:#1F6B45;
+    --success-bg:#E4F1E7;
+    --shadow-outer: 0 30px 60px rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    height:100%;
+    font-family:'Nunito', sans-serif;
+    color:var(--forest);
+  }
+
+  body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255,255,255,0.06), transparent 40%),
+      linear-gradient(160deg, #16412B 0%, #0F2E1C 100%);
+    padding:48px 24px;
+  }
+
+  /* ===== Site (site inteiro visível no desktop, sem moldura de aparelho) ===== */
+  .site{
+    width:100%;
+    max-width:1100px;
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    align-items:stretch;
+    background:var(--cream);
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:var(--shadow-outer);
+  }
+
+  /* Coluna decorativa lateral, só aparece em telas largas */
+  .site-aside{
+    background:linear-gradient(155deg, #1F4632 0%, #16412B 60%, #12351F 100%);
+    color:var(--cream);
+    padding:56px 44px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:18px;
+  }
+
+  .site-aside .brand{ justify-content:flex-start; margin-bottom:6px; }
+  .site-aside .brand-name{ color:var(--cream); }
+
+  .site-aside h2{
+    font-family:'Baloo 2', sans-serif;
+    font-size:30px;
+    font-weight:800;
+    line-height:1.2;
+    margin:0;
+  }
+
+  .site-aside p{
+    font-size:15.5px;
+    line-height:1.55;
+    color:rgba(244,238,219,0.85);
+    font-weight:600;
+    margin:0;
+    max-width:340px;
+  }
+
+  /* ===== Conteúdo do formulário ===== */
+  .app{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:48px 44px;
+  }
+
+  /* A marca dentro do formulário só aparece quando a coluna lateral está oculta (telas estreitas) */
+  #brandMobile{ display:none; }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:14px;
+  }
+
+  .brand img{ width:44px; height:44px; flex-shrink:0; object-fit:contain; }
+
+  .brand-name{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:26px;
+    color:var(--forest);
+    letter-spacing:0.5px;
+  }
+
+  .datetime{
+    text-align:center;
+    font-weight:700;
+    font-size:14.5px;
+    color:var(--forest);
+    border-bottom:2px solid var(--border-soft);
+    padding-bottom:14px;
+    margin-bottom:20px;
+  }
+
+  .card{
+    max-width:420px;
+    width:100%;
+    margin:0 auto;
+  }
+
+  h1{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:27px;
+    line-height:1.15;
+    text-align:center;
+    margin:0 0 12px;
+    color:var(--forest);
+  }
+
+  .subtitle{
+    text-align:center;
+    font-size:14.5px;
+    line-height:1.45;
+    color:var(--muted);
+    margin:0 0 20px;
+    font-weight:600;
+  }
+
+  .field{
+    margin-bottom:16px;
+  }
+
+  .field-box{
+    position:relative;
+    display:flex;
+    align-items:center;
+    background:#FAF7EC;
+    border:2.5px solid var(--forest);
+    border-radius:999px;
+    padding:12px 20px;
+    min-height:56px;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .field-box:focus-within{
+    border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(63,167,154,0.25);
+  }
+
+  .field-box.has-error{
+    border-color:var(--error);
+  }
+
+  .field-box label{
+    position:absolute;
+    top:-11px;
+    left:18px;
+    background:var(--cream-card);
+    padding:0 8px;
+    font-weight:800;
+    font-size:14px;
+    letter-spacing:0.5px;
+    color:var(--forest);
+    text-transform:uppercase;
+  }
+
+  .field-box input{
+    flex:1;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-family:'Nunito', sans-serif;
+    font-size:17px;
+    font-weight:700;
+    color:var(--forest);
+    padding:4px 0;
+    min-width:0;
+  }
+
+  .field-box input::placeholder{
+    color:rgba(23,54,38,0.35);
+    font-weight:600;
+  }
+
+  .toggle-pass{
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:6px;
+    margin-left:6px;
+    color:var(--forest);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+
+  .toggle-pass svg{ width:24px; height:24px; }
+
+  .helper{
+    text-align:center;
+    font-size:13.5px;
+    color:var(--muted);
+    font-weight:600;
+    margin:8px 10px 0;
+    line-height:1.35;
+  }
+
+  .field-error{
+    display:none;
+    text-align:center;
+    font-size:13.5px;
+    color:var(--error);
+    font-weight:700;
+    margin:8px 10px 0;
+  }
+
+  .field.invalid .helper{ display:none; }
+  .field.invalid .field-error{ display:block; }
+
+  .btn-entrar{
+    width:100%;
+    margin-top:18px;
+    background:var(--forest);
+    color:var(--cream);
+    border:none;
+    border-radius:999px;
+    padding:16px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:18px;
+    letter-spacing:0.5px;
+    cursor:pointer;
+    box-shadow:0 6px 0 rgba(0,0,0,0.18);
+    transition:transform .08s ease, box-shadow .08s ease, background .2s ease;
+  }
+
+  .btn-entrar:hover{ background:var(--forest-2); }
+  .btn-entrar:active{ transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.18); }
+  .btn-entrar:disabled{ opacity:0.65; cursor:progress; }
+
+  .btn-entrar:focus-visible,
+  .toggle-pass:focus-visible,
+  .field-box input:focus-visible,
+  .link-recuperar:focus-visible{
+    outline:3px solid var(--teal);
+    outline-offset:2px;
+  }
+
+  .link-recuperar{
+    display:block;
+    text-align:center;
+    margin-top:18px;
+    font-weight:800;
+    font-size:15px;
+    color:var(--forest);
+    text-decoration:underline;
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:4px;
+  }
+
+  .recuperar-texto{
+    text-align:center;
+    font-size:13px;
+    color:var(--muted);
+    font-weight:600;
+    line-height:1.4;
+    margin:6px 10px 0;
+  }
+
+  .banner{
+    display:none;
+    align-items:flex-start;
+    gap:8px;
+    border-radius:14px;
+    padding:12px 14px;
+    font-size:14px;
+    font-weight:700;
+    margin-bottom:14px;
+    line-height:1.4;
+  }
+
+  .banner.show{ display:flex; }
+  .banner.error{ background:var(--error-bg); color:var(--error); }
+  .banner.success{ background:var(--success-bg); color:var(--success); }
+
+  .sr-only{
+    position:absolute;
+    width:1px;height:1px;
+    padding:0;margin:-1px;
+    overflow:hidden;
+    clip:rect(0,0,0,0);
+    white-space:nowrap;border:0;
+  }
+
+  .cpf-validation{
+    text-align:center;
+    font-size:13.5px;
+    font-weight:700;
+    margin:8px 10px 0;
+    display:none;
+    line-height:1.35;
+  }
+
+  .cpf-validation.valid{
+    color:var(--success);
+    display:block;
+  }
+
+  .cpf-validation.invalid{
+    color:var(--error);
+    display:block;
+  }
+
+  /* Tablet: tira a coluna lateral, mantém o site como um cartão centralizado */
+  @media (max-width:900px){
+    .site{
+      grid-template-columns:1fr;
+      max-width:480px;
+    }
+    .site-aside{ display:none; }
+    .app{ padding:40px 32px; }
+    #brandMobile{ display:flex; }
+  }
+
+  /* Celular: o site preenche a tela inteira, ponta a ponta, como um app real */
+  @media (max-width:480px){
+    body{ padding:0; }
+    .site{
+      max-width:100%;
+      min-height:100vh;
+      border-radius:0;
+      box-shadow:none;
+    }
+    .app{ padding:32px 20px; justify-content:flex-start; }
+    .datetime{ margin-bottom:16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="site">
+
+  <!-- Coluna decorativa: some em telas estreitas, dá "cara de site" no desktop -->
+  <div class="site-aside">
+    <div class="brand">
+      <img src="logo-techsaude.png" alt="Logo TechSaúde">
+      <span class="brand-name">TechSaúde</span>
+    </div>
+    <h2>Tecnologia! Ela pode te ajudar e ajudar quem você ama.</h2>
+    <p>Organize lembretes de remédios, consultas e rotina de saúde em um só lugar, pensado para ser simples e acessível.</p>
+  </div>
+
+  <!-- Conteúdo do formulário -->
+  <div class="app">
+
+    <div class="brand" id="brandMobile">
+      <img src="logo-techsaude.png" alt="Logo TechSaúde">
+      <span class="brand-name">TechSaúde</span>
+    </div>
+
+    <div class="datetime" id="datetime" aria-live="off">--:-- - carregando data...</div>
+
+    <div class="card">
+
+      <div class="banner" id="banner" role="alert"></div>
+
+      <h1>ENTRAR NO<br>TECH SAÚDE</h1>
+      <p class="subtitle">iremos te ajudar no dia a dia, através da tecnologia, ajudando na organização da sua rotina de saúde</p>
+
+        <form id="loginForm" novalidate>
+
+          <div class="field" id="fieldLogin">
+            <div class="field-box">
+              <label for="inputLogin">CPF ou e-mail</label>
+              <input
+                type="text"
+                id="inputLogin"
+                name="login"
+                inputmode="text"
+                autocomplete="username"
+                placeholder="Digite aqui"
+                aria-describedby="helperLogin errorLogin cpfValidation"
+              >
+            </div>
+            <p class="helper" id="helperLogin">Insira seu número de CPF ou endereço de e-mail</p>
+            <p class="cpf-validation" id="cpfValidation"></p>
+            <p class="field-error" id="errorLogin"></p>
+          </div>
+
+          <div class="field" id="fieldSenha">
+            <div class="field-box">
+              <label for="inputSenha">Senha</label>
+              <input
+                type="password"
+                id="inputSenha"
+                name="senha"
+                autocomplete="current-password"
+                placeholder="Digite aqui"
+                aria-describedby="helperSenha errorSenha"
+              >
+              <button type="button" class="toggle-pass" id="togglePass" aria-pressed="false" aria-label="Mostrar senha">
+                <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <p class="helper" id="helperSenha">Insira sua senha de acesso</p>
+            <p class="field-error" id="errorSenha"></p>
+          </div>
+
+          <button type="submit" class="btn-entrar" id="btnEntrar">ENTRAR NA SUA CONTA</button>
+        </form>
+
+      <button type="button" class="link-recuperar" id="linkRecuperar">Recuperar a senha? Clique aqui.</button>
+      <p class="recuperar-texto">Para receber um código de acesso em seu e-mail cadastrado, clique acima para iniciar a recuperação. Fique tranquilo, é rápido.</p>
+
+      <button type="button" class="link-recuperar" id="linkCadastro" style="margin-top:14px;">Não tem conta? Cadastre-se aqui.</button>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  /* ---------- Relógio / data no cabeçalho ---------- */
+  var datetimeEl = document.getElementById('datetime');
+  function atualizarDataHora(){
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    var diaSemana = agora.toLocaleDateString('pt-BR', {weekday:'long'});
+    diaSemana = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+    var dataFormatada = agora.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+    datetimeEl.textContent = hora + ' - ' + diaSemana + ', ' + dataFormatada;
+  }
+  atualizarDataHora();
+  setInterval(atualizarDataHora, 30000);
+
+  /* ---------- Conexão com a API real ----------
+     Local: rode "npm start" na pasta do back-end (porta 3000).
+     Produção: troque a linha abaixo pela URL da API no Render,
+     por exemplo 'https://techsaude-api.onrender.com' */
+  var API_URL = 'http://localhost:3000';
+
+  async function consultarLogin(login, senha){
+    var resposta = await fetch(API_URL + '/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login: login, senha: senha })
+    });
+    return await resposta.json();
+  }
+
+  /* ---------- Validação de CPF ---------- */
+  function validarCPF(cpf){
+    // Remove caracteres não numéricos
+    cpf = cpf.replace(/\D/g, '');
+    
+    // Verifica se tem 11 dígitos e se não são todos iguais
+    if(cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+    
+    // Calcula primeiro dígito verificador
+    var soma = 0;
+    for(var i = 0; i < 9; i++){
+      soma += parseInt(cpf.charAt(i)) * (10 - i);
+    }
+    var resto = soma % 11;
+    var primeiroDigito = resto < 2 ? 0 : 11 - resto;
+    
+    if(parseInt(cpf.charAt(9)) !== primeiroDigito) return false;
+    
+    // Calcula segundo dígito verificador
+    soma = 0;
+    for(var i = 0; i < 10; i++){
+      soma += parseInt(cpf.charAt(i)) * (11 - i);
+    }
+    resto = soma % 11;
+    var segundoDigito = resto < 2 ? 0 : 11 - resto;
+    
+    return parseInt(cpf.charAt(10)) === segundoDigito;
+  }
+  
+  function ehCPF(valor){
+    return /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$|^\d{11}$/.test(valor);
+  }
+  
+  function formatarCPF(valor){
+    // Remove tudo que não é número
+    var numeros = valor.replace(/\D/g, '');
+    
+    // Se for email, não formata
+    if(valor.includes('@')){
+      return valor;
+    }
+    
+    // Se não tiver números, retorna vazio
+    if(!numeros) return '';
+    
+    // Formata: XXX.XXX.XXX-XX
+    if(numeros.length <= 3){
+      return numeros;
+    } else if(numeros.length <= 6){
+      return numeros.slice(0, 3) + '.' + numeros.slice(3);
+    } else if(numeros.length <= 9){
+      return numeros.slice(0, 3) + '.' + numeros.slice(3, 6) + '.' + numeros.slice(6);
+    } else {
+      return numeros.slice(0, 3) + '.' + numeros.slice(3, 6) + '.' + numeros.slice(6, 9) + '-' + numeros.slice(9, 11);
+    }
+  }
+
+  /* ---------- Mostrar / ocultar senha ---------- */
+  var inputSenha = document.getElementById('inputSenha');
+  var togglePass = document.getElementById('togglePass');
+  var eyeIcon = document.getElementById('eyeIcon');
+
+  var eyeOpen = '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path><circle cx="12" cy="12" r="3"></circle>';
+  var eyeClosed = '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+
+  togglePass.addEventListener('click', function(){
+    var visivel = inputSenha.type === 'text';
+    inputSenha.type = visivel ? 'password' : 'text';
+    eyeIcon.innerHTML = visivel ? eyeOpen : eyeClosed;
+    togglePass.setAttribute('aria-pressed', String(!visivel));
+    togglePass.setAttribute('aria-label', visivel ? 'Mostrar senha' : 'Ocultar senha');
+  });
+
+  /* ---------- Banner de aviso ---------- */
+  var banner = document.getElementById('banner');
+  function mostrarBanner(tipo, mensagem){
+    banner.className = 'banner show ' + tipo;
+    banner.textContent = mensagem;
+  }
+  function esconderBanner(){
+    banner.className = 'banner';
+    banner.textContent = '';
+  }
+
+  /* ---------- Erros por campo ---------- */
+  function marcarErro(campoId, boxSelector, mensagem){
+    var campo = document.getElementById(campoId);
+    campo.classList.add('invalid');
+    campo.querySelector('.field-box').classList.add('has-error');
+    campo.querySelector('.field-error').textContent = mensagem;
+  }
+  function limparErro(campoId){
+    var campo = document.getElementById(campoId);
+    campo.classList.remove('invalid');
+    campo.querySelector('.field-box').classList.remove('has-error');
+  }
+
+  /* ---------- Envio do formulário ---------- */
+  var form = document.getElementById('loginForm');
+  var inputLogin = document.getElementById('inputLogin');
+  var cpfValidationMsg = document.getElementById('cpfValidation');
+  var btnEntrar = document.getElementById('btnEntrar');
+  
+  /* Listener para formatação e validação de CPF em tempo real */
+  inputLogin.addEventListener('input', function(){
+    var valor = this.value;
+    
+    // Formata o CPF enquanto o usuário digita (apenas se for números)
+    var apenasNumeros = valor.replace(/\D/g, '');
+    if(apenasNumeros && !valor.includes('@')){
+      // Se está digitando apenas números, formata como CPF
+      var valorFormatado = formatarCPF(valor);
+      if(this.value !== valorFormatado){
+        this.value = valorFormatado;
+      }
+      valor = valorFormatado;
+    }
+    
+    valor = valor.trim();
+    
+    // Valida o CPF
+    if(ehCPF(valor)){
+      if(validarCPF(valor)){
+        cpfValidationMsg.className = 'cpf-validation valid';
+        cpfValidationMsg.textContent = '✓ CPF válido';
+      } else {
+        cpfValidationMsg.className = 'cpf-validation invalid';
+        cpfValidationMsg.textContent = '✗ CPF inválido';
+      }
+    } else {
+      cpfValidationMsg.className = 'cpf-validation';
+      cpfValidationMsg.textContent = '';
+    }
+  });
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    esconderBanner();
+    limparErro('fieldLogin');
+    limparErro('fieldSenha');
+
+    var login = inputLogin.value.trim();
+    var senha = inputSenha.value;
+    var valido = true;
+
+    if(!login){
+      marcarErro('fieldLogin', null, 'Informe seu CPF ou e-mail.');
+      valido = false;
+    }
+    if(!senha){
+      marcarErro('fieldSenha', null, 'Informe sua senha.');
+      valido = false;
+    }
+    if(!valido) return;
+
+    btnEntrar.disabled = true;
+    btnEntrar.textContent = 'VERIFICANDO...';
+
+    try{
+      var resultado = await consultarLogin(login, senha);
+
+      if(resultado.sucesso){
+        mostrarBanner('success', 'Bem-vindo(a), ' + resultado.usuario.nome.split(' ')[0] + '! Login realizado com sucesso.');
+        form.reset();
+      } else {
+        mostrarBanner('error', (resultado.erros && resultado.erros[0]) || 'CPF/e-mail ou senha incorretos.');
+      }
+    } catch(erro){
+      mostrarBanner('error', 'Não foi possível falar com o servidor. Verifique se a API está rodando (npm start).');
+    } finally {
+      btnEntrar.disabled = false;
+      btnEntrar.textContent = 'ENTRAR NA SUA CONTA';
+    }
+  });
+
+  /* ---------- Recuperar senha (simulação) ---------- */
+  document.getElementById('linkRecuperar').addEventListener('click', function(){
+    esconderBanner();
+    if(!inputLogin.value.trim()){
+      marcarErro('fieldLogin', null, 'Informe seu CPF ou e-mail para recuperar a senha.');
+      inputLogin.focus();
+      return;
+    }
+    limparErro('fieldLogin');
+    mostrarBanner('success', 'Se o e-mail informado estiver cadastrado, você receberá um código de acesso em instantes.');
+  });
+
+  /* ---------- Ir para a tela de cadastro ---------- */
+  document.getElementById('linkCadastro').addEventListener('click', function(){
+    window.location.href = 'cadastro.html';
+  });
+
+})();
+</script>
+</body>
+</html>
