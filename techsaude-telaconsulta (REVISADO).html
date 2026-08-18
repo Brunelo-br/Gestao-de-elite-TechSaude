@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechSaúde - Incluir Consulta em Agenda</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e5631 0%, #2d7a3e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #1e5631 0%, #2d7a3e 100%);
+            padding: 20px;
+            color: white;
+            position: relative;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 40px;
+        }
+
+        .header-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .header-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .header-btn:hover .icon {
+            transform: scale(1.15);
+        }
+
+        .header-btn.emergencia .icon {
+            width: 45px;
+            height: 45px;
+            background: #c41e3a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            box-shadow: 0 4px 15px rgba(196, 30, 58, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .header-btn.emergencia:hover .icon {
+            box-shadow: 0 6px 20px rgba(196, 30, 58, 0.5);
+        }
+
+        .header-btn.inicio .icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            transition: all 0.3s ease;
+        }
+
+        .header-btn.inicio:hover .icon {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .header-btn label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+
+        .header-center {
+            text-align: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo-icon {
+            width: 55px;
+            height: auto;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .app-title {
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .datetime {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 5px;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            padding: 30px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: #1e5631;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-layout {
+            display: grid;
+            gap: 20px;
+        }
+
+        /* Seção 1: Campos básicos (2 colunas no desktop) */
+        .section-1 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        /* Campo do formulário */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-field {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f5f5f5;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .form-field:focus-within {
+            border-color: #2d7a3e;
+            background: #f9fdf9;
+            box-shadow: 0 0 8px rgba(45, 122, 62, 0.1);
+        }
+
+        .form-field.focused {
+            border-color: #2d7a3e;
+            background: #f9fdf9;
+        }
+
+        .form-field input,
+        .form-field textarea {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            font-family: inherit;
+            color: #333;
+            outline: none;
+        }
+
+        .form-field input::placeholder,
+        .form-field textarea::placeholder {
+            color: #999;
+        }
+
+        .field-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            color: #2d7a3e;
+        }
+
+        .field-label {
+            font-size: 12px;
+            color: #1e5631;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        /* Seção de Data e Hora (layout especial) */
+        .datetime-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .datetime-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .datetime-inputs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .datetime-inputs .form-field {
+            flex: 1;
+        }
+
+        /* Alarme e Notificações */
+        .alarm-section {
+            background: #f5f5f5;
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .alarm-section:hover {
+            border-color: #2d7a3e;
+            background: #f9fdf9;
+        }
+
+        .alarm-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .alarm-label .field-icon {
+            margin-bottom: 0;
+        }
+
+        .alarm-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .alarm-title {
+            font-size: 12px;
+            color: #1e5631;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .alarm-subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            background: #ddd;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            border: none;
+            outline: none;
+        }
+
+        .toggle-switch.active {
+            background: #4caf50;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            left: 30px;
+        }
+
+        .toggle-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Seção de Observações */
+        .observations-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-field.textarea-field {
+            align-items: flex-start;
+            padding-top: 12px;
+        }
+
+        .form-field textarea {
+            resize: vertical;
+            min-height: 80px;
+            padding-top: 4px;
+        }
+
+        /* Seção de Botões */
+        .buttons-section {
+            display: grid;
+            gap: 16px;
+            margin-top: 30px;
+        }
+
+        .primary-button-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-save {
+            flex: 1;
+            background: #2d7a3e;
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-save:hover {
+            background: #1e5631;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(45, 122, 62, 0.3);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+        }
+
+        .btn-clear {
+            background: #f5f5f5;
+            color: #c41e3a;
+            border: 2px solid #c41e3a;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-clear:hover {
+            background: #c41e3a;
+            color: white;
+        }
+
+        .secondary-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #1e5631;
+            border: 2px solid #ddd;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8e8;
+            border-color: #2d7a3e;
+            color: #2d7a3e;
+        }
+
+        /* Responsividade Mobile */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 16px;
+            }
+
+            .header {
+                padding: 16px;
+            }
+
+            .header-top {
+                margin-bottom: 12px;
+            }
+
+            .header-buttons {
+                gap: 30px;
+            }
+
+            .header-btn .icon {
+                width: 40px !important;
+                height: 40px !important;
+                font-size: 22px !important;
+            }
+
+            .header-btn label {
+                font-size: 11px;
+            }
+
+            .logo-icon {
+                width: 40px;
+                height: auto;
+                display: block;
+            }
+
+            .app-title {
+                font-size: 24px;
+            }
+
+            .datetime {
+                font-size: 12px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .page-title {
+                font-size: 18px;
+                margin-bottom: 20px;
+            }
+
+            .section-1 {
+                grid-template-columns: 1fr;
+            }
+
+            .datetime-inputs {
+                flex-direction: column;
+            }
+
+            .primary-button-group {
+                flex-direction: column;
+            }
+
+            .btn-save {
+                width: 100%;
+            }
+
+            .btn-clear {
+                width: 100%;
+            }
+
+            .secondary-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Responsividade Tablet */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .main-content {
+                padding: 25px;
+            }
+
+            .section-1 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .datetime-section {
+                grid-template-columns: 1fr;
+            }
+
+            .datetime-inputs {
+                gap: 12px;
+            }
+        }
+
+        /* Desktop grande */
+        @media (min-width: 1025px) {
+            .main-content {
+                padding: 40px;
+            }
+
+            .section-1 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .datetime-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .datetime-inputs {
+                gap: 15px;
+            }
+
+            .secondary-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Estados de validação */
+        .form-field.error {
+            border-color: #c41e3a;
+            background: rgba(196, 30, 58, 0.05);
+        }
+
+        .form-field.success {
+            border-color: #4caf50;
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .error-message {
+            font-size: 12px;
+            color: #c41e3a;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-field.error ~ .error-message {
+            display: block;
+        }
+
+        /* Animações */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            animation: slideIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-top">
+                <div class="header-buttons">
+                    <button class="header-btn emergencia" onclick="irParaEmergencia()">
+                        <div class="icon">🔔</div>
+                        <label>EMERGÊNCIA</label>
+                    </button>
+                </div>
+                <div class="header-center">
+                    <div class="logo-section">
+                        <img class="logo-icon" src="data:image/png;base64,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" alt="TechSaúde" />
+                        <div class="app-title">TechSaúde</div>
+                    </div>
+                    <div class="datetime" id="datetime"></div>
+                </div>
+                <div class="header-buttons">
+                    <button class="header-btn inicio" onclick="irParaInicio()">
+                        <div class="icon">🏠</div>
+                        <label>INÍCIO</label>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <h1 class="page-title">Incluir Consulta em Agenda</h1>
+
+            <div class="form-layout">
+                <!-- Seção 1: Campos Principais -->
+                <div class="section-1">
+                    <!-- LOCAL -->
+                    <div class="form-group">
+                        <label class="field-label">LOCAL (Clínica/Hospital)</label>
+                        <div class="form-field" onclick="this.classList.add('focused')" onblur="this.classList.remove('focused')">
+                            <div class="field-icon">🏥</div>
+                            <input type="text" id="local" placeholder="Ex: Hospital de Olhos" required>
+                        </div>
+                        <div class="error-message">Campo obrigatório</div>
+                    </div>
+
+                    <!-- ESPECIALIDADE -->
+                    <div class="form-group">
+                        <label class="field-label">Especialidade</label>
+                        <div class="form-field" onclick="this.classList.add('focused')" onblur="this.classList.remove('focused')">
+                            <div class="field-icon">🩺</div>
+                            <input type="text" id="especialidade" placeholder="Ex: Oftalmologia" required>
+                        </div>
+                        <div class="error-message">Campo obrigatório</div>
+                    </div>
+
+                    <!-- MÉDICO -->
+                    <div class="form-group">
+                        <label class="field-label">Médico</label>
+                        <div class="form-field" onclick="this.classList.add('focused')" onblur="this.classList.remove('focused')">
+                            <div class="field-icon">👨‍⚕️</div>
+                            <input type="text" id="medico" placeholder="Ex: Dra. Ana Silva" required>
+                        </div>
+                        <div class="error-message">Campo obrigatório</div>
+                    </div>
+
+                    <!-- DIA E HORA -->
+                    <div class="form-group">
+                        <label class="field-label">Dia e Hora</label>
+                        <div class="datetime-inputs">
+                            <div class="form-field" onclick="this.classList.add('focused')" onblur="this.classList.remove('focused')">
+                                <div class="field-icon">📅</div>
+                                <input type="date" id="data" required>
+                            </div>
+                            <div class="form-field" onclick="this.classList.add('focused')" onblur="this.classList.remove('focused')">
+                                <div class="field-icon">🕐</div>
+                                <input type="time" id="hora" placeholder="HH:MM" required>
+                            </div>
+                        </div>
+                        <div class="error-message">Data e hora obrigatórias</div>
+                    </div>
+                </div>
+
+                <!-- ALARME E NOTIFICAÇÕES -->
+                <div class="form-group">
+                    <label class="field-label" style="margin-bottom: 12px;">Alarme e Notificações</label>
+                    <div class="alarm-section">
+                        <div class="alarm-label">
+                            <div class="field-icon">🔔</div>
+                            <div class="alarm-text">
+                                <div class="alarm-title">Alarme e Notificações</div>
+                                <div class="alarm-subtitle">(Criação Automática)</div>
+                            </div>
+                        </div>
+                        <button class="toggle-switch active" id="alarmToggle" onclick="toggleAlarm(this)"></button>
+                    </div>
+                    <div class="toggle-label">ATIVO</div>
+                </div>
+
+                <!-- OBSERVAÇÕES -->
+                <div class="form-group">
+                    <label class="field-label">Observações (Opcional)</label>
+                    <div class="form-field textarea-field" onclick="this.classList.add('focused')" onblur="this.classList.remove('focused')">
+                        <div class="field-icon">✏️</div>
+                        <textarea id="observacoes" placeholder="Ex: Jejum de 8h necessário, levar exames anteriores"></textarea>
+                    </div>
+                </div>
+
+                <!-- BOTÕES DE AÇÃO -->
+                <div class="buttons-section">
+                    <div class="primary-button-group">
+                        <button class="btn-save" onclick="salvarConsulta()">
+                            <span>➕</span> SALVAR NA AGENDA
+                        </button>
+                        <button class="btn-clear" onclick="limparFormulario()">
+                            <span>🗑️</span> LIMPAR
+                        </button>
+                    </div>
+
+                    <div class="secondary-buttons">
+                        <button class="btn-secondary" onclick="digitarConsulta()">
+                            <span>⌨️</span> DIGITAR CONSULTA
+                        </button>
+                        <button class="btn-secondary" onclick="escanearEncaminhamento()">
+                            <span>📷</span> ESCANEAR ENCAMINHAMENTO
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Atualizar data e hora do cabeçalho
+        function atualizarDataHora() {
+            const agora = new Date();
+            const diasSemana = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+            const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+            
+            const hora = String(agora.getHours()).padStart(2, '0');
+            const minuto = String(agora.getMinutes()).padStart(2, '0');
+            const dia = agora.getDate();
+            const diaSemana = diasSemana[agora.getDay()];
+            const mes = meses[agora.getMonth()];
+            const ano = agora.getFullYear();
+            
+            const formatado = `${hora}:${minuto} - ${diaSemana}, ${dia} de ${mes} de ${ano}`;
+            document.getElementById('datetime').textContent = formatado;
+        }
+
+        atualizarDataHora();
+        setInterval(atualizarDataHora, 60000); // Atualizar a cada minuto
+
+        // Validar campos obrigatórios
+        function validarFormulario() {
+            const campos = ['local', 'especialidade', 'medico', 'data', 'hora'];
+            let valido = true;
+
+            campos.forEach(campo => {
+                const element = document.getElementById(campo);
+                if (!element.value.trim()) {
+                    element.closest('.form-field').classList.add('error');
+                    valido = false;
+                } else {
+                    element.closest('.form-field').classList.remove('error');
+                    element.closest('.form-field').classList.add('success');
+                }
+            });
+
+            return valido;
+        }
+
+        // Salvar consulta
+        function salvarConsulta() {
+            if (validarFormulario()) {
+                const consulta = {
+                    local: document.getElementById('local').value,
+                    especialidade: document.getElementById('especialidade').value,
+                    medico: document.getElementById('medico').value,
+                    data: document.getElementById('data').value,
+                    hora: document.getElementById('hora').value,
+                    alarme: document.getElementById('alarmToggle').classList.contains('active'),
+                    observacoes: document.getElementById('observacoes').value
+                };
+
+                console.log('Consulta salva:', consulta);
+                alert('✅ Consulta salva com sucesso na agenda!');
+                limparFormulario();
+            } else {
+                alert('⚠️ Por favor, preencha todos os campos obrigatórios');
+            }
+        }
+
+        // Limpar formulário
+        function limparFormulario() {
+            document.getElementById('local').value = '';
+            document.getElementById('especialidade').value = '';
+            document.getElementById('medico').value = '';
+            document.getElementById('data').value = '';
+            document.getElementById('hora').value = '';
+            document.getElementById('observacoes').value = '';
+            document.getElementById('alarmToggle').classList.add('active');
+
+            // Remover classes de validação
+            document.querySelectorAll('.form-field').forEach(field => {
+                field.classList.remove('error', 'success');
+            });
+        }
+
+        // Toggle do alarme
+        function toggleAlarm(button) {
+            button.classList.toggle('active');
+        }
+
+        // Navegação
+        function irParaEmergencia() {
+            alert('Redirecionando para tela de Emergência...');
+            // window.location.href = '/emergencia.html';
+        }
+
+        function irParaInicio() {
+            alert('Redirecionando para Tela Home...');
+            // window.location.href = '/index.html';
+        }
+
+        function digitarConsulta() {
+            alert('Modo digitar consulta ativado. O foco será movido para o primeiro campo.');
+            document.getElementById('local').focus();
+        }
+
+        function escanearEncaminhamento() {
+            alert('Abrindo câmera para escanear encaminhamento médico...');
+            // Integrar com câmera/scanner aqui
+        }
+
+        // Melhorar UX ao clicar nos campos
+        document.querySelectorAll('.form-field input, .form-field textarea').forEach(field => {
+            field.addEventListener('focus', function() {
+                this.closest('.form-field').classList.add('focused');
+            });
+
+            field.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.closest('.form-field').classList.remove('focused', 'success');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
