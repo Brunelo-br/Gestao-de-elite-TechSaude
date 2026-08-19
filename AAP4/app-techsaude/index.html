@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde</title>
+
+<!-- BIBLIOTECA DO SUPABASE JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root{
+    --cream: #f3efdc;
+    --cream-deep: #ece5c9;
+    --ink: #16301f;
+    --ink-soft: #2e4a37;
+    --green-deep: #1b3a26;
+    --green-mid: #2f6b46;
+    --teal: #2f9e8f;
+    --line: #cdbf95;
+    --text: #26332a;
+    --text-soft: #55604f;
+    --error: #a3402c;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background: var(--cream);
+    font-family: 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+  }
+
+  /* ============ ESTRUTURA GERAL (mobile-first) ============ */
+  .page{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .brand-panel{ display:none; } /* só aparece no desktop */
+
+  .auth-panel{
+    flex:1;
+    display:flex;
+    justify-content:center;
+  }
+  .auth-card-outer{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    background:var(--cream);
+    min-height:100vh;
+  }
+
+  /* ============ CABEÇALHO ============ */
+  header.app-header{
+    padding:22px 20px 14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border-bottom:2px solid var(--line);
+    background: linear-gradient(180deg, #f7f3e2, var(--cream));
+  }
+  .logo-mark{ width:115px; height:115px; flex-shrink:0; object-fit:contain; }
+  .wordmark{ font-size:1.5rem; font-weight:800; letter-spacing:-0.5px; }
+  .wordmark .tech{ color:var(--teal); }
+  .wordmark .saude{ color:var(--green-deep); }
+
+  .datetime{
+    padding:9px 20px;
+    font-size:0.88rem;
+    color:var(--text-soft);
+    border-bottom:1px solid var(--line);
+    background:var(--cream);
+  }
+
+  .screen-wrap{
+    flex:1;
+    padding:18px 18px 30px;
+  }
+  .card{
+    background:var(--cream-deep);
+    border:2px solid var(--line);
+    border-radius:20px;
+    padding:24px 20px 28px;
+    height:100%;
+  }
+  .screen{ display:none; animation: fade .28s ease; }
+  .screen.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  h1.title{
+    font-size:1.6rem;
+    line-height:1.15;
+    font-weight:900;
+    color:var(--green-deep);
+    text-transform:uppercase;
+    margin:0 0 12px;
+    letter-spacing:-0.5px;
+  }
+  p.lead{
+    font-size:0.98rem;
+    color:var(--text);
+    line-height:1.5;
+    margin:0 0 22px;
+  }
+  .btn{
+    display:block;
+    width:100%;
+    text-align:center;
+    padding:15px 18px;
+    border-radius:999px;
+    border:none;
+    background: linear-gradient(180deg, #234a34, var(--green-deep));
+    color:#f3efdc;
+    font-weight:800;
+    font-size:1rem;
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+    cursor:pointer;
+    box-shadow: 0 6px 0 #0e2416, 0 10px 18px rgba(0,0,0,0.25);
+    transition: transform .08s ease;
+  }
+  .btn:active{ transform:translateY(3px); box-shadow:0 3px 0 #0e2416; }
+  .btn:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; }
+  .btn.secondary{
+    background: transparent;
+    color:var(--green-deep);
+    box-shadow:none;
+    border:2px solid var(--green-deep);
+  }
+  .helper{
+    text-align:center;
+    font-size:0.9rem;
+    color:var(--text-soft);
+    margin:10px 0 20px;
+  }
+  .helper a, .link{
+    color:var(--ink-soft);
+    font-weight:700;
+    text-decoration:underline;
+    cursor:pointer;
+    background:none; border:none; font-size:inherit; padding:0;
+  }
+  .field{ margin-bottom:15px; }
+  .field label{
+    display:block;
+    font-weight:800;
+    color:var(--green-deep);
+    font-size:0.92rem;
+    margin-bottom:6px;
+  }
+  .field-input-wrap{ position:relative; }
+  .field input{
+    width:100%;
+    padding:13px 44px 13px 16px;
+    border-radius:999px;
+    border:2px solid var(--line);
+    background:#fbf9ee;
+    font-size:0.98rem;
+    color:var(--text);
+    font-family:inherit;
+  }
+  .field input:focus{
+    outline:none;
+    border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(47,158,143,0.25);
+  }
+  .field small{
+    display:block;
+    margin-top:4px;
+    color:var(--text-soft);
+    font-size:0.8rem;
+  }
+  .toggle-eye{
+    position:absolute;
+    right:14px; top:50%;
+    transform:translateY(-50%);
+    background:none; border:none; cursor:pointer;
+    font-size:1.1rem;
+    color:var(--text-soft);
+    padding:4px;
+    line-height:1;
+  }
+  .toggle-eye:focus-visible{ outline:2px solid var(--teal); }
+  .form-actions{ margin-top:20px; }
+  .back-row{
+    text-align:center;
+    margin-top:16px;
+    font-size:0.9rem;
+    color:var(--text-soft);
+  }
+  .msg-banner{
+    display:none;
+    padding:11px 14px;
+    border-radius:14px;
+    font-size:0.87rem;
+    font-weight:700;
+    margin-bottom:14px;
+  }
+  .msg-banner.show{ display:block; }
+  .msg-banner.ok{ background:#dcefdf; color:#1b4332; border:1px solid #9dcbab; }
+  .msg-banner.error{ background:#f4dcd6; color:var(--error); border:1px solid #e0a998; }
+  .success-icon{ width:64px; height:64px; margin:0 auto 16px; display:block; }
+  .center{ text-align:center; }
+
+  /* ============ PAINEL DE MARCA (só desktop) ============ */
+  .brand-inner{ max-width:440px; }
+  .brand-logo-row{ display:flex; align-items:center; gap:14px; margin-bottom:36px; }
+  .brand-logo-row .logo-mark{ width:115px; height:115px; }
+  .brand-logo-row .wordmark{ font-size:1.9rem; color:var(--cream); }
+  .brand-logo-row .wordmark .tech{ color:#7fd6c6; }
+  .brand-logo-row .wordmark .saude{ color:var(--cream); }
+  .brand-headline{
+    font-size:2.2rem;
+    line-height:1.2;
+    font-weight:900;
+    color:var(--cream);
+    margin:0 0 18px;
+  }
+  .brand-sub{
+    font-size:1.05rem;
+    line-height:1.6;
+    color:#cfe3d5;
+    margin:0 0 34px;
+  }
+  .brand-features{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:18px; }
+  .brand-features li{
+    display:flex; align-items:flex-start; gap:14px;
+    color:#e8f2ea; font-size:0.98rem; line-height:1.5;
+  }
+  .feat-icon{
+    width:38px; height:38px; flex-shrink:0;
+    border-radius:12px;
+    background:rgba(255,255,255,0.12);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.15rem;
+  }
+  .feat-text b{ display:block; color:#fff; font-size:1rem; margin-bottom:2px; }
+
+  /* ============ DESKTOP (>= 900px) ============ */
+  @media (min-width: 900px){
+    body{
+      background: radial-gradient(circle at 50% 0%, #0f5132 0%, #0b3e28 45%, #082a1c 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:40px 24px;
+    }
+    .page{
+      flex-direction:row;
+      width:100%;
+      max-width:1080px;
+      min-height:660px;
+      border-radius:32px;
+      overflow:hidden;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .brand-panel{
+      display:flex;
+      flex:1.05;
+      flex-direction:column;
+      justify-content:center;
+      padding:64px 56px;
+      background: linear-gradient(160deg, #12583a, #0b3423 65%, #082a1c);
+      position:relative;
+      overflow:hidden;
+    }
+    .brand-inner{ position:relative; z-index:1; }
+    .auth-panel{
+      flex:0.95;
+      background:var(--cream);
+      align-items:center;
+      padding:44px;
+    }
+    .auth-card-outer{
+      min-height:auto;
+      max-width:420px;
+      margin:auto;
+      border-radius:24px;
+      border:1px solid var(--line);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+      overflow:hidden;
+    }
+    header.app-header{ padding:26px 28px 14px; }
+    .datetime{ padding:9px 28px; }
+    .screen-wrap{ padding:22px 28px 30px; }
+    .card{ border-radius:0; border:none; padding:0; background:transparent; }
+    h1.title{ font-size:1.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- PAINEL DE MARCA -->
+  <aside class="brand-panel">
+    <div class="brand-inner">
+      <div class="brand-logo-row">
+        <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:115px; height:115px; object-fit:contain;">
+        <div class="wordmark"><span class="tech">Tech</span><span class="saude">Saúde</span></div>
+      </div>
+
+      <h2 class="brand-headline">Sua rotina de saúde, organizada com carinho.</h2>
+      <p class="brand-sub">O TechSaúde te ajuda a lembrar consultas, remédios e exames — tudo isso em um lugar simples de usar, pensado para você.</p>
+
+      <ul class="brand-features">
+        <li>
+          <span class="feat-icon">📅</span>
+          <span class="feat-text"><b>Lembretes de consultas</b>Nunca mais perca uma data importante.</span>
+        </li>
+        <li>
+          <span class="feat-icon">💊</span>
+          <span class="feat-text"><b>Controle de medicamentos</b>Saiba a hora certa de cada remédio.</span>
+        </li>
+        <li>
+          <span class="feat-icon">❤️</span>
+          <span class="feat-text"><b>Acompanhamento simples</b>Tudo na palma da sua mão, com letras grandes e fáceis de ler.</span>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- PAINEL DE ACESSO -->
+  <main class="auth-panel">
+    <div class="auth-card-outer">
+
+      <header class="app-header">
+        <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:115px; height:115px; object-fit:contain;">
+        <div class="wordmark"><span class="tech">Tech</span><span class="saude">Saúde</span></div>
+      </header>
+
+      <div class="datetime" id="datetime">--:-- - --, -- de -- de ----</div>
+
+      <div class="screen-wrap">
+
+        <!-- WELCOME SCREEN -->
+        <section class="screen active" id="screen-welcome">
+          <div class="card">
+            <h1 class="title">Bem-vindo ao<br>Tech Saúde</h1>
+            <p class="lead">Iremos te ajudar no dia a dia, através da tecnologia, ajudando na organização da sua rotina de saúde na palma da sua mão.</p>
+
+            <button class="btn" onclick="goTo('login')">Entrar na sua conta</button>
+            <p class="helper">Já tem uma conta? <a href="#" onclick="goTo('login'); return false;">Acesse aqui.</a></p>
+
+            <button class="btn" onclick="goTo('cadastro')" style="margin-top:6px;">Criar nova conta</button>
+            <p class="helper">Não tem conta? <a href="#" onclick="goTo('cadastro'); return false;">Comece aqui.</a></p>
+          </div>
+        </section>
+
+        <!-- LOGIN SCREEN -->
+        <section class="screen" id="screen-login">
+          <div class="card">
+            <h1 class="title">Entrar no<br>Tech Saúde</h1>
+            <p class="lead">Iremos te ajudar no dia a dia, através da tecnologia, ajudando na organização da sua rotina de saúde.</p>
+
+            <div class="msg-banner" id="login-msg"></div>
+
+            <form id="form-login" novalidate>
+              <div class="field">
+                <label for="login-user">Cpf ou e-mail</label>
+                <div class="field-input-wrap">
+                  <input type="text" id="login-user" autocomplete="username">
+                </div>
+                <small>Insira seu número de CPF ou endereço de e-mail</small>
+              </div>
+
+              <div class="field">
+                <label for="login-senha">Senha</label>
+                <div class="field-input-wrap">
+                  <input type="password" id="login-senha" autocomplete="current-password">
+                  <button type="button" class="toggle-eye" onclick="toggleEye('login-senha', this)" aria-label="Mostrar senha">👁</button>
+                </div>
+                <small>Insira sua senha de acesso</small>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn">Entrar na sua conta</button>
+              </div>
+            </form>
+
+            <p class="helper" style="margin-top:18px;">
+              <a href="#" class="link" onclick="recuperarSenha(); return false;">Recuperar a Senha? Clique aqui.</a><br>
+              <span style="font-size:0.83rem;">Para receber um código de acesso em seu e-mail cadastrado, clique acima para iniciar a recuperação.</span>
+            </p>
+
+            <div class="back-row">Não tem conta? <a href="#" class="link" onclick="goTo('cadastro'); return false;">Criar conta</a></div>
+          </div>
+        </section>
+
+        <!-- CADASTRO SCREEN -->
+        <section class="screen" id="screen-cadastro">
+          <div class="card">
+            <h1 class="title" style="text-align:center;">Criar Conta</h1>
+            <p class="lead" style="text-align:center;">Bem-vindo ao TechSaúde. Preencha seus dados abaixo para se cadastrar.</p>
+
+            <div class="msg-banner" id="cadastro-msg"></div>
+
+            <form id="form-cadastro" novalidate>
+              <div class="field">
+                <label for="c-nome">Nome</label>
+                <input type="text" id="c-nome" placeholder="Seu nome completo" autocomplete="name">
+              </div>
+              <div class="field">
+                <label for="c-cpf">CPF</label>
+                <input type="text" id="c-cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+              </div>
+              <div class="field">
+                <label for="c-rg">RG</label>
+                <input type="text" id="c-rg" placeholder="00.000.000" inputmode="numeric" maxlength="10">
+              </div>
+              <div class="field">
+                <label for="c-idade">Idade</label>
+                <input type="number" id="c-idade" placeholder="Ex: 25" min="1" max="120">
+              </div>
+              <div class="field">
+                <label for="c-telefone">Telefone</label>
+                <input type="text" id="c-telefone" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15">
+              </div>
+              <div class="field">
+                <label for="c-email">E-mail</label>
+                <input type="email" id="c-email" placeholder="seu.email@exemplo.com" autocomplete="email">
+              </div>
+              <div class="field">
+                <label for="c-senha">Senha</label>
+                <div class="field-input-wrap">
+                  <input type="password" id="c-senha" placeholder="Crie uma senha forte" autocomplete="new-password">
+                  <button type="button" class="toggle-eye" onclick="toggleEye('c-senha', this)" aria-label="Mostrar senha">👁</button>
+                </div>
+              </div>
+              <div class="field">
+                <label for="c-senha2">Confirmar senha</label>
+                <div class="field-input-wrap">
+                  <input type="password" id="c-senha2" placeholder="Repita sua senha" autocomplete="new-password">
+                  <button type="button" class="toggle-eye" onclick="toggleEye('c-senha2', this)" aria-label="Mostrar senha">👁</button>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn">Finalizar Cadastro</button>
+              </div>
+            </form>
+
+            <div class="back-row">Já tem uma conta? <a href="#" class="link" onclick="goTo('login'); return false;">Voltar para Login</a></div>
+          </div>
+        </section>
+
+        <!-- SUCCESS SCREEN -->
+        <section class="screen" id="screen-success">
+          <div class="card center">
+            <svg class="success-icon" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="46" fill="#dcefdf" stroke="#2f6b46" stroke-width="3"/>
+              <path d="M30 52 l14 14 26 -30" fill="none" stroke="#1b4332" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h1 class="title" style="text-align:center;">Login realizado!</h1>
+            <p class="lead" id="success-text">Bem-vindo de volta ao Tech Saúde.</p>
+            <button class="btn secondary" onclick="logout()">Sair e voltar ao início</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  // ---------- 1. CONEXÃO COM O SEU SUPABASE ----------
+  const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+  // Cole a sua chave publishable completa que você copiou do Supabase abaixo:
+  const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ---------- 2. NAVEGAÇÃO ENTRE TELAS ----------
+  function goTo(name){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    hideMsg('login-msg');
+    hideMsg('cadastro-msg');
+    document.querySelector('.screen-wrap').scrollTop = 0;
+  }
+
+  function showMsg(id, text, type){
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'msg-banner show ' + type;
+  }
+  function hideMsg(id){
+    const el = document.getElementById(id);
+    el.className = 'msg-banner';
+    el.textContent = '';
+  }
+
+  // ---------- 3. DATA E HORA DO SISTEMA ----------
+  const dias = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  function updateClock(){
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('datetime').textContent = `${hh}:${mm} - ${dias[now.getDay()]}, ${now.getDate()} de ${meses[now.getMonth()]} de ${now.getFullYear()}`;
+  }
+  updateClock();
+  setInterval(updateClock, 30000);
+
+  // ---------- 4. MOSTRAR/OCULTAR SENHA ----------
+  function toggleEye(inputId, btn){
+    const input = document.getElementById(inputId);
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    btn.textContent = showing ? '👁' : '🙈';
+    btn.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Ocultar senha');
+  }
+
+  // ---------- 5. MÁSCARAS DE INPUT ----------
+  document.getElementById('c-cpf').addEventListener('input', function(e){
+    let v = e.target.value.replace(/\D/g,'').slice(0,11);
+    v = v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+    e.target.value = v;
+  });
+  document.getElementById('c-rg').addEventListener('input', function(e){
+    let v = e.target.value.replace(/\D/g,'').slice(0,8);
+    v = v.replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,3})$/,'$1.$2');
+    e.target.value = v;
+  });
+  document.getElementById('c-telefone').addEventListener('input', function(e){
+    let v = e.target.value.replace(/\D/g,'').slice(0,11);
+    v = v.replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d{1,4})$/,'$1-$2');
+    e.target.value = v;
+  });
+
+  // ---------- 6. CADASTRO REAL NO SUPABASE ----------
+  document.getElementById('form-cadastro').addEventListener('submit', async function(e){
+    e.preventDefault();
+    hideMsg('cadastro-msg');
+
+    const nome = document.getElementById('c-nome').value.trim();
+    const cpf = document.getElementById('c-cpf').value.replace(/\D/g,''); // salva apenas números
+    const rg = document.getElementById('c-rg').value.trim();
+    const idade = parseInt(document.getElementById('c-idade').value, 10);
+    const telefone = document.getElementById('c-telefone').value.trim();
+    const email = document.getElementById('c-email').value.trim().toLowerCase();
+    const senha = document.getElementById('c-senha').value;
+    const senha2 = document.getElementById('c-senha2').value;
+
+    if(!nome || !cpf || !rg || !idade || !telefone || !email || !senha || !senha2){
+      showMsg('cadastro-msg', 'Por favor, preencha todos os campos antes de continuar.', 'error');
+      return;
+    }
+    if(senha !== senha2){
+      showMsg('cadastro-msg', 'As senhas digitadas não coincidem.', 'error');
+      return;
+    }
+
+    showMsg('cadastro-msg', 'Cadastrando no banco de dados...', 'ok');
+
+    // Inserção direta na tabela usuario do Supabase
+    const { data, error } = await supabaseClient
+      .from('usuario')
+      .insert([{
+        nome_completo: nome,
+        cpf: cpf,
+        rg: rg,
+        idade: idade,
+        telefone: telefone,
+        email: email,
+        senha_hash: senha
+      }]);
+
+    if(error){
+      if(error.code === '23505'){
+        showMsg('cadastro-msg', 'E-mail ou CPF já cadastrado no sistema.', 'error');
+      } else {
+        showMsg('cadastro-msg', 'Erro ao cadastrar: ' + error.message, 'error');
+      }
+      return;
+    }
+
+    showMsg('cadastro-msg', 'Cadastro realizado com sucesso! Redirecionando...', 'ok');
+    setTimeout(() => {
+      goTo('login');
+      document.getElementById('login-user').value = email;
+      document.getElementById('login-senha').focus();
+    }, 1200);
+  });
+
+  // ---------- 7. LOGIN REAL NO SUPABASE ----------
+  document.getElementById('form-login').addEventListener('submit', async function(e){
+    e.preventDefault();
+    hideMsg('login-msg');
+
+    const user = document.getElementById('login-user').value.trim().toLowerCase();
+    const rawDigits = user.replace(/\D/g,'');
+    const senha = document.getElementById('login-senha').value;
+
+    if(!user || !senha){
+      showMsg('login-msg', 'Preencha o CPF/e-mail e a senha.', 'error');
+      return;
+    }
+
+    showMsg('login-msg', 'Verificando credenciais...', 'ok');
+
+    // Busca por e-mail ou CPF
+    const { data, error } = await supabaseClient
+      .from('usuario')
+      .select('*')
+      .or(`email.eq.${user},cpf.eq.${rawDigits}`)
+      .maybeSingle();
+
+    if(error || !data){
+      showMsg('login-msg', 'Usuário não encontrado.', 'error');
+      return;
+    }
+
+    if(data.senha_hash !== senha){
+      showMsg('login-msg', 'Senha incorreta. Tente novamente.', 'error');
+      return;
+    }
+
+    // Grava log de autenticação
+    await supabaseClient.from('log_autenticacao').insert([{
+      id_usuario: data.id_usuario,
+      identificador_usado: user,
+      sucesso: true
+    }]);
+
+    localStorage.setItem('usuario_logado', JSON.stringify(Array.isArray(data) ? data[0] : data));
+    window.location.href = 'home.html';
+  });
+
+  function logout(){
+    document.getElementById('form-login').reset();
+    goTo('welcome');
+  }
+
+  // ---------- 8. RECUPERAR SENHA (CÓDIGO DE 6 DÍGITOS) ----------
+  async function recuperarSenha(){
+    const email = prompt('Digite o e-mail cadastrado para receber o código de recuperação:');
+    if(!email) return;
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    const { data: user, error } = await supabaseClient
+      .from('usuario')
+      .select('id_usuario')
+      .eq('email', cleanEmail)
+      .maybeSingle();
+
+    if(!user){
+      showMsg('login-msg', 'E-mail não encontrado em nossa base de dados.', 'error');
+      return;
+    }
+
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiraEm = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+    await supabaseClient.from('recuperacao_senha').insert([{
+      id_usuario: user.id_usuario,
+      codigo_verificacao: codigo,
+      expira_em: expiraEm
+    }]);
+
+    showMsg('login-msg', `Código gerado no Supabase para ${cleanEmail}: [ ${codigo} ]`, 'ok');
+  }
+</script>
+
+</body>
+</html>

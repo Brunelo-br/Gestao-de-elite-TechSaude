@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde — Home</title>
+
+<!-- SUPABASE JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root{
+    --cream: #f3efdc;
+    --cream-deep: #ece5c9;
+    --ink: #16301f;
+    --ink-soft: #2e4a37;
+    --green-deep: #1b3a26;
+    --green-mid: #2f6b46;
+    --teal: #2f9e8f;
+    --line: #cdbf95;
+    --text: #26332a;
+    --text-soft: #55604f;
+    --error: #a3402c;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background: var(--cream);
+    font-family: 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ============ TELA HOME ============ */
+  .home-topbar{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    padding:18px 14px 14px;
+    background: linear-gradient(160deg, #1d5b3a, #123a26);
+  }
+  .home-logo-center{ display:flex; flex-direction:column; align-items:center; gap:4px; padding-top:2px; }
+  .home-logo-center .logo-mark{ width:115px; height:115px; object-fit:contain; }
+  .wordmark{ font-size:1.1rem; font-weight:800; letter-spacing:-0.5px; }
+  .wordmark .tech{ color:#8fe0cf; }
+  .wordmark .saude{ color:var(--cream); }
+
+  .topbar-btn{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    background:none; border:none; cursor:pointer; color:var(--cream);
+    font-size:0.64rem; font-weight:800; letter-spacing:0.3px; text-transform:uppercase;
+    padding:2px; width:60px; font-family:inherit;
+  }
+  .topbar-btn .icon-circle{
+    width:38px; height:38px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .topbar-btn.emergencia .icon-circle{ background:#c0392b; }
+  .topbar-btn.sair .icon-circle{ background:rgba(255,255,255,0.16); }
+  .topbar-btn svg{ width:20px; height:20px; }
+  .topbar-btn:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+
+  .home-datetime{
+    padding:9px 18px;
+    font-size:0.85rem;
+    color:var(--text-soft);
+    background:var(--cream);
+    border-bottom:1px solid var(--line);
+    display:flex;
+    justify-content:space-between;
+  }
+
+  .home-msg{
+    display:none;
+    margin:12px 16px 0;
+    padding:11px 14px;
+    border-radius:14px;
+    font-size:0.84rem;
+    font-weight:700;
+    background:#f4dcd6; color:var(--error); border:1px solid #e0a998;
+  }
+  .home-msg.show{ display:block; }
+
+  .home-body{ padding:16px 16px 0; }
+  .home-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:16px;
+  }
+  .home-card{
+    background:var(--cream-deep);
+    border:2px solid var(--line);
+    border-radius:18px;
+    padding:16px 6px 14px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    cursor:pointer; text-align:center; font-family:inherit;
+    transition: border-color .15s ease, transform .08s ease;
+  }
+  .home-card:hover{ border-color:var(--teal); }
+  .home-card:active{ transform:scale(0.97); }
+  .home-card:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+  .home-card svg{ width:42px; height:42px; color:var(--green-deep); }
+  .home-card span{
+    font-weight:800; color:var(--green-deep); font-size:0.8rem;
+    line-height:1.25; text-transform:uppercase;
+  }
+
+  .home-banner{
+    background: linear-gradient(160deg, #1d5b3a, #123a26);
+    border-radius:22px 22px 0 0;
+    padding:22px 18px 28px;
+    display:flex; align-items:center; gap:14px;
+    flex:1;
+  }
+  .home-banner svg{ width:52px; height:52px; flex-shrink:0; }
+  .home-banner span{
+    color:var(--cream); font-weight:800; font-size:1rem; line-height:1.3;
+  }
+
+  /* ============ DESKTOP (>= 900px) ============ */
+  @media (min-width: 900px){
+    body{
+      background: radial-gradient(circle at 50% 0%, #0f5132 0%, #0b3e28 45%, #082a1c 100%);
+      align-items:center;
+      justify-content:center;
+      padding:40px 24px;
+    }
+    .home-wrap{
+      width:100%;
+      max-width:760px;
+      min-height:660px;
+      border-radius:32px;
+      overflow:hidden;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06);
+      display:flex;
+      flex-direction:column;
+    }
+    .home-topbar{ padding:26px 32px 18px; }
+    .home-datetime{ padding:10px 32px; }
+    .home-body{ padding:22px 32px 0; }
+    .home-grid{ grid-template-columns:1fr 1fr 1fr; gap:16px; }
+    .home-card{ padding:22px 10px 18px; }
+    .home-card svg{ width:48px; height:48px; }
+    .home-card span{ font-size:0.85rem; }
+    .home-banner{ padding:26px 32px 32px; border-radius:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="home-wrap">
+
+  <!-- TOP BAR -->
+  <div class="home-topbar">
+    <button class="topbar-btn emergencia" onclick="triggerEmergency()">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3a5 5 0 0 0-5 5v3.5c0 1-.4 1.9-1.1 2.6L4 16h16l-1.9-1.9c-.7-.7-1.1-1.6-1.1-2.6V8a5 5 0 0 0-5-5Z"/>
+          <path d="M9.5 19a2.5 2.5 0 0 0 5 0"/>
+        </svg>
+      </span>
+      Emergência
+    </button>
+
+    <div class="home-logo-center">
+      <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:115px; height:115px; object-fit:contain;">
+      <div class="wordmark"><span class="tech">Tech</span><span class="saude">Saúde</span></div>
+    </div>
+
+    <button class="topbar-btn sair" onclick="logout()">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </span>
+      Sair
+    </button>
+  </div>
+
+  <!-- DATA E SAUDAÇÃO -->
+  <div class="home-datetime">
+    <span class="clock-text">--:-- - --, -- de -- de ----</span>
+    <span id="user-greeting" style="font-weight:700; color:var(--green-deep);"></span>
+  </div>
+
+  <!-- MENSAGEM DE EMERGÊNCIA -->
+  <div class="home-msg" id="home-msg"></div>
+
+  <!-- GRID DE ATALHOS -->
+  <div class="home-body">
+    <div class="home-grid">
+
+      <button class="home-card" onclick="openFeature('medicamento')">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="24" width="30" height="14" rx="7" transform="rotate(-45 19 31)"/>
+          <line x1="13.5" y1="24.5" x2="24.5" y2="37.5" transform="rotate(-45 19 31)"/>
+          <path d="M36 8a5 5 0 0 1 5 5v2.5l2 2.5h-14l2-2.5V13a5 5 0 0 1 5-5Z"/>
+          <path d="M33.5 20a2.5 2.5 0 0 0 5 0"/>
+        </svg>
+        <span>Alarme de<br>Medicamento</span>
+      </button>
+
+      <button class="home-card" onclick="openFeature('calendario')">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="10" width="36" height="32" rx="4"/>
+          <line x1="6" y1="19" x2="42" y2="19"/>
+          <line x1="15" y1="5" x2="15" y2="13"/>
+          <line x1="33" y1="5" x2="33" y2="13"/>
+          <line x1="14" y1="26" x2="14" y2="26.2"/>
+          <line x1="24" y1="26" x2="24" y2="26.2"/>
+          <line x1="34" y1="26" x2="34" y2="26.2"/>
+          <line x1="14" y1="34" x2="14" y2="34.2"/>
+          <line x1="24" y1="34" x2="24" y2="34.2"/>
+          <line x1="34" y1="34" x2="34" y2="34.2"/>
+        </svg>
+        <span>Calendário<br>de Saúde</span>
+      </button>
+
+      <button class="home-card" onclick="openFeature('voz')">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="18" y="6" width="12" height="22" rx="6"/>
+          <path d="M12 22v2a12 12 0 0 0 24 0v-2"/>
+          <line x1="24" y1="36" x2="24" y2="42"/>
+          <line x1="17" y1="42" x2="31" y2="42"/>
+          <line x1="6" y1="18" x2="6" y2="26"/>
+          <line x1="42" y1="18" x2="42" y2="26"/>
+        </svg>
+        <span>Comando<br>de Voz</span>
+      </button>
+
+      <button class="home-card" onclick="openFeature('dicas')">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M24 4a10 10 0 0 0-6 18c1.2.9 2 2.4 2 4v1h8v-1c0-1.6.8-3.1 2-4a10 10 0 0 0-6-18Z"/>
+          <line x1="20" y1="31" x2="28" y2="31"/>
+          <line x1="21" y1="35" x2="27" y2="35"/>
+          <path d="M6 41c4-2 12-2 18 0"/>
+          <path d="M42 41c-4-2-12-2-18 0"/>
+          <line x1="24" y1="41" x2="24" y2="45"/>
+        </svg>
+        <span>Dicas<br>Úteis</span>
+      </button>
+
+      <button class="home-card" onclick="openFeature('jogos')">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="24" cy="10" r="5"/>
+          <line x1="24" y1="15" x2="24" y2="28"/>
+          <rect x="12" y="28" width="24" height="12" rx="4"/>
+          <line x1="18" y1="34" x2="18" y2="34.2"/>
+          <line x1="30" y1="34" x2="30" y2="34.2"/>
+        </svg>
+        <span>Mini Jogos<br>de Memória</span>
+      </button>
+
+      <button class="home-card" onclick="openFeature('consultas')">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="19" cy="12" r="6"/>
+          <path d="M8 40v-6c0-6 5-11 11-11s11 5 11 11"/>
+          <circle cx="37" cy="34" r="8"/>
+          <line x1="37" y1="30" x2="37" y2="34"/>
+          <line x1="37" y1="34" x2="40" y2="36"/>
+        </svg>
+        <span>Lembrete de<br>Consultas</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- BANNER INFERIOR -->
+  <div class="home-banner">
+    <svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="8" y="14" width="24" height="26" rx="2"/>
+      <line x1="20" y1="20" x2="20" y2="28"/>
+      <line x1="16" y1="24" x2="24" y2="24"/>
+      <line x1="14" y1="34" x2="14" y2="34.2"/>
+      <line x1="26" y1="34" x2="26" y2="34.2"/>
+      <path d="M32 44c6-7 10-12 10-17a7 7 0 0 0-14 0c0 5 4 10 10 17Z"/>
+      <circle cx="38" cy="27" r="2.2"/>
+    </svg>
+    <span>Você é muito<br>importante para nós</span>
+  </div>
+
+</div>
+
+<script>
+  // ---------- 1. CONFIGURAÇÃO SUPABASE ----------
+  const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ---------- 2. CONTROLE DE SESSÃO ----------
+  let usuario = null;
+
+  try {
+    const usuarioSalvo = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
+    console.log('Conteúdo de localStorage.getItem(\'usuario_logado\'):', localStorage.getItem('usuario_logado'));
+
+    if (!usuarioSalvo) {
+      window.location.href = 'index.html';
+    } else {
+      usuario = JSON.parse(usuarioSalvo);
+      const primeiroNome = usuario.nome_completo ? usuario.nome_completo.split(' ')[0] : 'Usuário';
+      document.getElementById('user-greeting').textContent = `Olá, ${primeiroNome}!`;
+    }
+  } catch (error) {
+    console.error('Erro ao ler os dados do usuário no localStorage:', error);
+  }
+
+  // ---------- 3. RELÓGIO ----------
+  const dias = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  function updateClock(){
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    const texto = `${hh}:${mm} - ${dias[now.getDay()]}, ${now.getDate()} de ${meses[now.getMonth()]} de ${now.getFullYear()}`;
+    document.querySelectorAll('.clock-text').forEach(el => el.textContent = texto);
+  }
+  updateClock();
+  setInterval(updateClock, 1000 * 30);
+
+  // ---------- 4. ATALHOS ----------
+  const FEATURES = {
+    medicamento: { title: 'Alarme de Medicamento' },
+    calendario:  { title: 'Calendário de Saúde' },
+    voz:         { title: 'Comando de Voz' },
+    dicas:       { title: 'Dicas Úteis' },
+    jogos:       { title: 'Mini Jogos de Memória' },
+    consultas:   { title: 'Lembrete de Consultas' },
+  };
+
+  function openFeature(key){
+    const f = FEATURES[key];
+    if(!f) return;
+    alert(`Abrindo ${f.title}... (Em desenvolvimento)`);
+  }
+
+  // ---------- 5. BOTÃO SOS EMERGÊNCIA ----------
+  async function triggerEmergency(){
+    const el = document.getElementById('home-msg');
+    
+    if (usuario && usuario.id_usuario) {
+      const { data: contatos } = await supabaseClient
+        .from('contato_emergencia')
+        .select('*')
+        .eq('id_usuario', usuario.id_usuario);
+
+      if (contatos && contatos.length > 0) {
+        const c = contatos[0];
+        el.textContent = `🚨 Acionando emergência para: ${c.nome_contato} (${c.telefone})`;
+      } else {
+        el.textContent = '🚨 Serviço de emergência acionado! Contatando SAMU (192).';
+      }
+    } else {
+      el.textContent = '🚨 Serviço de emergência acionado!';
+    }
+
+    el.className = 'home-msg show';
+    setTimeout(() => { el.className = 'home-msg'; }, 6000);
+  }
+
+  // ---------- 6. LOGOUT ----------
+  function logout(){
+    localStorage.removeItem('usuario_logado');
+    window.location.href = 'index.html';
+  }
+</script>
+
+</body>
+</html>
