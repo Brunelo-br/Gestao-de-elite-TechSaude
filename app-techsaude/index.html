@@ -165,12 +165,26 @@
     border-color:var(--teal);
     box-shadow:0 0 0 3px rgba(47,158,143,0.25);
   }
+  .field input.input-invalid{
+    border-color:var(--error);
+    box-shadow:0 0 0 3px rgba(163,64,44,0.18);
+  }
+  .field input.input-valid{
+    border-color:var(--green-mid);
+  }
   .field small{
     display:block;
     margin-top:4px;
     color:var(--text-soft);
     font-size:0.8rem;
   }
+  .field small.input-feedback{
+    display:none;
+    font-weight:700;
+  }
+  .field small.input-feedback.show{ display:block; }
+  .field small.input-feedback.error{ color:var(--error); }
+  .field small.input-feedback.ok{ color:var(--green-mid); }
   .toggle-eye{
     position:absolute;
     right:14px; top:50%;
@@ -358,11 +372,12 @@
 
             <form id="form-login" novalidate>
               <div class="field">
-                <label for="login-user">Cpf ou e-mail</label>
+                <label for="login-user" id="login-user-label">CPF ou e-mail</label>
                 <div class="field-input-wrap">
-                  <input type="text" id="login-user" autocomplete="username">
+                  <input type="text" id="login-user" placeholder="CPF ou e-mail" autocomplete="username">
                 </div>
-                <small>Insira seu número de CPF ou endereço de e-mail</small>
+                <small id="login-user-help">Comece com um número para entrar com CPF ou digite seu e-mail</small>
+                <small id="login-user-feedback" class="input-feedback" aria-live="polite"></small>
               </div>
 
               <div class="field">
@@ -404,10 +419,11 @@
               <div class="field">
                 <label for="c-cpf">CPF</label>
                 <input type="text" id="c-cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+                <small id="c-cpf-feedback" class="input-feedback" aria-live="polite"></small>
               </div>
               <div class="field">
                 <label for="c-rg">RG</label>
-                <input type="text" id="c-rg" placeholder="00.000.000" inputmode="numeric" maxlength="10">
+                <input type="text" id="c-rg" placeholder="00.000.000-0" inputmode="numeric" maxlength="12">
               </div>
               <div class="field">
                 <label for="c-idade">Idade</label>
@@ -513,15 +529,92 @@
     btn.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Ocultar senha');
   }
 
+  // Valida os dois dígitos verificadores do CPF.
+  function validarCPF(valor){
+    const cpf = valor.replace(/\D/g,'');
+    if(cpf.length !== 11 || /^([0-9])\1{10}$/.test(cpf)) return false;
+
+    let soma = 0;
+    for(let indice = 0; indice < 9; indice++) soma += Number(cpf[indice]) * (10 - indice);
+    let digito = (soma * 10) % 11;
+    if(digito === 10) digito = 0;
+    if(digito !== Number(cpf[9])) return false;
+
+    soma = 0;
+    for(let indice = 0; indice < 10; indice++) soma += Number(cpf[indice]) * (11 - indice);
+    digito = (soma * 10) % 11;
+    if(digito === 10) digito = 0;
+    return digito === Number(cpf[10]);
+  }
+
+  function formatarCPF(valor){
+    let cpf = valor.replace(/\D/g,'').slice(0,11);
+    cpf = cpf.replace(/(\d{3})(\d)/,'$1.$2');
+    cpf = cpf.replace(/(\d{3})(\d)/,'$1.$2');
+    cpf = cpf.replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+    return cpf;
+  }
+
   // ---------- 5. MÁSCARAS DE INPUT ----------
+  document.getElementById('login-user').addEventListener('input', function(e){
+    const valor = e.target.value;
+    const usandoCPF = /^\d/.test(valor);
+    const label = document.getElementById('login-user-label');
+    const help = document.getElementById('login-user-help');
+    const feedback = document.getElementById('login-user-feedback');
+
+    e.target.classList.remove('input-invalid', 'input-valid');
+    feedback.className = 'input-feedback';
+    feedback.textContent = '';
+
+    if(usandoCPF){
+      e.target.value = formatarCPF(valor);
+      e.target.inputMode = 'numeric';
+      e.target.placeholder = '000.000.000-00';
+      label.textContent = 'CPF';
+      help.textContent = 'Digite os 11 números do seu CPF';
+
+      const cpf = e.target.value.replace(/\D/g,'');
+      if(cpf.length === 11){
+        const cpfValido = validarCPF(cpf);
+        e.target.classList.add(cpfValido ? 'input-valid' : 'input-invalid');
+        feedback.classList.add('show', cpfValido ? 'ok' : 'error');
+        feedback.textContent = cpfValido ? 'CPF válido.' : 'CPF inválido.';
+        e.target.setAttribute('aria-invalid', String(!cpfValido));
+      } else {
+        e.target.removeAttribute('aria-invalid');
+      }
+    } else {
+      e.target.inputMode = 'email';
+      e.target.placeholder = 'seu.email@exemplo.com';
+      label.textContent = 'E-mail';
+      help.textContent = 'Digite o e-mail cadastrado';
+      e.target.removeAttribute('aria-invalid');
+    }
+  });
+
   document.getElementById('c-cpf').addEventListener('input', function(e){
-    let v = e.target.value.replace(/\D/g,'').slice(0,11);
-    v = v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
-    e.target.value = v;
+    e.target.value = formatarCPF(e.target.value);
+    const feedback = document.getElementById('c-cpf-feedback');
+    const cpf = e.target.value.replace(/\D/g,'');
+
+    e.target.classList.remove('input-invalid', 'input-valid');
+    feedback.className = 'input-feedback';
+    feedback.textContent = '';
+
+    if(cpf.length === 11){
+      const cpfValido = validarCPF(cpf);
+      e.target.classList.add(cpfValido ? 'input-valid' : 'input-invalid');
+      feedback.classList.add('show', cpfValido ? 'ok' : 'error');
+      feedback.textContent = cpfValido ? 'CPF válido.' : 'CPF inválido.';
+      e.target.setAttribute('aria-invalid', String(!cpfValido));
+    } else {
+      e.target.removeAttribute('aria-invalid');
+    }
   });
   document.getElementById('c-rg').addEventListener('input', function(e){
-    let v = e.target.value.replace(/\D/g,'').slice(0,8);
-    v = v.replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,3})$/,'$1.$2');
+    let v = e.target.value.replace(/\D/g,'').slice(0,9);
+    v = v.replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)$/,'$1-$2');
     e.target.value = v;
   });
   document.getElementById('c-telefone').addEventListener('input', function(e){
@@ -546,6 +639,16 @@
 
     if(!nome || !cpf || !rg || !idade || !telefone || !email || !senha || !senha2){
       showMsg('cadastro-msg', 'Por favor, preencha todos os campos antes de continuar.', 'error');
+      return;
+    }
+    if(!validarCPF(cpf)){
+      showMsg('cadastro-msg', 'Informe um CPF válido.', 'error');
+      document.getElementById('c-cpf').focus();
+      return;
+    }
+    if(!/^\d{2}\.\d{3}\.\d{3}-\d$/.test(document.getElementById('c-rg').value)){
+      showMsg('cadastro-msg', 'Informe um RG com 9 dígitos.', 'error');
+      document.getElementById('c-rg').focus();
       return;
     }
     if(senha !== senha2){
@@ -596,6 +699,11 @@
 
     if(!user || !senha){
       showMsg('login-msg', 'Preencha o CPF/e-mail e a senha.', 'error');
+      return;
+    }
+    if(!user.includes('@') && !validarCPF(rawDigits)){
+      showMsg('login-msg', 'Informe um CPF válido ou um e-mail.', 'error');
+      document.getElementById('login-user').focus();
       return;
     }
 

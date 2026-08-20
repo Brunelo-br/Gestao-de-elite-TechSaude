@@ -411,25 +411,26 @@
 
       <div class="banner" id="banner" role="alert"></div>
 
-      <!-- ETAPA 1: IDENTIFICAÇÃO (E-MAIL OU CPF) -->
+      <!-- ETAPA 1: IDENTIFICAÇÃO POR E-MAIL -->
       <div class="step active" id="step1">
         <p class="stepper">Etapa 1 de 3</p>
         <h1>RECUPERAR SENHA</h1>
-        <p class="subtitle">Informe o e-mail ou CPF cadastrado para localizar sua conta.</p>
+        <p class="subtitle">Informe o e-mail cadastrado para localizar sua conta.</p>
 
         <form id="formEmail" novalidate>
           <div class="field" id="fieldEmail">
             <div class="field-box">
-              <label for="inputEmail">E-mail ou CPF</label>
+              <label for="inputEmail">E-mail</label>
               <input
-                type="text"
+                type="email"
                 id="inputEmail"
                 name="email"
-                placeholder="Insira seu e-mail ou CPF"
+                placeholder="Insira seu e-mail"
+                autocomplete="email"
                 aria-describedby="helperEmail errorEmail"
               >
             </div>
-            <p class="helper" id="helperEmail">Insira os dados cadastrados na sua conta</p>
+            <p class="helper" id="helperEmail">Insira o e-mail cadastrado na sua conta</p>
             <p class="field-error" id="errorEmail"></p>
           </div>
 
@@ -629,7 +630,12 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
 
     var termo = inputEmail.value.trim();
     if(!termo){
-      marcarErro('fieldEmail', 'Informe seu e-mail ou CPF cadastrado.');
+      marcarErro('fieldEmail', 'Informe seu e-mail cadastrado.');
+      inputEmail.focus();
+      return;
+    }
+    if(!/^\S+@\S+\.\S+$/.test(termo)){
+      marcarErro('fieldEmail', 'Informe um e-mail válido.');
       inputEmail.focus();
       return;
     }
@@ -819,12 +825,14 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
     btnSalvarSenha.textContent = 'SALVANDO...';
 
     try{
-      const { error } = await supabaseClient
+      const { data: usuarioAtualizado, error } = await supabaseClient
         .from('usuario')
-        .update({ senha: novaSenha })
-        .eq('id_usuario', usuarioEncontrado.id_usuario);
+        .update({ senha_hash: novaSenha })
+        .eq('id_usuario', usuarioEncontrado.id_usuario)
+        .select('id_usuario')
+        .maybeSingle();
 
-      if(error){
+      if(error || !usuarioAtualizado){
         mostrarBanner('error', 'Não foi possível atualizar a senha. Tente novamente.');
       } else {
         const { error: erroToken } = await supabaseClient
