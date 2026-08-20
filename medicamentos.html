@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde - Alarme de Medicamento</title>
+
+<!-- SUPABASE JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --cream:#F4EEDB;
+    --cream-card:#F6F1E2;
+    --forest:#173626;
+    --forest-2:#1F4632;
+    --teal:#3FA79A;
+    --sage:#8AC06B;
+    --border:rgba(23,54,38,0.28);
+    --border-soft:rgba(23,54,38,0.16);
+    --muted:#4B5A4F;
+    --error:#B23A2E;
+    --error-bg:#FBE7E4;
+    --success:#1F6B45;
+    --success-bg:#E4F1E7;
+    --shadow-outer: 0 30px 60px rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+    font-family:'Nunito', sans-serif;
+    color:var(--forest);
+  }
+
+  body{
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255,255,255,0.06), transparent 40%),
+      linear-gradient(160deg, #16412B 0%, #0F2E1C 100%);
+    padding:48px 24px;
+  }
+
+  .site{
+    width:100%;
+    max-width:560px;
+    background:var(--cream);
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:var(--shadow-outer);
+    transition:max-width .15s ease;
+  }
+
+  .layout{
+    display:grid;
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "proximo"
+      "lista"
+      "add"
+      "status";
+    row-gap:0;
+  }
+  .main-col{ grid-area:lista; min-width:0; }
+
+  .topbar{
+    background:linear-gradient(135deg, var(--forest-2) 0%, var(--teal) 100%);
+    padding:20px 20px 18px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:8px;
+  }
+
+  .nav-btn{
+    background:none;
+    border:none;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    cursor:pointer;
+    color:var(--cream);
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:11.5px;
+    letter-spacing:0.4px;
+    text-decoration:none;
+    padding:2px;
+    flex-shrink:0;
+  }
+
+  .nav-btn .icon-circle{
+    width:38px;height:38px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:2px;
+  }
+
+  .nav-btn.emergencia .icon-circle{ background:#C23B2E; }
+  .nav-btn.inicio .icon-circle{ background:rgba(255,255,255,0.18); }
+  .nav-btn .icon-circle svg{ width:20px;height:20px; color:#fff; }
+
+  .nav-btn:focus-visible{ outline:3px solid var(--cream); outline-offset:3px; border-radius:8px; }
+
+  .brand-top{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    flex-shrink:0;
+  }
+  .brand-top img{ width:70px;height:70px;object-fit:contain; }
+  .brand-top span{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:17px;
+    color:var(--cream);
+  }
+
+  .app{ padding:24px 24px 36px; }
+
+  .datetime{
+    text-align:center;
+    font-weight:700;
+    font-size:14px;
+    color:var(--forest);
+    border-bottom:2px solid var(--border-soft);
+    padding-bottom:14px;
+    margin-bottom:20px;
+  }
+
+  .section-title{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:18px;
+    margin:0 0 12px;
+    color:var(--forest);
+  }
+
+  .proximo-card{
+    grid-area:proximo;
+    background:#FAF7EC;
+    border:2.5px solid var(--forest);
+    border-radius:22px;
+    padding:20px;
+    margin-bottom:26px;
+  }
+  .proximo-titulo{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:19px;
+    text-align:center;
+    margin:0 0 4px;
+    letter-spacing:0.3px;
+  }
+  .proximo-data{
+    text-align:center;
+    font-weight:700;
+    font-size:14px;
+    color:var(--muted);
+    margin:0 0 16px;
+  }
+  .proximo-linha{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    justify-content:center;
+  }
+  .proximo-icon{
+    width:52px;height:52px;
+    border-radius:50%;
+    background:var(--forest);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .proximo-icon svg{ width:26px;height:26px;color:var(--cream); }
+  .proximo-texto{ text-align:left; }
+  .proximo-med{ font-weight:800; font-size:14.5px; color:var(--forest); margin:0 0 2px; }
+  .proximo-hora{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:32px; color:var(--forest); line-height:1; }
+  .proximo-caption{ font-size:11.5px; font-weight:800; letter-spacing:0.5px; color:var(--muted); text-transform:uppercase; margin-top:2px; }
+  .proximo-vazio{ text-align:center; font-weight:700; color:var(--muted); font-size:14.5px; padding:6px 0; }
+
+  .alarm-card{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:#FAF7EC;
+    border:2.5px solid var(--border);
+    border-radius:20px;
+    padding:14px 16px;
+    margin-bottom:14px;
+    transition:opacity .2s ease;
+  }
+  .alarm-card.inativo{ opacity:0.55; }
+
+  .alarm-icon{
+    width:50px;height:50px;
+    border-radius:50%;
+    background:var(--forest);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    color:var(--cream);
+  }
+  .alarm-icon svg{ width:24px;height:24px; }
+
+  .alarm-info{ flex:1; min-width:0; }
+  .alarm-nome{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:16.5px; color:var(--forest); margin:0 0 2px; word-break:break-word; }
+  .alarm-dose{ font-size:13.5px; font-weight:700; color:var(--muted); margin:0 0 6px; }
+  .alarm-dose-lista{ list-style:none; margin:0 0 6px; padding:0; }
+  .alarm-dose-lista li{ font-size:13.5px; font-weight:700; color:var(--muted); margin-bottom:1px; }
+  .alarm-horario-row{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .alarm-horario{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:19px; color:var(--forest); }
+  .alarm-meta{ font-size:12px; font-weight:700; color:var(--muted); }
+  .badge-concluido{
+    display:inline-block;
+    background:var(--success-bg);
+    color:var(--success);
+    font-size:11px;
+    font-weight:800;
+    padding:2px 10px;
+    border-radius:999px;
+    margin-top:4px;
+  }
+
+  .alarm-actions{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    flex-shrink:0;
+  }
+
+  .btn-editar{
+    background:none;border:none;cursor:pointer;color:var(--forest);
+    padding:5px; display:flex; border-radius:8px;
+  }
+  .btn-editar svg{ width:19px;height:19px; }
+  .btn-editar:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+
+  .switch{ position:relative; display:inline-block; width:50px; height:28px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; position:absolute; }
+  .switch .slider{
+    position:absolute; inset:0; cursor:pointer;
+    background:#D8D0B4; border:2px solid var(--forest);
+    border-radius:999px; transition:background .2s ease;
+  }
+  .switch .slider::before{
+    content:""; position:absolute; height:18px; width:18px;
+    left:3px; top:2px; background:var(--cream); border-radius:50%;
+    transition:transform .2s ease;
+  }
+  .switch input:checked + .slider{ background:var(--forest); }
+  .switch input:checked + .slider::before{ transform:translateX(21px); }
+  .switch input:focus-visible + .slider{ outline:3px solid var(--teal); outline-offset:2px; }
+
+  .lista-vazia{
+    text-align:center;
+    color:var(--muted);
+    font-weight:700;
+    font-size:14.5px;
+    padding:18px 10px;
+    border:2px dashed var(--border);
+    border-radius:18px;
+    margin-bottom:14px;
+  }
+
+  .btn-adicionar{
+    grid-area:add;
+    width:100%;
+    margin-top:6px;
+    background:var(--forest);
+    color:var(--cream);
+    border:none;
+    border-radius:999px;
+    padding:15px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:16.5px;
+    letter-spacing:0.4px;
+    cursor:pointer;
+    box-shadow:0 6px 0 rgba(0,0,0,0.18);
+    transition:transform .08s ease, box-shadow .08s ease, background .2s ease;
+  }
+  .btn-adicionar:hover{ background:var(--forest-2); }
+  .btn-adicionar:active{ transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.18); }
+  .btn-adicionar:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+
+  .status-alarmes{
+    grid-area:status;
+    text-align:center;
+    font-size:13.5px;
+    color:var(--muted);
+    font-weight:600;
+    margin:16px 6px 0;
+    line-height:1.4;
+  }
+
+  .modal-overlay{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(10,20,14,0.55);
+    align-items:center; justify-content:center;
+    padding:20px;
+    z-index:50;
+  }
+  .modal-overlay.show{ display:flex; }
+
+  .modal{
+    background:var(--cream);
+    border-radius:24px;
+    width:100%;
+    max-width:440px;
+    max-height:92vh;
+    overflow-y:auto;
+    padding:28px 26px 26px;
+    box-shadow:var(--shadow-outer);
+  }
+
+  .modal h2{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:21px;
+    text-align:center;
+    margin:0 0 18px;
+    color:var(--forest);
+  }
+
+  .field{ margin-bottom:16px; }
+
+  .field-box{
+    position:relative;
+    display:flex;
+    align-items:center;
+    background:#FAF7EC;
+    border:2.5px solid var(--forest);
+    border-radius:999px;
+    padding:12px 20px;
+    min-height:54px;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .field-box:focus-within{
+    border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(63,167,154,0.25);
+  }
+  .field-box.has-error{ border-color:var(--error); }
+
+  .field-box label{
+    position:absolute;
+    top:-11px; left:18px;
+    background:var(--cream-card);
+    padding:0 8px;
+    font-weight:800;
+    font-size:13px;
+    letter-spacing:0.4px;
+    color:var(--forest);
+    text-transform:uppercase;
+  }
+
+  .field-box input, .field-box select{
+    flex:1;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-family:'Nunito', sans-serif;
+    font-size:16px;
+    font-weight:700;
+    color:var(--forest);
+    padding:4px 0;
+    min-width:0;
+  }
+
+  .field-error{
+    display:none;
+    text-align:center;
+    font-size:13px;
+    color:var(--error);
+    font-weight:700;
+    margin:6px 10px 0;
+  }
+  .field.invalid .field-error{ display:block; }
+  .field.invalid .field-box{ border-color:var(--error); }
+
+  .helper-inline{
+    text-align:center;
+    font-size:12.5px;
+    color:var(--muted);
+    font-weight:600;
+    margin:6px 10px 0;
+    line-height:1.35;
+  }
+
+  fieldset{ border:2.5px solid var(--forest); border-radius:18px; padding:12px 16px 14px; margin:0 0 16px; }
+  legend{ font-weight:800; font-size:13px; text-transform:uppercase; letter-spacing:0.4px; padding:0 8px; color:var(--forest); }
+  .radio-row{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px; }
+  .radio-row label{ display:flex; align-items:center; gap:6px; font-weight:700; font-size:14px; cursor:pointer; }
+  .radio-row input{ width:18px;height:18px; flex-shrink:0; accent-color:var(--forest); }
+
+  .meds-label{
+    display:block;
+    font-weight:800;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    color:var(--forest);
+    margin:0 0 10px;
+  }
+  .med-bloco{
+    border:2px solid var(--border);
+    border-radius:16px;
+    padding:14px 14px 2px;
+    margin-bottom:12px;
+  }
+  .med-bloco-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .med-bloco-titulo{
+    font-weight:800;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.3px;
+    color:var(--forest);
+  }
+  .btn-remover-med{
+    background:none;
+    border:none;
+    color:var(--error);
+    font-weight:800;
+    font-size:12.5px;
+    cursor:pointer;
+    text-decoration:underline;
+    padding:2px;
+  }
+  .btn-add-med{
+    display:block;
+    width:100%;
+    background:none;
+    border:2.5px dashed var(--forest);
+    color:var(--forest);
+    border-radius:16px;
+    padding:12px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    cursor:pointer;
+    margin:2px 0 18px;
+  }
+  .btn-add-med:focus-visible, .btn-remover-med:focus-visible{
+    outline:3px solid var(--teal); outline-offset:2px;
+  }
+
+  .modal-actions{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:6px;
+  }
+
+  .btn-salvar{
+    background:var(--forest); color:var(--cream); border:none; border-radius:999px;
+    padding:14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:16px;
+    cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,0.18);
+  }
+  .btn-salvar:active{ transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.18); }
+
+  .btn-cancelar{
+    background:none; border:2.5px solid var(--forest); color:var(--forest); border-radius:999px;
+    padding:12px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px; cursor:pointer;
+  }
+
+  .btn-excluir{
+    background:none; border:none; color:var(--error); font-weight:800; font-size:14px;
+    cursor:pointer; padding:8px; text-decoration:underline;
+  }
+
+  .modal-actions button:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+
+  .alerta-overlay{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(10,20,14,0.72);
+    align-items:center; justify-content:center;
+    padding:20px;
+    z-index:100;
+  }
+  .alerta-overlay.show{ display:flex; }
+
+  .alerta-modal{
+    background:var(--cream);
+    border:4px solid var(--forest);
+    border-radius:26px;
+    max-width:400px;
+    width:100%;
+    padding:32px 26px;
+    text-align:center;
+    box-shadow:var(--shadow-outer);
+    animation:alertaPop .2s ease;
+  }
+  @keyframes alertaPop{ from{ transform:scale(0.92); opacity:0; } to{ transform:scale(1); opacity:1; } }
+
+  .alerta-icon{
+    width:76px;height:76px;
+    border-radius:50%;
+    background:var(--forest);
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 16px;
+    animation:alertaPulse 1s ease-in-out infinite;
+  }
+  .alerta-icon svg{ width:38px;height:38px;color:var(--cream); }
+  @keyframes alertaPulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.08); } }
+
+  .alerta-titulo{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:22px; margin:0 0 10px; color:var(--forest); }
+  .alerta-med{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:19px; margin:0 0 4px; color:var(--forest); }
+  .alerta-dose{ font-weight:700; color:var(--muted); margin:0 0 4px; font-size:15px; }
+  .alerta-hora{ font-weight:700; color:var(--muted); margin:0 0 24px; font-size:14px; }
+
+  .alerta-actions{ display:flex; flex-direction:column; gap:10px; }
+  .btn-tomei{
+    background:var(--forest); color:var(--cream); border:none; border-radius:999px;
+    padding:15px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:16.5px;
+    cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,0.18);
+  }
+  .btn-tomei:active{ transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.18); }
+  .btn-adiar{
+    background:none; border:2.5px solid var(--forest); color:var(--forest); border-radius:999px;
+    padding:13px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px; cursor:pointer;
+  }
+  .alerta-actions button:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+
+  @media (max-width:480px){
+    body{ padding:0; }
+    .site{ max-width:100%; min-height:100vh; border-radius:0; box-shadow:none; }
+  }
+
+  @media (min-width:901px){
+    body{ padding:56px 32px; }
+    .site{ max-width:1100px; }
+    .topbar{ padding:24px 36px 22px; }
+    .app{ padding:32px 40px 48px; }
+    .layout{
+      grid-template-columns:340px 1fr;
+      column-gap:40px;
+      grid-template-areas:
+        "proximo lista"
+        "add     lista"
+        "status  lista";
+      align-items:start;
+    }
+    .proximo-card{ margin-bottom:20px; }
+    .section-title{ margin-top:0; }
+    #listaAlarmes{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
+      gap:14px;
+      align-content:start;
+    }
+    #listaAlarmes .alarm-card{ margin-bottom:0; }
+    #listaAlarmes .lista-vazia{ grid-column:1 / -1; margin-bottom:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="site">
+
+  <header class="topbar">
+    <button type="button" class="nav-btn emergencia" id="btnEmergencia" onclick="dispararEmergencia()">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v1.06A7.5 7.5 0 0 0 3 15v3a1 1 0 0 0 1 1h1.17a3.5 3.5 0 0 0 6.66 1h.34a3.5 3.5 0 0 0 6.66-1H20a1 1 0 0 0 1-1v-3a7.5 7.5 0 0 0-4-6.94V7a5 5 0 0 0-5-5Z"/></svg>
+      </span>
+      EMERGÊNCIA
+    </button>
+
+    <div class="brand-top">
+      <img src="img/logo.png" alt="Logo TechSaúde">
+      <span>TechSaúde</span>
+    </div>
+
+    <a class="nav-btn inicio" href="home.html">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>
+      </span>
+      INÍCIO
+    </a>
+  </header>
+
+  <div class="app">
+    <div class="datetime" id="datetime" aria-live="off">--:-- - carregando data...</div>
+
+    <div class="layout">
+      <div class="proximo-card" aria-live="polite">
+        <h1 class="proximo-titulo">ALARME DE MEDICAMENTO</h1>
+        <p class="proximo-data" id="proximoData">Carregando alarmes...</p>
+        <div id="proximoConteudo"></div>
+      </div>
+
+      <div class="main-col">
+        <h2 class="section-title">Seus alarmes</h2>
+        <div id="listaAlarmes"></div>
+      </div>
+
+      <button type="button" class="btn-adicionar" id="btnAdicionar">+ ADICIONAR NOVO ALARME</button>
+      <p class="status-alarmes" id="statusAlarmes"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Adicionar / Editar -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">Novo alarme de medicamento</h2>
+
+    <form id="formAlarme" novalidate>
+      <input type="hidden" id="alarmeId">
+
+      <div class="field">
+        <label class="meds-label">Medicamentos deste alarme</label>
+        <div id="medicamentosContainer"></div>
+        <button type="button" class="btn-add-med" id="btnAddMedicamento">+ Adicionar outro medicamento</button>
+      </div>
+
+      <div class="field" id="fieldPrimeiraDose">
+        <div class="field-box">
+          <label for="inputPrimeiraDose">Data e horário da 1ª dose</label>
+          <input type="datetime-local" id="inputPrimeiraDose">
+        </div>
+        <p class="field-error" id="errorPrimeiraDose">Escolha a data e o horário da primeira dose.</p>
+      </div>
+
+      <div class="field" id="fieldIntervalo">
+        <div class="field-box">
+          <label for="inputIntervalo">Intervalo entre doses (horas)</label>
+          <input type="number" id="inputIntervalo" min="1" max="48" step="1" placeholder="Ex: 8">
+        </div>
+        <p class="helper-inline">O app vai programar os próximos alarmes automaticamente a partir da 1ª dose.</p>
+        <p class="field-error" id="errorIntervalo">Informe um intervalo válido (1 a 48 horas).</p>
+      </div>
+
+      <fieldset id="fieldsetDuracao">
+        <legend>Duração do tratamento</legend>
+        <div class="radio-row">
+          <label><input type="radio" name="duracaoTipo" value="dias" checked> Por dias</label>
+          <label><input type="radio" name="duracaoTipo" value="doses"> Por nº de doses</label>
+          <label><input type="radio" name="duracaoTipo" value="continuo"> Contínuo (sem data pra terminar)</label>
+        </div>
+        <div class="field" id="fieldDuracaoValor" style="margin-bottom:0;">
+          <div class="field-box">
+            <label for="inputDuracaoValor" id="labelDuracaoValor">Nº de dias</label>
+            <input type="number" id="inputDuracaoValor" min="1" step="1" placeholder="Ex: 7">
+          </div>
+          <p class="field-error" id="errorDuracaoValor">Informe um valor válido (mínimo 1).</p>
+        </div>
+      </fieldset>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn-salvar" id="btnSalvar">Salvar alarme</button>
+        <button type="button" class="btn-cancelar" id="btnCancelar">Cancelar</button>
+        <button type="button" class="btn-excluir" id="btnExcluir" style="display:none;">Excluir este alarme</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Alerta de remédio disparando -->
+<div class="alerta-overlay" id="alertaOverlay" role="alertdialog" aria-modal="true" aria-labelledby="alertaTitulo">
+  <div class="alerta-modal">
+    <div class="alerta-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+    </div>
+    <p class="alerta-titulo" id="alertaTitulo">Hora do remédio!</p>
+    <div id="alertaMedicamentos"></div>
+    <p class="alerta-hora" id="alertaHora">—</p>
+    <div class="alerta-actions">
+      <button type="button" class="btn-tomei" id="btnJaTomei">Já tomei, obrigado</button>
+      <button type="button" class="btn-adiar" id="btnAdiar">Adiar 5 minutos</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- 1. CONFIGURAÇÃO SUPABASE & SESSÃO ----------
+const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const rawUser = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
+let usuarioLogado = null;
+
+if (!rawUser) {
+  window.location.href = 'index.html';
+} else {
+  try {
+    const parsed = JSON.parse(rawUser);
+    usuarioLogado = Array.isArray(parsed) ? parsed[0] : parsed;
+  } catch (e) {
+    console.error('Erro ao ler sessão:', e);
+    window.location.href = 'index.html';
+  }
+}
+
+function dispararEmergencia(){
+  if (usuarioLogado && usuarioLogado.contato_emergencia_tel) {
+    alert(`EMERGÊNCIA ACIONADA!\nLigando para: ${usuarioLogado.contato_emergencia_nome || 'Contato'} (${usuarioLogado.contato_emergencia_tel})`);
+    window.location.href = `tel:${usuarioLogado.contato_emergencia_tel}`;
+  } else {
+    alert('EMERGÊNCIA ACIONADA!\nLigando para o SAMU 192');
+    window.location.href = 'tel:192';
+  }
+}
+
+(function(){
+  var datetimeEl = document.getElementById('datetime');
+  function atualizarDataHora(){
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    var diaSemana = agora.toLocaleDateString('pt-BR', {weekday:'long'});
+    diaSemana = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+    var dataFormatada = agora.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+    datetimeEl.textContent = hora + ' - ' + diaSemana + ', ' + dataFormatada;
+    renderizarTudo();
+  }
+
+  var alarmes = [];
+
+  // ---------- BANCO DE DADOS: CARREGAR, SALVAR E DELETAR ----------
+  async function carregarAlarmesSupabase(){
+    const storageKey = 'medicamentos_' + (usuarioLogado?.id || usuarioLogado?.cpf || 'offline');
+    try {
+      const { data, error } = await supabaseClient
+        .from('medicamentos')
+        .select('*')
+        .eq('usuario_id', usuarioLogado?.id || usuarioLogado?.cpf);
+
+      if(!error && data && data.length > 0){
+        alarmes = data.map(d => ({
+          id: d.id,
+          medicamentos: typeof d.medicamentos === 'string' ? JSON.parse(d.medicamentos) : d.medicamentos,
+          primeiraDose: d.primeira_dose,
+          intervaloHoras: d.intervalo_horas,
+          duracaoTipo: d.duracao_tipo,
+          duracaoValor: d.duracao_valor,
+          ativo: d.ativo,
+          ultimaAlertaEm: null
+        }));
+      } else {
+        const local = localStorage.getItem(storageKey);
+        alarmes = local ? JSON.parse(local) : [];
+      }
+    } catch(err) {
+      console.warn('Usando armazenamento local de segurança:', err);
+      const local = localStorage.getItem(storageKey);
+      alarmes = local ? JSON.parse(local) : [];
+    }
+    renderizarTudo();
+  }
+
+  async function sincronizarLocal(alarmeObj, operacao = 'upsert'){
+    const storageKey = 'medicamentos_' + (usuarioLogado?.id || usuarioLogado?.cpf || 'offline');
+    localStorage.setItem(storageKey, JSON.stringify(alarmes));
+
+    try {
+      if(operacao === 'upsert'){
+        await supabaseClient.from('medicamentos').upsert({
+          id: alarmeObj.id,
+          usuario_id: usuarioLogado?.id || usuarioLogado?.cpf,
+          medicamentos: alarmeObj.medicamentos,
+          primeira_dose: alarmeObj.primeiraDose,
+          intervalo_horas: alarmeObj.intervaloHoras,
+          duracao_tipo: alarmeObj.duracaoTipo,
+          duracao_valor: alarmeObj.duracaoValor,
+          ativo: alarmeObj.ativo
+        });
+      } else if(operacao === 'delete'){
+        await supabaseClient.from('medicamentos').delete().eq('id', alarmeObj.id);
+      }
+    } catch(err) {
+      console.log('Operação salva localmente:', err);
+    }
+  }
+
+  function formatarParaInputLocal(date){
+    var pad = function(n){ return String(n).padStart(2,'0'); };
+    return date.getFullYear() + '-' + pad(date.getMonth()+1) + '-' + pad(date.getDate()) +
+      'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+  }
+
+  function gerarId(){
+    return 'alarme-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
+  }
+
+  function calcularOcorrencias(alarme){
+    var inicio = new Date(alarme.primeiraDose);
+    var intervaloMs = alarme.intervaloHoras * 60 * 60 * 1000;
+    var ocorrencias = [];
+
+    if(alarme.duracaoTipo === 'doses'){
+      for(var i = 0; i < alarme.duracaoValor; i++){
+        ocorrencias.push(new Date(inicio.getTime() + i * intervaloMs));
+      }
+    } else if(alarme.duracaoTipo === 'dias'){
+      var fim = new Date(inicio.getTime() + alarme.duracaoValor * 24 * 60 * 60 * 1000);
+      var atual = new Date(inicio.getTime());
+      while(atual <= fim){
+        ocorrencias.push(new Date(atual.getTime()));
+        atual = new Date(atual.getTime() + intervaloMs);
+      }
+    }
+    return ocorrencias;
+  }
+
+  function proximaOcorrencia(alarme){
+    if(!alarme.ativo) return null;
+    var agora = new Date();
+
+    if(alarme.duracaoTipo === 'continuo'){
+      var inicioC = new Date(alarme.primeiraDose);
+      var intervaloMsC = alarme.intervaloHoras * 60 * 60 * 1000;
+      if(agora <= inicioC) return inicioC;
+      var passos = Math.ceil((agora - inicioC) / intervaloMsC);
+      return new Date(inicioC.getTime() + passos * intervaloMsC);
+    }
+
+    var ocorrencias = calcularOcorrencias(alarme);
+    for(var i = 0; i < ocorrencias.length; i++){
+      if(ocorrencias[i] >= agora) return ocorrencias[i];
+    }
+    return null;
+  }
+
+  function ocorrenciaMaisRecenteAte(alarme, referencia){
+    var inicio = new Date(alarme.primeiraDose);
+    if(referencia < inicio) return null;
+    var intervaloMs = alarme.intervaloHoras * 60 * 60 * 1000;
+
+    if(alarme.duracaoTipo === 'continuo'){
+      var passos = Math.floor((referencia - inicio) / intervaloMs);
+      return new Date(inicio.getTime() + passos * intervaloMs);
+    }
+
+    var ocorrencias = calcularOcorrencias(alarme);
+    for(var i = ocorrencias.length - 1; i >= 0; i--){
+      if(ocorrencias[i] <= referencia) return ocorrencias[i];
+    }
+    return null;
+  }
+
+  function tratamentoConcluido(alarme){
+    if(alarme.duracaoTipo === 'continuo') return false;
+    var ocorrencias = calcularOcorrencias(alarme);
+    if(ocorrencias.length === 0) return false;
+    return ocorrencias[ocorrencias.length - 1] < new Date();
+  }
+
+  function dataFimTratamento(alarme){
+    if(alarme.duracaoTipo === 'continuo') return null;
+    var ocorrencias = calcularOcorrencias(alarme);
+    return ocorrencias.length ? ocorrencias[ocorrencias.length - 1] : null;
+  }
+
+  function formatarDiaCompleto(date){
+    var diaSemana = date.toLocaleDateString('pt-BR', {weekday:'long'});
+    diaSemana = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+    var dataFormatada = date.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+    return diaSemana + ', ' + dataFormatada;
+  }
+
+  function formatarHora(date){
+    return date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  function formatarDataCurta(date){
+    return date.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+  }
+
+  var ICON_REMEDIO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="3"></rect><path d="M6 9h12"></path><path d="M9 13l1.8 1.8L15 11"></path></svg>';
+  var ICON_LAPIS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
+
+  var elProximoData = document.getElementById('proximoData');
+  var elProximoConteudo = document.getElementById('proximoConteudo');
+  var elLista = document.getElementById('listaAlarmes');
+  var elStatus = document.getElementById('statusAlarmes');
+
+  function renderizarProximoAlarme(){
+    var proximo = null;
+
+    alarmes.forEach(function(a){
+      var data = proximaOcorrencia(a);
+      if(data && (!proximo || data < proximo.data)){
+        proximo = { medicamentos: a.medicamentos, data: data, adiado: false };
+      }
+    });
+
+    soneca.forEach(function(s){
+      if(!proximo || s.dispararEm < proximo.data){
+        proximo = { medicamentos: s.medicamentos, data: s.dispararEm, adiado: true };
+      }
+    });
+
+    if(!proximo){
+      elProximoData.textContent = 'Nenhum alarme ativo no momento';
+      elProximoConteudo.innerHTML = '<p class="proximo-vazio">Adicione um alarme para começar a acompanhar seus remédios.</p>';
+      return;
+    }
+
+    var textoMeds = proximo.medicamentos.map(function(m){
+      return m.nome + ' — ' + m.dose;
+    }).join(' · ');
+
+    elProximoData.textContent = formatarDiaCompleto(proximo.data);
+    elProximoConteudo.innerHTML =
+      '<div class="proximo-linha">' +
+        '<span class="proximo-icon">' + ICON_REMEDIO + '</span>' +
+        '<div class="proximo-texto">' +
+          '<p class="proximo-med">' + escapeHtml(textoMeds) + '</p>' +
+          '<p class="proximo-hora">' + formatarHora(proximo.data) + '</p>' +
+          '<p class="proximo-caption">' + (proximo.adiado ? 'Alarme adiado' : 'Próximo alarme') + '</p>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function renderizarLista(){
+    if(alarmes.length === 0){
+      elLista.innerHTML = '<p class="lista-vazia">Você ainda não tem alarmes de medicamento cadastrados.</p>';
+      elStatus.textContent = '';
+      return;
+    }
+
+    var html = '';
+    alarmes.forEach(function(a){
+      var proxima = proximaOcorrencia(a);
+      var concluido = tratamentoConcluido(a);
+      var fim = dataFimTratamento(a);
+
+      var linhaHorario;
+      if(concluido){
+        linhaHorario = '<span class="badge-concluido">Tratamento concluído</span>';
+      } else if(!a.ativo){
+        linhaHorario = '<span class="alarm-meta">Alarme desativado</span>';
+      } else if(proxima){
+        linhaHorario =
+          '<span class="alarm-horario">' + formatarHora(proxima) + '</span>' +
+          '<span class="alarm-meta">' + formatarDataCurta(proxima) + '</span>';
+      } else {
+        linhaHorario = '<span class="alarm-meta">Sem próximas doses</span>';
+      }
+
+      var metaDuracao;
+      if(a.duracaoTipo === 'dias'){
+        metaDuracao = 'A cada ' + a.intervaloHoras + 'h · ' + a.duracaoValor + ' dia(s)' + (fim ? ' · até ' + formatarDataCurta(fim) : '');
+      } else if(a.duracaoTipo === 'doses'){
+        metaDuracao = 'A cada ' + a.intervaloHoras + 'h · ' + a.duracaoValor + ' dose(s) no total';
+      } else {
+        metaDuracao = 'A cada ' + a.intervaloHoras + 'h · uso contínuo (sem data para terminar)';
+      }
+
+      var adiadoInfo = soneca.find(function(s){ return s.id === a.id; });
+      var linhaAdiado = adiadoInfo
+        ? '<p class="alarm-meta" style="color:var(--forest);font-weight:800;">⏰ Adiado para ' + formatarHora(adiadoInfo.dispararEm) + '</p>'
+        : '';
+
+      var nomesTitulo = a.medicamentos.map(function(m){ return m.nome; }).join(' + ');
+      var listaDoses = a.medicamentos.map(function(m){
+        return '<li>' + escapeHtml(m.nome) + ' — ' + escapeHtml(m.dose) + '</li>';
+      }).join('');
+
+      html +=
+        '<div class="alarm-card' + (a.ativo ? '' : ' inativo') + '" data-id="' + a.id + '">' +
+          '<span class="alarm-icon">' + ICON_REMEDIO + '</span>' +
+          '<div class="alarm-info">' +
+            '<p class="alarm-nome">' + escapeHtml(nomesTitulo) + '</p>' +
+            '<ul class="alarm-dose-lista">' + listaDoses + '</ul>' +
+            '<div class="alarm-horario-row">' + linhaHorario + '</div>' +
+            '<p class="alarm-meta">' + metaDuracao + '</p>' +
+            linhaAdiado +
+          '</div>' +
+          '<div class="alarm-actions">' +
+            '<label class="switch">' +
+              '<input type="checkbox" class="toggle-ativo" data-id="' + a.id + '" ' + (a.ativo ? 'checked' : '') + ' aria-label="Ativar ou desativar alarme de ' + escapeHtml(nomesTitulo) + '">' +
+              '<span class="slider"></span>' +
+            '</label>' +
+            '<button type="button" class="btn-editar" data-id="' + a.id + '" aria-label="Editar alarme de ' + escapeHtml(nomesTitulo) + '">' + ICON_LAPIS + '</button>' +
+          '</div>' +
+        '</div>';
+    });
+
+    elLista.innerHTML = html;
+
+    var ativos = alarmes.filter(function(a){ return a.ativo; }).length;
+    if(ativos === alarmes.length){
+      elStatus.textContent = 'Seus alarmes de medicamento estão ativos.';
+    } else if(ativos === 0){
+      elStatus.textContent = 'Nenhum alarme está ativo no momento.';
+    } else {
+      elStatus.textContent = ativos + ' de ' + alarmes.length + ' alarmes ativos.';
+    }
+
+    elLista.querySelectorAll('.toggle-ativo').forEach(function(input){
+      input.addEventListener('change', function(){
+        var alarme = alarmes.find(function(a){ return a.id === input.dataset.id; });
+        if(alarme){
+          alarme.ativo = input.checked;
+          sincronizarLocal(alarme, 'upsert');
+          renderizarTudo();
+        }
+      });
+    });
+
+    elLista.querySelectorAll('.btn-editar').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        abrirModalEdicao(btn.dataset.id);
+      });
+    });
+  }
+
+  function renderizarTudo(){
+    renderizarProximoAlarme();
+    renderizarLista();
+  }
+
+  function escapeHtml(texto){
+    var div = document.createElement('div');
+    div.textContent = texto;
+    return div.innerHTML;
+  }
+
+  function escapeAttr(texto){
+    return String(texto)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  var modalOverlay = document.getElementById('modalOverlay');
+  var modalTitle = document.getElementById('modalTitle');
+  var form = document.getElementById('formAlarme');
+  var inputId = document.getElementById('alarmeId');
+  var inputPrimeiraDose = document.getElementById('inputPrimeiraDose');
+  var inputIntervalo = document.getElementById('inputIntervalo');
+  var inputDuracaoValor = document.getElementById('inputDuracaoValor');
+  var labelDuracaoValor = document.getElementById('labelDuracaoValor');
+  var fieldDuracaoValor = document.getElementById('fieldDuracaoValor');
+  var btnExcluir = document.getElementById('btnExcluir');
+
+  var medicamentosContainer = document.getElementById('medicamentosContainer');
+  var btnAddMedicamento = document.getElementById('btnAddMedicamento');
+  var medicamentosForm = [];
+
+  function renderMedicamentosForm(){
+    medicamentosContainer.innerHTML = medicamentosForm.map(function(m, idx){
+      return (
+        '<div class="med-bloco">' +
+          '<div class="med-bloco-header">' +
+            '<span class="med-bloco-titulo">Medicamento ' + (idx + 1) + '</span>' +
+            (medicamentosForm.length > 1
+              ? '<button type="button" class="btn-remover-med" data-idx="' + idx + '">Remover</button>'
+              : '') +
+          '</div>' +
+          '<div class="field">' +
+            '<div class="field-box">' +
+              '<label for="medNome' + idx + '">Nome do remédio</label>' +
+              '<input type="text" id="medNome' + idx + '" class="input-med-nome" data-idx="' + idx + '" placeholder="Ex: Amoxicilina" value="' + escapeAttr(m.nome) + '" autocomplete="off">' +
+            '</div>' +
+            '<p class="field-error erro-med-nome-' + idx + '">Informe o nome do remédio.</p>' +
+          '</div>' +
+          '<div class="field" style="margin-bottom:6px;">' +
+            '<div class="field-box">' +
+              '<label for="medDose' + idx + '">Dose</label>' +
+              '<input type="text" id="medDose' + idx + '" class="input-med-dose" data-idx="' + idx + '" placeholder="Ex: 500mg - 1 comprimido" value="' + escapeAttr(m.dose) + '" autocomplete="off">' +
+            '</div>' +
+            '<p class="field-error erro-med-dose-' + idx + '">Informe a dose do remédio.</p>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+
+    medicamentosContainer.querySelectorAll('.input-med-nome').forEach(function(input){
+      input.addEventListener('input', function(){
+        medicamentosForm[Number(input.dataset.idx)].nome = input.value;
+      });
+    });
+    medicamentosContainer.querySelectorAll('.input-med-dose').forEach(function(input){
+      input.addEventListener('input', function(){
+        medicamentosForm[Number(input.dataset.idx)].dose = input.value;
+      });
+    });
+    medicamentosContainer.querySelectorAll('.btn-remover-med').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        medicamentosForm.splice(Number(btn.dataset.idx), 1);
+        renderMedicamentosForm();
+      });
+    });
+  }
+
+  btnAddMedicamento.addEventListener('click', function(){
+    medicamentosForm.push({ nome: '', dose: '' });
+    renderMedicamentosForm();
+    var novoInput = document.getElementById('medNome' + (medicamentosForm.length - 1));
+    if(novoInput) novoInput.focus();
+  });
+
+  function radiosDuracao(){
+    return Array.prototype.slice.call(document.querySelectorAll('input[name="duracaoTipo"]'));
+  }
+
+  radiosDuracao().forEach(function(r){
+    r.addEventListener('change', atualizarLabelDuracao);
+  });
+
+  function atualizarLabelDuracao(){
+    var tipo = radiosDuracao().find(function(r){ return r.checked; }).value;
+    if(tipo === 'dias'){
+      labelDuracaoValor.textContent = 'Nº de dias';
+      inputDuracaoValor.placeholder = 'Ex: 7';
+      fieldDuracaoValor.style.display = '';
+    } else if(tipo === 'doses'){
+      labelDuracaoValor.textContent = 'Nº de doses';
+      inputDuracaoValor.placeholder = 'Ex: 10';
+      fieldDuracaoValor.style.display = '';
+    } else {
+      fieldDuracaoValor.style.display = 'none';
+    }
+  }
+
+  function limparErros(){
+    ['fieldPrimeiraDose','fieldIntervalo','fieldDuracaoValor'].forEach(function(id){
+      document.getElementById(id).classList.remove('invalid');
+    });
+    medicamentosContainer.querySelectorAll('.field').forEach(function(el){
+      el.classList.remove('invalid');
+    });
+  }
+
+  function marcarErro(fieldId){
+    document.getElementById(fieldId).classList.add('invalid');
+  }
+
+  function abrirModalNovo(){
+    form.reset();
+    inputId.value = '';
+    limparErros();
+    modalTitle.textContent = 'Novo alarme de medicamento';
+    btnExcluir.style.display = 'none';
+    btnExcluir.textContent = 'Excluir este alarme';
+
+    medicamentosForm = [{ nome: '', dose: '' }];
+    renderMedicamentosForm();
+
+    inputPrimeiraDose.value = formatarParaInputLocal(new Date());
+    document.querySelector('input[name="duracaoTipo"][value="dias"]').checked = true;
+    atualizarLabelDuracao();
+
+    modalOverlay.classList.add('show');
+    document.getElementById('medNome0').focus();
+  }
+
+  function abrirModalEdicao(id){
+    var a = alarmes.find(function(x){ return x.id === id; });
+    if(!a) return;
+
+    limparErros();
+    modalTitle.textContent = 'Editar alarme de medicamento';
+    inputId.value = a.id;
+
+    medicamentosForm = a.medicamentos.map(function(m){ return { nome: m.nome, dose: m.dose }; });
+    renderMedicamentosForm();
+
+    inputPrimeiraDose.value = a.primeiraDose;
+    inputIntervalo.value = a.intervaloHoras;
+    document.querySelector('input[name="duracaoTipo"][value="' + a.duracaoTipo + '"]').checked = true;
+    inputDuracaoValor.value = a.duracaoValor || '';
+    atualizarLabelDuracao();
+
+    btnExcluir.style.display = 'block';
+    btnExcluir.textContent = 'Excluir este alarme';
+
+    modalOverlay.classList.add('show');
+    document.getElementById('medNome0').focus();
+  }
+
+  function fecharModal(){
+    modalOverlay.classList.remove('show');
+  }
+
+  document.getElementById('btnAdicionar').addEventListener('click', abrirModalNovo);
+  document.getElementById('btnCancelar').addEventListener('click', fecharModal);
+  modalOverlay.addEventListener('click', function(e){
+    if(e.target === modalOverlay) fecharModal();
+  });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    limparErros();
+
+    var primeiraDose = inputPrimeiraDose.value;
+    var intervalo = parseInt(inputIntervalo.value, 10);
+    var duracaoTipo = radiosDuracao().find(function(r){ return r.checked; }).value;
+    var duracaoValor = duracaoTipo === 'continuo' ? null : parseInt(inputDuracaoValor.value, 10);
+
+    var valido = true;
+
+    medicamentosForm.forEach(function(m, idx){
+      var campoNome = document.getElementById('medNome' + idx).closest('.field');
+      var campoDose = document.getElementById('medDose' + idx).closest('.field');
+      if(!m.nome || !m.nome.trim()){
+        campoNome.classList.add('invalid');
+        valido = false;
+      }
+      if(!m.dose || !m.dose.trim()){
+        campoDose.classList.add('invalid');
+        valido = false;
+      }
+    });
+
+    if(!primeiraDose){ marcarErro('fieldPrimeiraDose'); valido = false; }
+    if(!intervalo || intervalo < 1 || intervalo > 48){ marcarErro('fieldIntervalo'); valido = false; }
+    if(duracaoTipo !== 'continuo' && (!duracaoValor || duracaoValor < 1)){ marcarErro('fieldDuracaoValor'); valido = false; }
+    if(!valido) return;
+
+    var medicamentosFinal = medicamentosForm.map(function(m){
+      return { nome: m.nome.trim(), dose: m.dose.trim() };
+    });
+
+    var id = inputId.value;
+    var alarmeObjeto;
+
+    if(id){
+      var alarme = alarmes.find(function(a){ return a.id === id; });
+      alarme.medicamentos = medicamentosFinal;
+      alarme.primeiraDose = primeiraDose;
+      alarme.intervaloHoras = intervalo;
+      alarme.duracaoTipo = duracaoTipo;
+      alarme.duracaoValor = duracaoValor;
+      alarme.ultimaAlertaEm = null;
+      alarmeObjeto = alarme;
+    } else {
+      alarmeObjeto = {
+        id: gerarId(),
+        medicamentos: medicamentosFinal,
+        primeiraDose: primeiraDose,
+        intervaloHoras: intervalo,
+        duracaoTipo: duracaoTipo,
+        duracaoValor: duracaoValor,
+        ativo: true,
+        ultimaAlertaEm: null
+      };
+      alarmes.push(alarmeObjeto);
+    }
+
+    sincronizarLocal(alarmeObjeto, 'upsert');
+    fecharModal();
+    renderizarTudo();
+  });
+
+  var excluirArmado = false;
+  var excluirTimeout = null;
+
+  btnExcluir.addEventListener('click', function(){
+    if(!excluirArmado){
+      excluirArmado = true;
+      btnExcluir.textContent = 'Confirmar exclusão? Clique de novo';
+      excluirTimeout = setTimeout(function(){
+        excluirArmado = false;
+        btnExcluir.textContent = 'Excluir este alarme';
+      }, 4000);
+      return;
+    }
+
+    clearTimeout(excluirTimeout);
+    excluirArmado = false;
+    var id = inputId.value;
+    var alarmeParaExcluir = alarmes.find(function(a){ return a.id === id; });
+    alarmes = alarmes.filter(function(a){ return a.id !== id; });
+    
+    if(alarmeParaExcluir) sincronizarLocal(alarmeParaExcluir, 'delete');
+    
+    fecharModal();
+    renderizarTudo();
+  });
+
+  var filaAlertas = [];
+  var soneca = [];
+  var alertaAtual = null;
+  var somIntervalId = null;
+  var audioCtx = null;
+
+  function destravarAudio(){
+    if(!audioCtx){
+      try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch(e){ audioCtx = null; }
+    }
+    if(audioCtx && audioCtx.state === 'suspended'){
+      audioCtx.resume();
+    }
+  }
+  document.addEventListener('click', destravarAudio);
+  document.addEventListener('keydown', destravarAudio);
+  document.addEventListener('touchstart', destravarAudio);
+  destravarAudio();
+
+  function tocarBeep(){
+    if(!audioCtx) return;
+    var agora = audioCtx.currentTime;
+    [0, 0.35].forEach(function(offset){
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, agora + offset);
+      gain.gain.exponentialRampToValueAtTime(0.3, agora + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, agora + offset + 0.3);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(agora + offset);
+      osc.stop(agora + offset + 0.32);
+    });
+  }
+
+  var elAlertaOverlay = document.getElementById('alertaOverlay');
+  var elAlertaMedicamentos = document.getElementById('alertaMedicamentos');
+  var elAlertaHora = document.getElementById('alertaHora');
+
+  function dispararAlerta(dadosAlarme, horario){
+    filaAlertas.push({
+      id: dadosAlarme.id,
+      medicamentos: dadosAlarme.medicamentos,
+      horario: horario || new Date()
+    });
+    processarFilaAlertas();
+  }
+
+  function processarFilaAlertas(){
+    if(alertaAtual || filaAlertas.length === 0) return;
+    alertaAtual = filaAlertas.shift();
+
+    elAlertaMedicamentos.innerHTML = alertaAtual.medicamentos.map(function(m){
+      return '<p class="alerta-med">' + escapeHtml(m.nome) + '</p><p class="alerta-dose">' + escapeHtml(m.dose) + '</p>';
+    }).join('');
+    elAlertaHora.textContent = 'Horário: ' + formatarHora(alertaAtual.horario);
+    elAlertaOverlay.classList.add('show');
+
+    destravarAudio();
+    tocarBeep();
+    somIntervalId = setInterval(tocarBeep, 4000);
+  }
+
+  function fecharAlertaAtual(){
+    clearInterval(somIntervalId);
+    somIntervalId = null;
+    elAlertaOverlay.classList.remove('show');
+    alertaAtual = null;
+    processarFilaAlertas();
+    renderizarTudo();
+  }
+
+  document.getElementById('btnJaTomei').addEventListener('click', fecharAlertaAtual);
+
+  document.getElementById('btnAdiar').addEventListener('click', function(){
+    var item = alertaAtual;
+    fecharAlertaAtual();
+    if(item){
+      soneca.push({
+        id: item.id,
+        medicamentos: item.medicamentos,
+        dispararEm: new Date(Date.now() + 5 * 60 * 1000)
+      });
+      renderizarTudo();
+    }
+  });
+
+  function verificarAlarmes(){
+    var agora = new Date();
+    var mudou = false;
+
+    soneca = soneca.filter(function(s){
+      if(s.dispararEm <= agora){
+        dispararAlerta({ id: s.id, medicamentos: s.medicamentos }, s.dispararEm);
+        mudou = true;
+        return false;
+      }
+      return true;
+    });
+
+    alarmes.forEach(function(a){
+      if(!a.ativo) return;
+      var oc = ocorrenciaMaisRecenteAte(a, agora);
+      if(!oc) return;
+
+      var ocIso = oc.toISOString();
+      if(a.ultimaAlertaEm !== ocIso){
+        a.ultimaAlertaEm = ocIso;
+        mudou = true;
+        var atrasoMs = agora - oc;
+        if(atrasoMs <= 3 * 60 * 1000){
+          dispararAlerta(a, oc);
+        }
+      }
+    });
+
+    if(mudou) renderizarTudo();
+  }
+
+  // Inicialização
+  atualizarDataHora();
+  carregarAlarmesSupabase();
+  setInterval(atualizarDataHora, 30000);
+  setInterval(verificarAlarmes, 15000);
+
+})();
+</script>
+</body>
+</html>

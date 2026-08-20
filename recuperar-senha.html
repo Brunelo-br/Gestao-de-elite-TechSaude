@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde - Recuperar Senha</title>
+
+<!-- SUPABASE JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F4EEDB;
+    --cream-card:#F6F1E2;
+    --forest:#173626;
+    --forest-2:#1F4632;
+    --teal:#3FA79A;
+    --sage:#8AC06B;
+    --border:rgba(23,54,38,0.28);
+    --border-soft:rgba(23,54,38,0.16);
+    --muted:#4B5A4F;
+    --error:#B23A2E;
+    --error-bg:#FBE7E4;
+    --success:#1F6B45;
+    --success-bg:#E4F1E7;
+    --shadow-outer: 0 30px 60px rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    height:100%;
+    font-family:'Nunito', sans-serif;
+    color:var(--forest);
+  }
+
+  body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255,255,255,0.06), transparent 40%),
+      linear-gradient(160deg, #16412B 0%, #0F2E1C 100%);
+    padding:48px 24px;
+  }
+
+  .site{
+    width:100%;
+    max-width:1100px;
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    align-items:stretch;
+    background:var(--cream);
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:var(--shadow-outer);
+  }
+
+  .site-aside{
+    background:linear-gradient(155deg, #1F4632 0%, #16412B 60%, #12351F 100%);
+    color:var(--cream);
+    padding:56px 44px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:18px;
+  }
+
+  .site-aside .brand{ justify-content:flex-start; margin-bottom:6px; }
+  .site-aside .brand-name{ color:var(--cream); }
+
+  .site-aside h2{
+    font-family:'Baloo 2', sans-serif;
+    font-size:30px;
+    font-weight:800;
+    line-height:1.2;
+    margin:0;
+  }
+
+  .site-aside p{
+    font-size:15.5px;
+    line-height:1.55;
+    color:rgba(244,238,219,0.85);
+    font-weight:600;
+    margin:0;
+    max-width:340px;
+  }
+
+  .app{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:48px 44px;
+  }
+
+  #brandMobile{ display:none; }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:14px;
+  }
+
+  .brand img{ width:44px; height:44px; flex-shrink:0; object-fit:contain; }
+
+  .brand-name{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:26px;
+    color:var(--forest);
+    letter-spacing:0.5px;
+  }
+
+  .datetime{
+    text-align:center;
+    font-weight:700;
+    font-size:14.5px;
+    color:var(--forest);
+    border-bottom:2px solid var(--border-soft);
+    padding-bottom:14px;
+    margin-bottom:20px;
+  }
+
+  .card{
+    max-width:420px;
+    width:100%;
+    margin:0 auto;
+  }
+
+  .stepper{
+    text-align:center;
+    font-weight:800;
+    font-size:13px;
+    letter-spacing:0.8px;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin:0 0 10px;
+  }
+
+  h1{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:27px;
+    line-height:1.15;
+    text-align:center;
+    margin:0 0 12px;
+    color:var(--forest);
+  }
+
+  .subtitle{
+    text-align:center;
+    font-size:14.5px;
+    line-height:1.45;
+    color:var(--muted);
+    margin:0 0 20px;
+    font-weight:600;
+  }
+
+  .subtitle strong{ color:var(--forest); }
+
+  .field{
+    margin-bottom:16px;
+  }
+
+  .field-box{
+    position:relative;
+    display:flex;
+    align-items:center;
+    background:#FAF7EC;
+    border:2.5px solid var(--forest);
+    border-radius:999px;
+    padding:12px 20px;
+    min-height:56px;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .field-box:focus-within{
+    border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(63,167,154,0.25);
+  }
+
+  .field-box.has-error{
+    border-color:var(--error);
+  }
+
+  .field-box label{
+    position:absolute;
+    top:-11px;
+    left:18px;
+    background:var(--cream-card);
+    padding:0 8px;
+    font-weight:800;
+    font-size:14px;
+    letter-spacing:0.5px;
+    color:var(--forest);
+    text-transform:uppercase;
+  }
+
+  .field-box input{
+    flex:1;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-family:'Nunito', sans-serif;
+    font-size:17px;
+    font-weight:700;
+    color:var(--forest);
+    padding:4px 0;
+    min-width:0;
+  }
+
+  .field-box input::placeholder{
+    color:rgba(23,54,38,0.35);
+    font-weight:600;
+  }
+
+  .toggle-pass{
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:6px;
+    margin-left:6px;
+    color:var(--forest);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+
+  .toggle-pass svg{ width:24px; height:24px; }
+
+  .helper{
+    text-align:center;
+    font-size:13.5px;
+    color:var(--muted);
+    font-weight:600;
+    margin:8px 10px 0;
+    line-height:1.35;
+  }
+
+  .field-error{
+    display:none;
+    text-align:center;
+    font-size:13.5px;
+    color:var(--error);
+    font-weight:700;
+    margin:8px 10px 0;
+  }
+
+  .field.invalid .helper{ display:none; }
+  .field.invalid .field-error{ display:block; }
+
+  .btn-primary{
+    width:100%;
+    margin-top:18px;
+    background:var(--forest);
+    color:var(--cream);
+    border:none;
+    border-radius:999px;
+    padding:16px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:18px;
+    letter-spacing:0.5px;
+    cursor:pointer;
+    box-shadow:0 6px 0 rgba(0,0,0,0.18);
+    transition:transform .08s ease, box-shadow .08s ease, background .2s ease;
+  }
+
+  .btn-primary:hover{ background:var(--forest-2); }
+  .btn-primary:active{ transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.18); }
+  .btn-primary:disabled{ opacity:0.65; cursor:progress; }
+
+  .btn-primary:focus-visible,
+  .toggle-pass:focus-visible,
+  .field-box input:focus-visible,
+  .link-secundario:focus-visible{
+    outline:3px solid var(--teal);
+    outline-offset:2px;
+  }
+
+  .link-secundario{
+    display:block;
+    text-align:center;
+    margin-top:18px;
+    font-weight:800;
+    font-size:15px;
+    color:var(--forest);
+    text-decoration:underline;
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:4px;
+    width:100%;
+  }
+
+  .link-secundario:disabled{
+    opacity:0.5;
+    cursor:default;
+    text-decoration:none;
+  }
+
+  .banner{
+    display:none;
+    align-items:flex-start;
+    gap:8px;
+    border-radius:14px;
+    padding:12px 14px;
+    font-size:14px;
+    font-weight:700;
+    margin-bottom:14px;
+    line-height:1.4;
+  }
+
+  .banner.show{ display:flex; }
+  .banner.error{ background:var(--error-bg); color:var(--error); }
+  .banner.success{ background:var(--success-bg); color:var(--success); }
+
+  .step{ display:none; }
+  .step.active{ display:block; }
+
+  .success-icon{
+    width:76px;
+    height:76px;
+    margin:0 auto 18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--success-bg);
+    border-radius:50%;
+    color:var(--success);
+  }
+  .success-icon svg{ width:40px; height:40px; }
+
+  .req-list{
+    list-style:none;
+    margin:8px 10px 0;
+    padding:0;
+    font-size:13px;
+    color:var(--muted);
+    font-weight:600;
+    line-height:1.6;
+  }
+  .req-list li{ display:flex; align-items:center; gap:8px; }
+  .req-list li::before{
+    content:"";
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--border);
+    flex-shrink:0;
+  }
+  .req-list li.ok{ color:var(--success); }
+  .req-list li.ok::before{ background:var(--success); }
+
+  @media (max-width:900px){
+    .site{
+      grid-template-columns:1fr;
+      max-width:480px;
+    }
+    .site-aside{ display:none; }
+    .app{ padding:40px 32px; }
+    #brandMobile{ display:flex; }
+  }
+
+  @media (max-width:480px){
+    body{ padding:0; }
+    .site{
+      max-width:100%;
+      min-height:100vh;
+      border-radius:0;
+      box-shadow:none;
+    }
+    .app{ padding:32px 20px; justify-content:flex-start; }
+    .datetime{ margin-bottom:16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="site">
+
+  <div class="site-aside">
+    <div class="brand">
+      <img src="img/logo.png" alt="Logo TechSaúde">
+      <span class="brand-name">TechSaúde</span>
+    </div>
+    <h2>Não se preocupe, vamos te ajudar a recuperar o acesso.</h2>
+    <p>Em poucos passos você define uma nova senha e volta a organizar seus lembretes de remédios e consultas.</p>
+  </div>
+
+  <div class="app">
+
+    <div class="brand" id="brandMobile">
+      <img src="img/logo.png" alt="Logo TechSaúde">
+      <span class="brand-name">TechSaúde</span>
+    </div>
+
+    <div class="datetime" id="datetime" aria-live="off">--:-- - carregando data...</div>
+
+    <div class="card">
+
+      <div class="banner" id="banner" role="alert"></div>
+
+      <!-- ETAPA 1: IDENTIFICAÇÃO (E-MAIL OU CPF) -->
+      <div class="step active" id="step1">
+        <p class="stepper">Etapa 1 de 3</p>
+        <h1>RECUPERAR SENHA</h1>
+        <p class="subtitle">Informe o e-mail ou CPF cadastrado para localizar sua conta.</p>
+
+        <form id="formEmail" novalidate>
+          <div class="field" id="fieldEmail">
+            <div class="field-box">
+              <label for="inputEmail">E-mail ou CPF</label>
+              <input
+                type="text"
+                id="inputEmail"
+                name="email"
+                placeholder="Insira seu e-mail ou CPF"
+                aria-describedby="helperEmail errorEmail"
+              >
+            </div>
+            <p class="helper" id="helperEmail">Insira os dados cadastrados na sua conta</p>
+            <p class="field-error" id="errorEmail"></p>
+          </div>
+
+          <button type="submit" class="btn-primary" id="btnEnviarCodigo">AVANÇAR</button>
+        </form>
+
+        <button type="button" class="link-secundario" id="linkVoltarLogin">Voltar para Login</button>
+      </div>
+
+      <!-- ETAPA 2: VERIFICAÇÃO DO CÓDIGO -->
+      <div class="step" id="step2">
+        <p class="stepper">Etapa 2 de 3</p>
+        <h1>VERIFICAR CÓDIGO</h1>
+        <p class="subtitle">Digite o código de 6 dígitos enviado para confirmar sua identidade.</p>
+
+        <form id="formCodigo" novalidate>
+          <div class="field" id="fieldCodigo">
+            <div class="field-box">
+              <label for="inputCodigo">Código de verificação</label>
+              <input
+                type="text"
+                id="inputCodigo"
+                name="codigo"
+                inputmode="numeric"
+                maxlength="6"
+                autocomplete="one-time-code"
+                placeholder="000000"
+                aria-describedby="errorCodigo"
+              >
+            </div>
+            <p class="field-error" id="errorCodigo"></p>
+          </div>
+
+          <button type="submit" class="btn-primary" id="btnVerificarCodigo">VERIFICAR CÓDIGO</button>
+        </form>
+
+        <button type="button" class="link-secundario" id="linkReenviar">Reenviar código</button>
+      </div>
+
+      <!-- ETAPA 3: NOVA SENHA -->
+      <div class="step" id="step3">
+        <p class="stepper">Etapa 3 de 3</p>
+        <h1>CRIAR NOVA SENHA</h1>
+        <p class="subtitle">Conta identificada para <strong id="emailConfirmacao">...</strong>. Defina sua nova senha de acesso.</p>
+
+        <form id="formNovaSenha" novalidate>
+          <div class="field" id="fieldNovaSenha">
+            <div class="field-box">
+              <label for="inputNovaSenha">Nova senha</label>
+              <input
+                type="password"
+                id="inputNovaSenha"
+                name="novaSenha"
+                autocomplete="new-password"
+                placeholder="Digite aqui"
+                aria-describedby="helperNovaSenha errorNovaSenha"
+              >
+              <button type="button" class="toggle-pass" id="toggleNovaSenha" aria-pressed="false" aria-label="Mostrar senha">
+                <svg class="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <ul class="req-list" id="reqList">
+              <li id="reqTamanho">Pelo menos 6 caracteres</li>
+              <li id="reqNumero">Pelo menos 1 número</li>
+            </ul>
+            <p class="field-error" id="errorNovaSenha"></p>
+          </div>
+
+          <div class="field" id="fieldConfirmarSenha">
+            <div class="field-box">
+              <label for="inputConfirmarSenha">Confirmar nova senha</label>
+              <input
+                type="password"
+                id="inputConfirmarSenha"
+                name="confirmarSenha"
+                autocomplete="new-password"
+                placeholder="Digite novamente"
+                aria-describedby="helperConfirmarSenha errorConfirmarSenha"
+              >
+              <button type="button" class="toggle-pass" id="toggleConfirmarSenha" aria-pressed="false" aria-label="Mostrar senha">
+                <svg class="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <p class="helper" id="helperConfirmarSenha">Digite a mesma senha para confirmar</p>
+            <p class="field-error" id="errorConfirmarSenha"></p>
+          </div>
+
+          <button type="submit" class="btn-primary" id="btnSalvarSenha">SALVAR NOVA SENHA</button>
+        </form>
+      </div>
+
+      <!-- ETAPA 3: SUCESSO -->
+      <div class="step" id="step4">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6 9 17l-5-5"></path>
+          </svg>
+        </div>
+        <h1>SENHA ALTERADA!</h1>
+        <p class="subtitle">Sua senha foi redefinida com sucesso. Agora você já pode entrar na sua conta usando a nova senha.</p>
+
+        <button type="button" class="btn-primary" id="btnIrParaLogin">IR PARA O LOGIN</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- SUPABASE CLIENT ----------
+const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+emailjs.init('ZGRX2l4GdBCXXNBGE');
+
+(function(){
+  var datetimeEl = document.getElementById('datetime');
+  function atualizarDataHora(){
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    var diaSemana = agora.toLocaleDateString('pt-BR', {weekday:'long'});
+    diaSemana = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+    var dataFormatada = agora.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+    datetimeEl.textContent = hora + ' - ' + diaSemana + ', ' + dataFormatada;
+  }
+  atualizarDataHora();
+  setInterval(atualizarDataHora, 30000);
+
+  var steps = ['step1', 'step2', 'step3', 'step4'];
+  var usuarioEncontrado = null;
+  var recuperacaoEncontrada = null;
+
+  function irParaEtapa(idAlvo){
+    steps.forEach(function(id){
+      document.getElementById(id).classList.toggle('active', id === idAlvo);
+    });
+    esconderBanner();
+    var titulo = document.getElementById(idAlvo).querySelector('h1');
+    if(titulo){ titulo.setAttribute('tabindex', '-1'); titulo.focus(); }
+  }
+
+  var banner = document.getElementById('banner');
+  function mostrarBanner(tipo, mensagem){
+    banner.className = 'banner show ' + tipo;
+    banner.textContent = mensagem;
+  }
+  function esconderBanner(){
+    banner.className = 'banner';
+    banner.textContent = '';
+  }
+
+  function marcarErro(campoId, mensagem){
+    var campo = document.getElementById(campoId);
+    campo.classList.add('invalid');
+    campo.querySelector('.field-box').classList.add('has-error');
+    campo.querySelector('.field-error').textContent = mensagem;
+  }
+  function limparErro(campoId){
+    var campo = document.getElementById(campoId);
+    campo.classList.remove('invalid');
+    campo.querySelector('.field-box').classList.remove('has-error');
+  }
+
+  var eyeOpen = '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path><circle cx="12" cy="12" r="3"></circle>';
+  var eyeClosed = '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+
+  function ligarToggleSenha(inputId, botaoId){
+    var input = document.getElementById(inputId);
+    var botao = document.getElementById(botaoId);
+    var icone = botao.querySelector('.eyeIcon');
+    botao.addEventListener('click', function(){
+      var visivel = input.type === 'text';
+      input.type = visivel ? 'password' : 'text';
+      icone.innerHTML = visivel ? eyeOpen : eyeClosed;
+      botao.setAttribute('aria-pressed', String(!visivel));
+      botao.setAttribute('aria-label', visivel ? 'Mostrar senha' : 'Ocultar senha');
+    });
+  }
+  ligarToggleSenha('inputNovaSenha', 'toggleNovaSenha');
+  ligarToggleSenha('inputConfirmarSenha', 'toggleConfirmarSenha');
+
+  // ---------- ETAPA 1: VERIFICAR USUÁRIO NO BANCO ----------
+  var formEmail = document.getElementById('formEmail');
+  var inputEmail = document.getElementById('inputEmail');
+  var btnEnviarCodigo = document.getElementById('btnEnviarCodigo');
+
+  formEmail.addEventListener('submit', async function(e){
+    e.preventDefault();
+    esconderBanner();
+    limparErro('fieldEmail');
+
+    var termo = inputEmail.value.trim();
+    if(!termo){
+      marcarErro('fieldEmail', 'Informe seu e-mail ou CPF cadastrado.');
+      inputEmail.focus();
+      return;
+    }
+
+    btnEnviarCodigo.disabled = true;
+    btnEnviarCodigo.textContent = 'CONSULTANDO...';
+
+    try{
+      const { data, error } = await supabaseClient
+        .from('usuario')
+        .select('*')
+        .ilike('email', termo)
+        .maybeSingle();
+
+      if(error || !data){
+        marcarErro('fieldEmail', 'Conta não encontrada com os dados informados.');
+      } else {
+        usuarioEncontrado = data;
+        document.getElementById('emailConfirmacao').textContent = data.nome || data.email || data.cpf;
+
+        var codigoGerado = String(Math.floor(100000 + Math.random() * 900000));
+        var expiraEm = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+        const { data: recuperacao, error: erroRecuperacao } = await supabaseClient
+          .from('recuperacao_senha')
+          .insert([{
+            id_usuario: data.id_usuario,
+            codigo_verificacao: codigoGerado,
+            expira_em: expiraEm,
+            utilizado: false
+          }])
+          .select('*')
+          .single();
+
+        if(erroRecuperacao){
+          mostrarBanner('error', 'Não foi possível gerar o código de recuperação. Tente novamente.');
+        } else {
+          await emailjs.send('service_3jv1jer', 'template_3u4kb9i', {
+            to_email: data.email,
+            codigo_recuperacao: codigoGerado
+          });
+          recuperacaoEncontrada = recuperacao;
+          irParaEtapa('step2');
+        }
+      }
+    } catch(err){
+      mostrarBanner('error', 'Erro ao conectar ao servidor. Tente novamente.');
+    } finally {
+      btnEnviarCodigo.disabled = false;
+      btnEnviarCodigo.textContent = 'AVANÇAR';
+    }
+  });
+
+  // ---------- ETAPA 2: VALIDAR CÓDIGO ----------
+  var formCodigo = document.getElementById('formCodigo');
+  var inputCodigo = document.getElementById('inputCodigo');
+  var btnVerificarCodigo = document.getElementById('btnVerificarCodigo');
+  var linkReenviar = document.getElementById('linkReenviar');
+
+  linkReenviar.addEventListener('click', async function(){
+    if(!usuarioEncontrado || !usuarioEncontrado.email) return;
+
+    linkReenviar.disabled = true;
+    linkReenviar.textContent = 'ENVIANDO...';
+    esconderBanner();
+
+    try{
+      var codigoGerado = String(Math.floor(100000 + Math.random() * 900000));
+      var expiraEm = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      const { data: recuperacao, error: erroRecuperacao } = await supabaseClient
+        .from('recuperacao_senha')
+        .insert([{
+          id_usuario: usuarioEncontrado.id_usuario,
+          codigo_verificacao: codigoGerado,
+          expira_em: expiraEm,
+          utilizado: false
+        }])
+        .select('*')
+        .single();
+
+      if(erroRecuperacao){
+        mostrarBanner('error', 'Não foi possível gerar um novo código. Tente novamente.');
+        return;
+      }
+
+      await emailjs.send('service_3jv1jer', 'template_3u4kb9i', {
+        to_email: usuarioEncontrado.email,
+        codigo_recuperacao: codigoGerado
+      });
+      recuperacaoEncontrada = recuperacao;
+      mostrarBanner('ok', 'Um novo código foi enviado para seu e-mail.');
+    } catch(err){
+      mostrarBanner('error', 'Não foi possível enviar o código. Tente novamente.');
+    } finally {
+      linkReenviar.disabled = false;
+      linkReenviar.textContent = 'Reenviar código';
+    }
+  });
+
+  formCodigo.addEventListener('submit', async function(e){
+    e.preventDefault();
+    esconderBanner();
+    limparErro('fieldCodigo');
+
+    var codigo = inputCodigo.value.trim();
+    if(!/^\d{6}$/.test(codigo)){
+      marcarErro('fieldCodigo', 'Informe o código de 6 dígitos.');
+      inputCodigo.focus();
+      return;
+    }
+
+    btnVerificarCodigo.disabled = true;
+    btnVerificarCodigo.textContent = 'VERIFICANDO...';
+
+    try{
+      const { data, error } = await supabaseClient
+        .from('recuperacao_senha')
+        .select('*')
+        .eq('id_usuario', usuarioEncontrado.id_usuario)
+        .eq('codigo_verificacao', codigo)
+        .eq('utilizado', false)
+        .gt('expira_em', new Date().toISOString())
+        .order('expira_em', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if(error || !data){
+        marcarErro('fieldCodigo', 'Código inválido, expirado ou já utilizado.');
+      } else {
+        recuperacaoEncontrada = data;
+        irParaEtapa('step3');
+      }
+    } catch(err){
+      mostrarBanner('error', 'Erro ao validar o código. Tente novamente.');
+    } finally {
+      btnVerificarCodigo.disabled = false;
+      btnVerificarCodigo.textContent = 'VERIFICAR CÓDIGO';
+    }
+  });
+
+  document.getElementById('linkVoltarLogin').addEventListener('click', function(){
+    window.location.href = 'index.html';
+  });
+
+  // ---------- ETAPA 2: ATUALIZAR SENHA NO BANCO ----------
+  var formNovaSenha = document.getElementById('formNovaSenha');
+  var inputNovaSenha = document.getElementById('inputNovaSenha');
+  var inputConfirmarSenha = document.getElementById('inputConfirmarSenha');
+  var btnSalvarSenha = document.getElementById('btnSalvarSenha');
+  var reqTamanho = document.getElementById('reqTamanho');
+  var reqNumero = document.getElementById('reqNumero');
+
+  inputNovaSenha.addEventListener('input', function(){
+    var valor = this.value;
+    reqTamanho.classList.toggle('ok', valor.length >= 6);
+    reqNumero.classList.toggle('ok', /\d/.test(valor));
+  });
+
+  formNovaSenha.addEventListener('submit', async function(e){
+    e.preventDefault();
+    esconderBanner();
+    limparErro('fieldNovaSenha');
+    limparErro('fieldConfirmarSenha');
+
+    var novaSenha = inputNovaSenha.value;
+    var confirmarSenha = inputConfirmarSenha.value;
+    var valido = true;
+
+    if(!novaSenha){
+      marcarErro('fieldNovaSenha', 'Crie uma senha para continuar.');
+      valido = false;
+    } else if(novaSenha.length < 6 || !/\d/.test(novaSenha)){
+      marcarErro('fieldNovaSenha', 'A senha precisa ter pelo menos 6 caracteres e 1 número.');
+      valido = false;
+    }
+
+    if(!confirmarSenha){
+      marcarErro('fieldConfirmarSenha', 'Digite a senha novamente para confirmar.');
+      valido = false;
+    } else if(novaSenha && confirmarSenha !== novaSenha){
+      marcarErro('fieldConfirmarSenha', 'As senhas não são iguais. Verifique e tente de novo.');
+      valido = false;
+    }
+
+    if(!valido) return;
+
+    btnSalvarSenha.disabled = true;
+    btnSalvarSenha.textContent = 'SALVANDO...';
+
+    try{
+      const { error } = await supabaseClient
+        .from('usuario')
+        .update({ senha: novaSenha })
+        .eq('id_usuario', usuarioEncontrado.id_usuario);
+
+      if(error){
+        mostrarBanner('error', 'Não foi possível atualizar a senha. Tente novamente.');
+      } else {
+        const { error: erroToken } = await supabaseClient
+          .from('recuperacao_senha')
+          .update({ utilizado: true })
+          .eq('id_usuario', usuarioEncontrado.id_usuario)
+          .eq('codigo_verificacao', recuperacaoEncontrada.codigo_verificacao)
+          .eq('utilizado', false);
+
+        if(erroToken){
+          mostrarBanner('error', 'Senha alterada, mas não foi possível invalidar o código.');
+        } else {
+          irParaEtapa('step4');
+        }
+      }
+    } catch(erro){
+      mostrarBanner('error', 'Erro ao salvar no banco de dados.');
+    } finally {
+      btnSalvarSenha.disabled = false;
+      btnSalvarSenha.textContent = 'SALVAR NOVA SENHA';
+    }
+  });
+
+  // ---------- ETAPA 3: CONCLUÍDO ----------
+  document.getElementById('btnIrParaLogin').addEventListener('click', function(){
+    window.location.href = 'index.html';
+  });
+
+})();
+</script>
+</body>
+</html>
