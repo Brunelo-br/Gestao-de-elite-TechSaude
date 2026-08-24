@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde | Histórico de Consultas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream: #f2ecd7;
+    --cream-soft: #f7f2e2;
+    --green-950: #0d2419;
+    --green-900: #14311f;
+    --green-800: #1b3b2c;
+    --green-700: #234a37;
+    --green-line: #c9bf9c;
+    --teal: #4a9b8e;
+    --teal-dark: #2f6e64;
+    --gold: #b8863f;
+    --red-muted: #a15848;
+    --ink: #1c3829;
+    --ink-soft: #4b5c50;
+    --shadow: 0 10px 24px rgba(13,36,25,0.28);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', -apple-system, sans-serif;
+    color: var(--ink);
+    background: radial-gradient(120% 140% at 20% 0%, #16382a 0%, var(--green-950) 60%, #0a1c13 100%);
+    min-height:100vh;
+    padding: 20px;
+    display:flex;
+    justify-content:center;
+  }
+
+  h1,h2,h3{ font-family:'Poppins', sans-serif; margin:0; }
+
+  a{ color: var(--ink); }
+
+  .app{
+    width:100%;
+    max-width: 1180px;
+    background: var(--green-800);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    background: var(--cream);
+    padding: 18px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom: 1px solid var(--green-line);
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand svg{ width:34px; height:34px; flex-shrink:0; }
+  .brand .wordmark{ font-family:'Poppins',sans-serif; font-weight:800; font-size:20px; letter-spacing:0.2px; }
+  .brand .wordmark .tech{ color: var(--ink); }
+  .brand .wordmark .saude{ color: var(--teal-dark); }
+  .datetime{ font-size:13.5px; color: var(--ink-soft); font-weight:500; }
+  .menu-toggle{
+    display:none;
+    background: transparent;
+    border: 1px solid rgba(12,33,24,0.12);
+    color: var(--ink);
+    padding: 8px 10px;
+    border-radius:10px;
+    font-size:18px;
+    cursor:pointer;
+  }
+
+  /* ---------- layout ---------- */
+  .layout{ display:flex; flex-direction:column; }
+
+  @media (min-width: 920px){
+    .layout{ flex-direction:row; align-items:stretch; }
+  }
+
+  /* ---------- sidebar (green) ---------- */
+  .sidebar{
+    background: linear-gradient(180deg, var(--green-800), var(--green-900));
+    color: var(--cream);
+    padding: 32px 28px 28px;
+    display:flex;
+    flex-direction:column;
+    gap: 22px;
+  }
+  @media (min-width: 920px){
+    .sidebar{ width: 320px; flex-shrink:0; }
+  }
+
+  /* Mobile sidebar toggle */
+  @media (max-width: 919px){
+    .menu-toggle{ display:inline-flex; align-items:center; justify-content:center; }
+    .sidebar{ display:none; position:relative; }
+    .layout.sidebar-open .sidebar{ display:flex; position:absolute; left:16px; right:16px; top:78px; z-index:40; border-radius:14px; }
+  }
+
+  .sidebar h1{
+    font-size: 24px;
+    line-height:1.25;
+    color: var(--cream);
+  }
+  .sidebar p.lead{
+    margin-top:10px;
+    font-size:14.5px;
+    line-height:1.55;
+    color: #dfe6dc;
+  }
+
+  .stats{ display:flex; gap:10px; flex-wrap:wrap; }
+  .stat-card{
+    background: rgba(242,236,215,0.08);
+    border: 1px solid rgba(242,236,215,0.18);
+    border-radius: 14px;
+    padding: 12px 14px;
+    flex: 1 1 90px;
+  }
+  .stat-card .num{ font-family:'Poppins',sans-serif; font-weight:800; font-size:22px; color: var(--cream); }
+  .stat-card .lbl{ font-size:11.5px; color:#c8d1c4; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+
+  .filters{ display:flex; flex-direction:column; gap:14px; }
+  .filters label{
+    font-size:12px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase;
+    color:#cfe0d6; margin-bottom:6px; display:block;
+  }
+  .field{ position:relative; }
+  .field input, .field select{
+    width:100%;
+    background: var(--cream-soft);
+    border: 1.5px solid transparent;
+    border-radius: 14px;
+    padding: 11px 14px;
+    font-family:'Inter',sans-serif;
+    font-size: 14.5px;
+    color: var(--ink);
+    outline:none;
+    appearance:none;
+    -webkit-appearance:none;
+  }
+  .field input:focus, .field select:focus{
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(74,155,142,0.35);
+  }
+  .field.select::after{
+    content:"▾";
+    position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    color: var(--ink-soft); pointer-events:none; font-size:13px;
+  }
+  .field input::placeholder{ color:#8a8a72; }
+
+  .reset-btn{
+    background: transparent;
+    border: 1.5px solid rgba(242,236,215,0.4);
+    color: var(--cream);
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .reset-btn:hover{ background: rgba(242,236,215,0.12); border-color: rgba(242,236,215,0.7); }
+
+  /* ---------- content (cream) ---------- */
+  .content{
+    background: var(--cream);
+    flex:1;
+    padding: 28px 28px 36px;
+    min-width:0;
+  }
+  .content-header{
+    display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    border-bottom: 1px solid var(--green-line);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+  }
+  .content-header h2{ font-size: 21px; letter-spacing:0.02em; color: var(--ink); }
+  .result-count{ font-size:13px; color: var(--ink-soft); font-weight:600; }
+
+  /* ---------- consultation cards ---------- */
+  .list{ display:flex; flex-direction:column; gap:14px; }
+
+  .card{
+    background: var(--cream-soft);
+    border: 1.5px solid var(--green-line);
+    border-radius: 18px;
+    padding: 18px 20px;
+    cursor:pointer;
+    transition: box-shadow .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .card:hover{ box-shadow: 0 6px 16px rgba(27,59,44,0.12); border-color: var(--teal); }
+  .card:focus-visible{ outline: 3px solid var(--teal); outline-offset:2px; }
+
+  .card-top{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  }
+  .specialty{
+    font-family:'Poppins',sans-serif;
+    font-weight:700;
+    font-size: 17px;
+    color: var(--ink);
+  }
+  .professional{
+    font-size: 14px; color: var(--ink-soft); margin-top:3px; font-weight:500;
+  }
+
+  .badge{
+    font-size: 11.5px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
+    padding: 5px 12px; border-radius: 999px; white-space:nowrap;
+  }
+  .badge.realizada{ background: rgba(74,155,142,0.16); color: var(--teal-dark); }
+  .badge.agendada{ background: rgba(184,134,63,0.16); color: var(--gold); }
+  .badge.cancelada{ background: rgba(161,88,72,0.14); color: var(--red-muted); }
+
+  .card-meta{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 14px;
+    font-size: 13.5px;
+    color: var(--ink);
+  }
+  @media (min-width:560px){
+    .card-meta{ grid-template-columns: 1fr 1fr; }
+  }
+  .meta-item{ display:flex; align-items:flex-start; gap:8px; }
+  .meta-item svg{ width:16px; height:16px; flex-shrink:0; margin-top:2px; color: var(--teal-dark); }
+  .meta-item .l1{ color: var(--ink-soft); font-size:11px; text-transform:uppercase; letter-spacing:0.03em; font-weight:700; }
+  .meta-item .l2{ font-weight:500; }
+
+  .card-expand{
+    max-height:0; overflow:hidden; transition: max-height .25s ease, margin-top .25s ease;
+  }
+  .card.open .card-expand{ max-height: 260px; margin-top: 14px; }
+  .expand-inner{
+    border-top: 1px dashed var(--green-line);
+    padding-top: 14px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height:1.6;
+  }
+  .expand-inner strong{ color: var(--ink); }
+  .chevron{ transition: transform .2s ease; color: var(--ink-soft); }
+  .card.open .chevron{ transform: rotate(180deg); }
+
+  .card-bottom-row{ display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+
+  /* ---------- empty state ---------- */
+  .empty{
+    text-align:center;
+    padding: 48px 20px;
+    color: var(--ink-soft);
+  }
+  .empty h3{ color: var(--ink); font-size:18px; margin-bottom:6px; }
+  .empty p{ font-size:14px; max-width:340px; margin: 0 auto; }
+
+  /* ---------- footer note ---------- */
+  .footnote{
+    margin-top: 22px;
+    font-size:12.5px;
+    color: var(--ink-soft);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#57b7a6"/>
+            <stop offset="100%" stop-color="#2f6e46"/>
+          </linearGradient>
+        </defs>
+        <path d="M24 41C13 33 5 26 5 17.5 5 10.6 10.4 5 17 5c3.6 0 6.8 1.7 9 4.4C28.2 6.7 31.4 5 35 5c6.6 0 12 5.6 12 12.5C47 26 39 33 28 41l-2 1.5z" fill="url(#hg)"/>
+        <path d="M8 20h5l2.5-5 3 9 2.5-6 2 4h6" fill="none" stroke="#f2ecd7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="32" cy="16" r="4.6" fill="#f2ecd7"/>
+        <path d="M28.5 24c0-2.6 1.8-4 3.6-4s3.6 1.4 3.6 4" fill="none" stroke="#2f6e46" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <div class="wordmark"><span class="tech">Tech</span><span class="saude">Saúde</span></div>
+    </div>
+    <button id="menuToggle" class="menu-toggle" aria-label="Abrir menu">☰</button>
+    <div class="datetime" id="datetimeLabel">Sábado, 16 de agosto de 2026</div>
+  </div>
+
+  <div class="layout">
+
+    <aside class="sidebar">
+      <div>
+        <h1>Seu histórico de consultas, sempre à mão.</h1>
+        <p class="lead">Veja especialidade, unidade, profissional, local, data e horário de cada atendimento — passado ou agendado.</p>
+      </div>
+
+      <div class="stats" id="statsRow">
+        <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">Total</div></div>
+        <div class="stat-card"><div class="num" id="statRealizadas">0</div><div class="lbl">Realizadas</div></div>
+        <div class="stat-card"><div class="num" id="statAgendadas">0</div><div class="lbl">Agendadas</div></div>
+      </div>
+
+      <div class="filters">
+        <div class="field">
+          <label for="searchInput">Buscar</label>
+          <input id="searchInput" type="text" placeholder="Profissional, unidade ou especialidade">
+        </div>
+
+        <div class="field select">
+          <label for="specialtyFilter">Especialidade</label>
+          <select id="specialtyFilter">
+            <option value="">Todas</option>
+          </select>
+        </div>
+
+        <div class="field select">
+          <label for="statusFilter">Situação</label>
+          <select id="statusFilter">
+            <option value="">Todas</option>
+            <option value="realizada">Realizada</option>
+            <option value="agendada">Agendada</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+
+        <button class="reset-btn" id="resetBtn" type="button">Limpar filtros</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="content-header">
+        <h2>HISTÓRICO DE CONSULTAS</h2>
+        <div class="result-count" id="resultCount">0 consultas encontradas</div>
+      </div>
+
+      <div class="list" id="list"></div>
+
+      <div class="empty" id="emptyState" style="display:none;">
+        <h3>Nenhuma consulta encontrada</h3>
+        <p>Tente ajustar a busca ou os filtros de especialidade e situação.</p>
+      </div>
+
+      <p class="footnote">Toque em uma consulta para ver mais detalhes.</p>
+    </main>
+
+  </div>
+</div>
+
+<script>
+  // ---------- mock data ----------
+  const consultas = [
+    {
+      especialidade: "Cardiologia",
+      profissional: "Dra. Marina Souza Prado",
+      unidade: "Clínica Vida Plena",
+      localizacao: "Av. Paulista, 1450 — São Paulo, SP",
+      data: "2026-08-05",
+      hora: "09:30",
+      status: "realizada",
+      obs: "Consulta de rotina para acompanhamento de pressão arterial. Próximo retorno sugerido em 6 meses."
+    },
+    {
+      especialidade: "Clínica Geral",
+      profissional: "Dr. Fábio Andrade Lima",
+      unidade: "UBS Jardim das Flores",
+      localizacao: "Rua das Acácias, 210 — Barueri, SP",
+      data: "2026-08-22",
+      hora: "14:00",
+      status: "agendada",
+      obs: "Check-up anual solicitado pela paciente. Levar exames de sangue recentes."
+    },
+    {
+      especialidade: "Dermatologia",
+      profissional: "Dra. Camila Nogueira Reis",
+      unidade: "Instituto DermaSaúde",
+      localizacao: "Alameda Santos, 890 — São Paulo, SP",
+      data: "2026-07-18",
+      hora: "11:15",
+      status: "realizada",
+      obs: "Avaliação de mancha na pele. Resultado: sem alterações preocupantes."
+    },
+    {
+      especialidade: "Ortopedia",
+      profissional: "Dr. Ricardo Teixeira Nunes",
+      unidade: "Hospital São Lucas",
+      localizacao: "Rua Peixoto Gomide, 305 — São Paulo, SP",
+      data: "2026-06-30",
+      hora: "16:45",
+      status: "cancelada",
+      obs: "Consulta cancelada pelo paciente. Reagendamento pendente."
+    },
+    {
+      especialidade: "Endocrinologia",
+      profissional: "Dra. Helena Martins Costa",
+      unidade: "Clínica Vida Plena",
+      localizacao: "Av. Paulista, 1450 — São Paulo, SP",
+      data: "2026-09-02",
+      hora: "08:00",
+      status: "agendada",
+      obs: "Retorno para ajuste de tratamento e revisão de exames laboratoriais."
+    },
+    {
+      especialidade: "Oftalmologia",
+      profissional: "Dr. Paulo Henrique Vasconcelos",
+      unidade: "Centro Óptico Visão Clara",
+      localizacao: "Rua Alameda Rio Negro, 500 — Barueri, SP",
+      data: "2026-05-14",
+      hora: "10:20",
+      status: "realizada",
+      obs: "Exame de vista completo. Receita de óculos atualizada."
+    },
+    {
+      especialidade: "Psicologia",
+      profissional: "Dra. Beatriz Lopes Ferreira",
+      unidade: "Espaço Bem Estar",
+      localizacao: "Rua Verbo Divino, 1400 — São Paulo, SP",
+      data: "2026-08-11",
+      hora: "17:30",
+      status: "realizada",
+      obs: "Sessão quinzenal de acompanhamento. Próxima sessão já agendada."
+    },
+    {
+      especialidade: "Nutrição",
+      profissional: "Dra. Juliana Alves Barbosa",
+      unidade: "Clínica NutriVida",
+      localizacao: "Av. Marquês de São Vicente, 620 — São Paulo, SP",
+      data: "2026-09-10",
+      hora: "13:00",
+      status: "agendada",
+      obs: "Avaliação nutricional inicial e montagem de plano alimentar."
+    }
+  ];
+
+  // pre-calc timestamps for reliable sorting
+  consultas.forEach(c => {
+    try{
+      c._ts = new Date(c.data + 'T' + c.hora + ':00').getTime();
+    }catch(e){ c._ts = 0; }
+  });
+
+  const statusLabel = { realizada: "Realizada", agendada: "Agendada", cancelada: "Cancelada" };
+
+  const icons = {
+    calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 9.5h18"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>',
+    pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/></svg>',
+    building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 8h.01M15 8h.01M9 12h.01M15 12h.01M9 16h.01M15 16h.01"/></svg>',
+    chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>'
+  };
+
+  const weekdays = ["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
+  const months = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+
+  function formatDate(iso){
+    const d = new Date(iso + "T00:00:00");
+    const wd = weekdays[d.getDay()];
+    return `${d.getDate()} de ${months[d.getMonth()]} de ${d.getFullYear()} · ${wd.charAt(0).toUpperCase()+wd.slice(1)}`;
+  }
+
+  function setHeaderDate(){
+    const now = new Date();
+    const wd = weekdays[now.getDay()];
+    const label = `${wd.charAt(0).toUpperCase()+wd.slice(1)}, ${now.getDate()} de ${months[now.getMonth()]} de ${now.getFullYear()}`;
+    document.getElementById("datetimeLabel").textContent = label;
+  }
+
+  const listEl = document.getElementById("list");
+  const emptyEl = document.getElementById("emptyState");
+  const resultCountEl = document.getElementById("resultCount");
+  const searchInput = document.getElementById("searchInput");
+  const specialtyFilter = document.getElementById("specialtyFilter");
+  const statusFilter = document.getElementById("statusFilter");
+  const resetBtn = document.getElementById("resetBtn");
+
+  function populateSpecialtyOptions(){
+    const specs = [...new Set(consultas.map(c => c.especialidade))].sort();
+    specs.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s; opt.textContent = s;
+      specialtyFilter.appendChild(opt);
+    });
+  }
+
+  function updateStats(){
+    document.getElementById("statTotal").textContent = consultas.length;
+    document.getElementById("statRealizadas").textContent = consultas.filter(c => c.status === "realizada").length;
+    document.getElementById("statAgendadas").textContent = consultas.filter(c => c.status === "agendada").length;
+  }
+
+  function render(){
+    const q = searchInput.value.trim().toLowerCase();
+    const spec = specialtyFilter.value;
+    const status = statusFilter.value;
+
+    const filtered = consultas
+      .filter(c => !spec || c.especialidade === spec)
+      .filter(c => !status || c.status === status)
+      .filter(c => !q ||
+        c.profissional.toLowerCase().includes(q) ||
+        c.unidade.toLowerCase().includes(q) ||
+        c.especialidade.toLowerCase().includes(q))
+      .sort((a,b) => new Date(b.data + "T" + b.hora) - new Date(a.data + "T" + a.hora));
+
+    listEl.innerHTML = "";
+    resultCountEl.textContent = `${filtered.length} consulta${filtered.length === 1 ? "" : "s"} encontrada${filtered.length === 1 ? "" : "s"}`;
+
+    if(filtered.length === 0){
+      emptyEl.style.display = "block";
+    } else {
+      emptyEl.style.display = "none";
+      filtered.forEach((c, idx) => listEl.appendChild(buildCard(c, idx)));
+    }
+  }
+
+  function buildCard(c, idx){
+    const allowedStatuses = ['realizada','agendada','cancelada'];
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-expanded', 'false');
+
+    const expandId = `expand-${idx}`;
+    card.setAttribute('aria-controls', expandId);
+
+    // top
+    const top = document.createElement('div'); top.className = 'card-top';
+    const left = document.createElement('div');
+    const specEl = document.createElement('div'); specEl.className = 'specialty'; specEl.textContent = c.especialidade;
+    const profEl = document.createElement('div'); profEl.className = 'professional'; profEl.textContent = c.profissional;
+    left.appendChild(specEl); left.appendChild(profEl);
+    const badge = document.createElement('span');
+    const statusClass = allowedStatuses.includes(c.status) ? c.status : 'agendada';
+    badge.className = `badge ${statusClass}`;
+    badge.textContent = statusLabel[c.status] || c.status;
+    top.appendChild(left); top.appendChild(badge);
+    card.appendChild(top);
+
+    // meta
+    const meta = document.createElement('div'); meta.className = 'card-meta';
+    function makeMeta(iconHtml, l1, l2){
+      const mi = document.createElement('div'); mi.className = 'meta-item';
+      const iconWrap = document.createElement('div'); iconWrap.innerHTML = iconHtml;
+      const txt = document.createElement('div');
+      const l1el = document.createElement('div'); l1el.className = 'l1'; l1el.textContent = l1;
+      const l2el = document.createElement('div'); l2el.className = 'l2'; l2el.textContent = l2;
+      txt.appendChild(l1el); txt.appendChild(l2el);
+      mi.appendChild(iconWrap); mi.appendChild(txt);
+      return mi;
+    }
+    meta.appendChild(makeMeta(icons.building, 'Unidade', c.unidade));
+    meta.appendChild(makeMeta(icons.pin, 'Localização', c.localizacao));
+    meta.appendChild(makeMeta(icons.calendar, 'Data', formatDate(c.data)));
+    meta.appendChild(makeMeta(icons.clock, 'Horário', c.hora));
+    card.appendChild(meta);
+
+    // bottom row with chevron
+    const bottom = document.createElement('div'); bottom.className = 'card-bottom-row';
+    const spacer = document.createElement('span');
+    const chev = document.createElement('span'); chev.className = 'chevron'; chev.innerHTML = icons.chevron;
+    bottom.appendChild(spacer); bottom.appendChild(chev);
+    card.appendChild(bottom);
+
+    // expand
+    const expand = document.createElement('div'); expand.className = 'card-expand'; expand.id = expandId;
+    const expandInner = document.createElement('div'); expandInner.className = 'expand-inner';
+    const strong = document.createElement('strong'); strong.textContent = 'Observações:';
+    expandInner.appendChild(strong);
+    expandInner.appendChild(document.createTextNode(' ' + c.obs));
+    expand.appendChild(expandInner);
+    card.appendChild(expand);
+
+    function toggle(){
+      const isOpen = card.classList.toggle('open');
+      card.setAttribute('aria-expanded', String(isOpen));
+    }
+    card.addEventListener('click', toggle);
+    card.addEventListener('keydown', (e) => {
+      const key = (e.key || '').toString();
+      if(key === 'Enter' || key === ' ' || key === 'Spacebar' || e.code === 'Space'){
+        e.preventDefault(); toggle();
+      }
+    });
+
+    return card;
+  }
+
+  searchInput.addEventListener("input", render);
+  specialtyFilter.addEventListener("change", render);
+  statusFilter.addEventListener("change", render);
+  resetBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    specialtyFilter.value = "";
+    statusFilter.value = "";
+    render();
+  });
+  // mobile menu toggle
+  const menuToggle = document.getElementById('menuToggle');
+  const layoutEl = document.querySelector('.layout');
+  if(menuToggle && layoutEl){
+    menuToggle.addEventListener('click', () => layoutEl.classList.toggle('sidebar-open'));
+  }
+
+  setHeaderDate();
+  populateSpecialtyOptions();
+  updateStats();
+  render();
+</script>
+
+</body>
+</html>
