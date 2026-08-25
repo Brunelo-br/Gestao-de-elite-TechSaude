@@ -41,7 +41,7 @@
     background: linear-gradient(160deg, #1d5b3a, #123a26);
   }
   .home-logo-center{ display:flex; flex-direction:column; align-items:center; gap:4px; padding-top:2px; }
-  .home-logo-center .logo-mark{ width:115px; height:115px; object-fit:contain; }
+  .home-logo-center .logo-mark{ width:150px; height:150px; object-fit:contain; }
   .wordmark{ font-size:1.1rem; font-weight:800; letter-spacing:-0.5px; }
   .wordmark .tech{ color:#8fe0cf; }
   .wordmark .saude{ color:var(--cream); }
@@ -92,7 +92,7 @@
   .home-card{
     background:var(--cream-deep);
     border:2px solid var(--line);
-    border-radius:18px;
+    border-radius:20px;
     padding:16px 6px 14px;
     display:flex; flex-direction:column; align-items:center; gap:8px;
     cursor:pointer; text-align:center; font-family:inherit;
@@ -114,6 +114,9 @@
     display:flex; align-items:center; gap:14px;
     flex:1;
   }
+
+  input, select, textarea, button{ font-family:'Trebuchet MS', 'Segoe UI', Verdana, sans-serif; }
+  h1, h2{ color:var(--green-deep); font-weight:900; text-transform:uppercase; }
   .home-banner svg{ width:52px; height:52px; flex-shrink:0; }
   .home-banner span{
     color:var(--cream); font-weight:800; font-size:1rem; line-height:1.3;
@@ -127,11 +130,12 @@
       justify-content:center;
       padding:40px 24px;
     }
-    .home-wrap{
+    .page, .site, .home-wrap{
       width:100%;
-      max-width:760px;
+      max-width:1080px;
       min-height:660px;
       border-radius:32px;
+      margin:auto;
       overflow:hidden;
       box-shadow: 0 30px 70px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06);
       display:flex;
@@ -165,7 +169,7 @@
     </button>
 
     <div class="home-logo-center">
-      <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:115px; height:115px; object-fit:contain;">
+      <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:150px; height:150px; object-fit:contain;">
       <div class="wordmark"><span class="tech">Tech</span><span class="saude">Saúde</span></div>
     </div>
 
@@ -329,7 +333,7 @@
     voz:         { title: 'Comando de Voz' },
     dicas:       { title: 'Dicas Úteis' },
     jogos:       { title: 'Mini Jogos de Memória' },
-    consultas:   { title: 'Lembrete de Consultas' },
+    consultas:   { title: 'Lembrete de Consultas', url: 'lembretedeconsultas.html' },
   };
 
   function openFeature(key){

@@ -14,19 +14,24 @@
 
 <style>
   :root{
-    --cream:#F4EEDB;
-    --cream-card:#F6F1E2;
-    --forest:#173626;
-    --forest-2:#1F4632;
-    --teal:#3FA79A;
-    --sage:#8AC06B;
-    --border:rgba(23,54,38,0.28);
-    --border-soft:rgba(23,54,38,0.16);
-    --muted:#4B5A4F;
-    --error:#B23A2E;
-    --error-bg:#FBE7E4;
-    --success:#1F6B45;
-    --success-bg:#E4F1E7;
+    --cream: #f3efdc;
+    --cream-deep: #ece5c9;
+    --green-deep: #1b3a26;
+    --green-mid: #2f6b46;
+    --teal: #2f9e8f;
+    --line: #cdbf95;
+    --text: #26332a;
+    --text-soft: #55604f;
+    --error: #a3402c;
+    --cream-card: var(--cream-deep);
+    --forest: var(--green-deep);
+    --forest-2: #234a34;
+    --border: var(--line);
+    --border-soft: var(--line);
+    --muted: var(--text-soft);
+    --error-bg: #f4dcd6;
+    --success: var(--green-mid);
+    --success-bg: #dcefdf;
     --shadow-outer: 0 30px 60px rgba(0,0,0,0.35);
   }
 
@@ -36,9 +41,12 @@
     margin:0;
     padding:0;
     min-height:100%;
-    font-family:'Nunito', sans-serif;
+    font-family:'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
     color:var(--forest);
   }
+
+  input, select, textarea, button{ font-family:'Trebuchet MS', 'Segoe UI', Verdana, sans-serif; }
+  h1, h2{ color:var(--green-deep); font-weight:900; text-transform:uppercase; }
 
   body{
     min-height:100vh;
@@ -74,7 +82,7 @@
   .main-col{ grid-area:lista; min-width:0; }
 
   .topbar{
-    background:linear-gradient(135deg, var(--forest-2) 0%, var(--teal) 100%);
+    background: linear-gradient(160deg, #12583a, #0b3423);
     padding:20px 20px 18px;
     display:flex;
     align-items:flex-start;
@@ -120,7 +128,7 @@
     gap:4px;
     flex-shrink:0;
   }
-  .brand-top img{ width:70px;height:70px;object-fit:contain; }
+  .brand-top img{ width:150px; height:150px; object-fit:contain; }
   .brand-top span{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
@@ -279,17 +287,17 @@
     grid-area:add;
     width:100%;
     margin-top:6px;
-    background:var(--forest);
-    color:var(--cream);
+    background:linear-gradient(180deg, #234a34, #1b3a26);
+    color:#f3efdc;
     border:none;
     border-radius:999px;
     padding:15px;
-    font-family:'Baloo 2', sans-serif;
-    font-weight:700;
+    font-family:'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+    font-weight:800;
     font-size:16.5px;
     letter-spacing:0.4px;
     cursor:pointer;
-    box-shadow:0 6px 0 rgba(0,0,0,0.18);
+    box-shadow:0 6px 0 #0e2416, 0 10px 18px rgba(0,0,0,0.25);
     transition:transform .08s ease, box-shadow .08s ease, background .2s ease;
   }
   .btn-adicionar:hover{ background:var(--forest-2); }
@@ -372,7 +380,7 @@
     border:none;
     outline:none;
     background:transparent;
-    font-family:'Nunito', sans-serif;
+    font-family:'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
     font-size:16px;
     font-weight:700;
     color:var(--forest);
@@ -570,6 +578,50 @@
     #listaAlarmes .alarm-card{ margin-bottom:0; }
     #listaAlarmes .lista-vazia{ grid-column:1 / -1; margin-bottom:0; }
   }
+
+  .site, .proximo-card, .alarm-card, .modal, .alerta-modal, .med-bloco{
+    background:var(--cream-deep);
+    border:2px solid var(--line);
+    border-radius:20px;
+  }
+  .field-box{
+    background:#ffffff !important;
+    border:2px solid #1c3829 !important;
+    border-radius:999px !important;
+    color:#1c3829 !important;
+  }
+  .field{
+    position:relative;
+    margin-bottom:20px;
+  }
+  .field-box label{
+    top:-10px;
+    left:20px;
+    background:#ece5c9;
+    padding:0 8px;
+    font-size:0.8rem;
+    font-weight:800;
+    color:#1c3829;
+    text-transform:uppercase;
+    z-index:2;
+  }
+  .field-box input, .field-box select{
+    background:#ffffff !important;
+    color:#1c3829 !important;
+    padding:14px 20px !important;
+  }
+  .modal{
+    background:#faf7ec;
+  }
+  .btn-adicionar, .btn-salvar, .btn-tomei{
+    background:linear-gradient(180deg, #234a34, #1b3a26);
+    color:#f3efdc;
+    border-radius:999px;
+    font-family:'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+    font-weight:800;
+    text-transform:uppercase;
+    box-shadow:0 6px 0 #0e2416, 0 10px 18px rgba(0,0,0,0.25);
+  }
 </style>
 </head>
 <body>
@@ -742,7 +794,7 @@ function dispararEmergencia(){
       const { data, error } = await supabaseClient
         .from('medicamentos')
         .select('*')
-        .eq('usuario_id', usuarioLogado?.id || usuarioLogado?.cpf);
+        .eq('usuario_id', String(usuarioLogado?.id_usuario || usuarioLogado?.id || usuarioLogado?.cpf || 'offline'));
 
       if(!error && data && data.length > 0){
         alarmes = data.map(d => ({
@@ -771,11 +823,14 @@ function dispararEmergencia(){
     const storageKey = 'medicamentos_' + (usuarioLogado?.id || usuarioLogado?.cpf || 'offline');
     localStorage.setItem(storageKey, JSON.stringify(alarmes));
 
+    // Garante que usuario_id seja sempre enviado como texto
+    const userId = String(usuarioLogado?.id_usuario || usuarioLogado?.id || usuarioLogado?.cpf || 'offline');
+
     try {
       if(operacao === 'upsert'){
-        await supabaseClient.from('medicamentos').upsert({
+        const { error } = await supabaseClient.from('medicamentos').upsert({
           id: alarmeObj.id,
-          usuario_id: usuarioLogado?.id || usuarioLogado?.cpf,
+          usuario_id: userId,
           medicamentos: alarmeObj.medicamentos,
           primeira_dose: alarmeObj.primeiraDose,
           intervalo_horas: alarmeObj.intervaloHoras,
@@ -783,11 +838,13 @@ function dispararEmergencia(){
           duracao_valor: alarmeObj.duracaoValor,
           ativo: alarmeObj.ativo
         });
+        if (error) console.error('Erro ao gravar no Supabase:', error);
       } else if(operacao === 'delete'){
-        await supabaseClient.from('medicamentos').delete().eq('id', alarmeObj.id);
+        const { error } = await supabaseClient.from('medicamentos').delete().eq('id', alarmeObj.id);
+        if (error) console.error('Erro ao deletar no Supabase:', error);
       }
     } catch(err) {
-      console.log('Operação salva localmente:', err);
+      console.log('Operação salva apenas localmente:', err);
     }
   }
 

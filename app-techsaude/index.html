@@ -29,6 +29,8 @@
     background: var(--cream);
     font-family: 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
   }
+  input, select, textarea, button{ font-family: 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif; }
+  h1, h2{ color:var(--green-deep); font-weight:900; text-transform:uppercase; }
 
   /* ============ ESTRUTURA GERAL (mobile-first) ============ */
   .page{
@@ -60,7 +62,7 @@
     border-bottom:2px solid var(--line);
     background: linear-gradient(180deg, #f7f3e2, var(--cream));
   }
-  .logo-mark{ width:115px; height:115px; flex-shrink:0; object-fit:contain; }
+  .logo-mark{ width:150px; height:150px; flex-shrink:0; object-fit:contain; }
   .wordmark{ font-size:1.5rem; font-weight:800; letter-spacing:-0.5px; }
   .wordmark .tech{ color:var(--teal); }
   .wordmark .saude{ color:var(--green-deep); }
@@ -172,6 +174,36 @@
   .field input.input-valid{
     border-color:var(--green-mid);
   }
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear{
+    display:none !important;
+  }
+  .card{
+    background:#faf7ec;
+  }
+  .field{
+    position:relative;
+    margin-bottom:20px;
+  }
+  .field label{
+    position:absolute;
+    top:-10px;
+    left:20px;
+    background:#ece5c9;
+    padding:0 8px;
+    font-size:0.8rem;
+    font-weight:800;
+    color:#1c3829;
+    text-transform:uppercase;
+    z-index:2;
+  }
+  .field input{
+    background:#ffffff !important;
+    border:2px solid #1c3829 !important;
+    border-radius:999px !important;
+    color:#1c3829 !important;
+    padding:14px 20px !important;
+  }
   .field small{
     display:block;
     margin-top:4px;
@@ -220,7 +252,7 @@
   /* ============ PAINEL DE MARCA (só desktop) ============ */
   .brand-inner{ max-width:440px; }
   .brand-logo-row{ display:flex; align-items:center; gap:14px; margin-bottom:36px; }
-  .brand-logo-row .logo-mark{ width:115px; height:115px; }
+  .brand-logo-row .logo-mark{ width:150px; height:150px; }
   .brand-logo-row .wordmark{ font-size:1.9rem; color:var(--cream); }
   .brand-logo-row .wordmark .tech{ color:#7fd6c6; }
   .brand-logo-row .wordmark .saude{ color:var(--cream); }
@@ -284,7 +316,7 @@
       flex:0.95;
       background:var(--cream);
       align-items:center;
-      padding:44px;
+      padding:36px 44px;
     }
     .auth-card-outer{
       min-height:auto;
@@ -298,8 +330,45 @@
     header.app-header{ padding:26px 28px 14px; }
     .datetime{ padding:9px 28px; }
     .screen-wrap{ padding:22px 28px 30px; }
-    .card{ border-radius:0; border:none; padding:0; background:transparent; }
+    .card{ padding:10px 0; }
     h1.title{ font-size:1.75rem; }
+  }
+
+  .auth-panel{
+    background:#f4eedb !important;
+    padding:36px 44px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:center !important;
+  }
+  .auth-card-outer{
+    background:transparent !important;
+    border:none !important;
+    box-shadow:none !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-height:0;
+  }
+  .card{
+    background:transparent !important;
+    border:none !important;
+    box-shadow:none !important;
+    padding:10px 0 !important;
+  }
+  header.app-header{
+    background:transparent;
+    border-bottom:none;
+    padding:0 0 14px;
+  }
+  .datetime{
+    background:transparent;
+    margin-bottom:8px;
+  }
+  .screen-wrap{
+    padding:8px 0 0;
+  }
+  .form-actions{
+    margin-top:18px;
   }
 </style>
 </head>
@@ -311,7 +380,7 @@
   <aside class="brand-panel">
     <div class="brand-inner">
       <div class="brand-logo-row">
-        <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:115px; height:115px; object-fit:contain;">
+        <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:150px; height:150px; object-fit:contain;">
         <div class="wordmark"><span class="tech">Tech</span><span class="saude">Saúde</span></div>
       </div>
 
@@ -340,7 +409,7 @@
     <div class="auth-card-outer">
 
       <header class="app-header">
-        <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:115px; height:115px; object-fit:contain;">
+        <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:150px; height:150px; object-fit:contain;">
         <div class="wordmark"><span class="tech">Tech</span><span class="saude">Saúde</span></div>
       </header>
 
@@ -525,8 +594,8 @@
     const input = document.getElementById(inputId);
     const showing = input.type === 'text';
     input.type = showing ? 'password' : 'text';
-    btn.textContent = showing ? '👁' : '🙈';
-    btn.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Ocultar senha');
+    btn.textContent = '👁';
+    btn.style.opacity = showing ? '0.5' : '1';
   }
 
   // Valida os dois dígitos verificadores do CPF.
