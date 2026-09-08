@@ -58,11 +58,12 @@
     padding:22px 20px 14px;
     display:flex;
     align-items:center;
+    justify-content:center;
     gap:12px;
     border-bottom:2px solid var(--line);
     background: linear-gradient(180deg, #f7f3e2, var(--cream));
   }
-  .logo-mark{ width:150px; height:150px; flex-shrink:0; object-fit:contain; }
+  .logo-mark{ width:200px; height:200px; flex-shrink:0; object-fit:contain; }
   .wordmark{ font-size:1.5rem; font-weight:800; letter-spacing:-0.5px; }
   .wordmark .tech{ color:var(--teal); }
   .wordmark .saude{ color:var(--green-deep); }
@@ -251,8 +252,8 @@
 
   /* ============ PAINEL DE MARCA (só desktop) ============ */
   .brand-inner{ max-width:440px; }
-  .brand-logo-row{ display:flex; align-items:center; gap:14px; margin-bottom:36px; }
-  .brand-logo-row .logo-mark{ width:150px; height:150px; }
+  .brand-logo-row{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:36px; }
+  .brand-logo-row .logo-mark{ width:200px; height:200px; }
   .brand-logo-row .wordmark{ font-size:1.9rem; color:var(--cream); }
   .brand-logo-row .wordmark .tech{ color:#7fd6c6; }
   .brand-logo-row .wordmark .saude{ color:var(--cream); }
@@ -327,7 +328,7 @@
       box-shadow: 0 18px 40px rgba(0,0,0,0.12);
       overflow:hidden;
     }
-    header.app-header{ padding:26px 28px 14px; }
+      header.app-header{ padding:26px 28px 14px; }
     .datetime{ padding:9px 28px; }
     .screen-wrap{ padding:22px 28px 30px; }
     .card{ padding:10px 0; }
@@ -380,8 +381,7 @@
   <aside class="brand-panel">
     <div class="brand-inner">
       <div class="brand-logo-row">
-        <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:150px; height:150px; object-fit:contain;">
-        <div class="wordmark"><span class="tech">Tech</span><span class="saude">Saúde</span></div>
+        <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:200px; height:200px; object-fit:contain;">
       </div>
 
       <h2 class="brand-headline">Sua rotina de saúde, organizada com carinho.</h2>
@@ -409,8 +409,7 @@
     <div class="auth-card-outer">
 
       <header class="app-header">
-        <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:150px; height:150px; object-fit:contain;">
-        <div class="wordmark"><span class="tech">Tech</span><span class="saude">Saúde</span></div>
+        <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:200px; height:200px; object-fit:contain;">
       </header>
 
       <div class="datetime" id="datetime">--:-- - --, -- de -- de ----</div>

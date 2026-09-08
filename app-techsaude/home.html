@@ -37,11 +37,12 @@
     display:flex;
     align-items:flex-start;
     justify-content:space-between;
+    position:relative;
     padding:18px 14px 14px;
     background: linear-gradient(160deg, #1d5b3a, #123a26);
   }
   .home-logo-center{ display:flex; flex-direction:column; align-items:center; gap:4px; padding-top:2px; }
-  .home-logo-center .logo-mark{ width:150px; height:150px; object-fit:contain; }
+  .home-logo-center .logo-mark{ width:200px; height:200px; object-fit:contain; }
   .wordmark{ font-size:1.1rem; font-weight:800; letter-spacing:-0.5px; }
   .wordmark .tech{ color:#8fe0cf; }
   .wordmark .saude{ color:var(--cream); }
@@ -169,8 +170,7 @@
     </button>
 
     <div class="home-logo-center">
-      <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:150px; height:150px; object-fit:contain;">
-      <div class="wordmark"><span class="tech">Tech</span><span class="saude">Saúde</span></div>
+      <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:200px; height:200px; object-fit:contain;">
     </div>
 
     <button class="topbar-btn sair" onclick="logout()">
