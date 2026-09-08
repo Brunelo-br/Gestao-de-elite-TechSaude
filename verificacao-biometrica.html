@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TechSaúde — Verificação biométrica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF4E3;
+    --cream-deep:#F3E9D2;
+    --forest:#173229;
+    --forest-soft:#24473A;
+    --teal:#1CA79A;
+    --teal-dark:#157F76;
+    --green:#8DC63F;
+    --amber:#DE9F4C;
+    --ink:#26302B;
+    --ink-soft:#5C6B62;
+    --line:#E3D8BE;
+    --success:#2E8B4E;
+    --success-bg:#E7F3E5;
+    --danger:#C1453A;
+    --danger-bg:#F8DEDA;
+    --radius-lg:28px;
+    --radius-md:18px;
+    --radius-sm:12px;
+    --step:0%;
+    --scale:1;
+    font-size: calc(16px * var(--scale));
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: radial-gradient(120% 120% at 50% 0%, #1E4436 0%, var(--forest) 55%, #0F251D 100%);
+    font-family:'Inter', 'Segoe UI', sans-serif;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:28px 14px;
+  }
+  h1,h2,h3{ font-family:'Poppins', sans-serif; margin:0; }
+
+  .phone{
+    width:100%;
+    max-width:420px;
+    min-height:min(820px, 92vh);
+    background:var(--cream);
+    border-radius:var(--radius-lg);
+    box-shadow: 0 30px 70px rgba(0,0,0,.45), 0 2px 0 rgba(255,255,255,.06) inset;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    border: 1px solid rgba(255,255,255,.08);
+  }
+
+  /* ---------- topbar ---------- */
+  .topbar{
+    background: linear-gradient(180deg, var(--cream-deep), var(--cream));
+    padding:18px 20px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand svg{ width:36px; height:36px; flex-shrink:0; }
+  .brand-name{ font-size:1.28rem; font-weight:700; letter-spacing:-.01em; }
+  .brand-name .tech{ color:var(--forest); }
+  .brand-name .saude{ color:var(--teal-dark); }
+  .toprow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .a11y-controls{
+    display:flex;
+    gap:6px;
+  }
+  .a11y-btn{
+    width:32px; height:32px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--forest);
+    font-weight:700;
+    font-size:.85rem;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .a11y-btn:hover{ background:var(--cream-deep); }
+  .clock-line{
+    margin-top:10px;
+    font-size:.82rem;
+    color:var(--ink-soft);
+    display:flex;
+    justify-content:space-between;
+  }
+  .progress-track{
+    margin-top:12px;
+    height:6px;
+    border-radius:99px;
+    background:var(--line);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    width:var(--step);
+    background:linear-gradient(90deg, var(--teal), var(--green));
+    border-radius:99px;
+    transition:width .45s ease;
+  }
+
+  /* ---------- body / steps ---------- */
+  .stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    overflow:hidden;
+  }
+  .step{
+    display:none;
+    flex:1;
+    flex-direction:column;
+    padding:26px 22px 22px;
+    animation: fadein .35s ease;
+  }
+  .step.active{ display:flex; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .step-header{ margin-bottom:18px; }
+  .eyebrow-icon{
+    width:36px; height:36px;
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:10px;
+    background:var(--teal);
+    color:#fff;
+    flex-shrink:0;
+  }
+  .eyebrow-icon svg{ width:18px; height:18px; }
+  .step-header h2{ font-size:1.4rem; line-height:1.25; color:var(--forest); }
+  .step-sub{ margin-top:8px; font-size:1rem; color:var(--ink-soft); line-height:1.5; }
+
+  .spacer{ flex:1; }
+
+  /* buttons */
+  .btn{
+    appearance:none;
+    border:none;
+    width:100%;
+    padding:16px 20px;
+    border-radius:16px;
+    font-family:'Inter', sans-serif;
+    font-size:1.05rem;
+    font-weight:700;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    gap:8px;
+    transition:transform .15s ease, filter .15s ease;
+  }
+  .btn:active{ transform:scale(.98); }
+  .btn-primary{ background:var(--forest); color:#fff; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-primary:disabled{ background:#B8C2BC; cursor:not-allowed; }
+  .btn-outline{
+    background:transparent;
+    color:var(--forest);
+    border:2px solid var(--forest);
+  }
+  .btn-danger{ background:var(--danger); color:#fff; }
+  .btn-success{ background:var(--success); color:#fff; }
+  .link-btn{
+    background:none; border:none; color:var(--teal-dark);
+    font-weight:600; text-decoration:underline; cursor:pointer;
+    font-size:.92rem; padding:6px;
+  }
+
+  /* selfie / camera */
+  .cam-wrap{
+    align-self:center;
+    width:230px; height:230px;
+    border-radius:50%;
+    border:5px solid var(--teal);
+    overflow:hidden;
+    background:#0F251D;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    box-shadow:0 0 0 8px rgba(28,167,154,.12);
+  }
+  .cam-wrap.denied{ border-color:var(--danger); box-shadow:0 0 0 8px rgba(193,69,58,.12); }
+  .cam-wrap video{ width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+  .cam-placeholder{ color:#f2e7e5; text-align:center; padding:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; height:100%; }
+  .cam-placeholder svg{ width:44px; height:44px; opacity:.85; }
+  .cam-placeholder p{ font-size:.78rem; margin:0; line-height:1.35; }
+  .cam-placeholder.loading svg{ animation:spin 1.4s linear infinite; }
+
+  .scan-ring{
+    position:absolute; inset:0; border-radius:50%;
+    border:3px solid var(--amber);
+    opacity:0;
+  }
+  .scan-ring.pulse{ animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse{
+    0%{ opacity:.9; transform:scale(.94); }
+    70%{ opacity:0; transform:scale(1.08); }
+    100%{ opacity:0; transform:scale(1.08); }
+  }
+
+  .cam-status{
+    text-align:center;
+    margin-top:14px;
+    font-size:.85rem;
+    font-weight:600;
+    color:var(--ink-soft);
+  }
+  .cam-status.denied{ color:var(--danger); }
+  .cam-status.ok{ color:var(--success); }
+
+  .instruction{
+    text-align:center;
+    margin-top:14px;
+    font-weight:700;
+    font-size:1.15rem;
+    color:var(--forest);
+    min-height:1.5em;
+  }
+  .instruction-sub{ text-align:center; color:var(--ink-soft); font-size:.92rem; margin-top:4px; }
+
+  .dots{ display:flex; justify-content:center; gap:8px; margin-top:16px; }
+  .dot{ width:26px; height:6px; border-radius:99px; background:var(--line); transition:background .3s ease; }
+  .dot.done{ background:var(--success); }
+  .dot.now{ background:var(--amber); }
+
+  .permission-box{
+    margin-top:18px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:14px;
+    font-size:.9rem;
+    color:var(--ink-soft);
+    text-align:center;
+    line-height:1.5;
+  }
+
+  .privacy-note{
+    margin-top:16px;
+    display:flex;
+    gap:10px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:13px 14px;
+  }
+  .privacy-note svg{ width:20px; height:20px; flex-shrink:0; color:var(--teal); margin-top:1px; }
+  .privacy-note p{ margin:0; font-size:.88rem; color:var(--ink-soft); line-height:1.45; }
+
+  /* processing */
+  .spinner-wrap{ display:flex; justify-content:center; margin: 10px 0 22px; }
+  .spinner{
+    width:64px; height:64px;
+    border-radius:50%;
+    border:6px solid var(--line);
+    border-top-color:var(--teal);
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .checklist{ display:flex; flex-direction:column; gap:12px; }
+  .check-item{
+    display:flex; align-items:center; gap:12px;
+    background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:13px 14px; opacity:.45; transition:opacity .3s ease;
+  }
+  .check-item.on{ opacity:1; }
+  .check-icon{
+    width:26px; height:26px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--line); color:#fff;
+  }
+  .check-item.on .check-icon{ background:var(--success); }
+  .check-item.fail .check-icon{ background:var(--danger); }
+  .check-icon svg{ width:14px; height:14px; }
+  .check-text{ font-weight:600; font-size:.95rem; color:var(--ink); }
+
+  /* result screens */
+  .result-badge{
+    width:96px; height:96px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    margin:6px auto 18px;
+  }
+  .result-badge.ok{ background:var(--success-bg); color:var(--success); }
+  .result-badge.bad{ background:var(--danger-bg); color:var(--danger); }
+  .result-badge svg{ width:52px; height:52px; }
+  .result-title{ text-align:center; font-size:1.5rem; color:var(--forest); }
+  .result-sub{ text-align:center; margin-top:8px; color:var(--ink-soft); font-size:1rem; }
+
+  .result-list{ margin-top:22px; display:flex; flex-direction:column; gap:10px; }
+  .result-row{
+    display:flex; align-items:center; gap:10px;
+    background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:12px 14px;
+  }
+  .result-row svg{ width:20px; height:20px; flex-shrink:0; }
+  .result-row.ok svg{ color:var(--success); }
+  .result-row.bad svg{ color:var(--danger); }
+  .result-row span{ font-size:.95rem; font-weight:600; }
+  .result-row b{ font-weight:700; }
+
+  .reason-box{
+    margin-top:14px;
+    background:#FFF6E8;
+    border:1px solid #EEDBAE;
+    border-radius:var(--radius-sm);
+    padding:13px 14px;
+    display:flex; gap:10px;
+    font-size:.92rem;
+    color:#6B4E1B;
+  }
+  .reason-box svg{ width:20px; height:20px; flex-shrink:0; color:var(--amber); }
+
+  .footer-note{
+    text-align:center; font-size:.82rem; color:var(--ink-soft);
+    margin-top:16px;
+  }
+  .footer-note button{ background:none; border:none; color:var(--teal-dark); text-decoration:underline; cursor:pointer; font-size:.82rem; }
+
+  .demo-toggle{ text-align:center; margin-top:14px; }
+
+  /* sr-only for screen reader announcements */
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+
+  @media (max-width:480px){
+    body{ padding:0; }
+    .phone{ max-width:100%; min-height:100vh; border-radius:0; box-shadow:none; border:none; }
+    .topbar{ padding:14px 16px 12px; }
+    .brand svg{ width:30px; height:30px; }
+    .brand-name{ font-size:1.08rem; }
+    .eyebrow-icon{
+      width:34px; height:34px;
+      border-radius:10px;
+      margin-bottom:8px;
+    }
+    .eyebrow-icon svg{ width:16px; height:16px; }
+    .step-header h2{ font-size:1.2rem; }
+    .step-sub{ font-size:.92rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="phone" role="application" aria-label="Verificação biométrica TechSaúde">
+
+  <div class="topbar">
+    <div class="toprow">
+      <div class="brand">
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="heartGrad" x1="6" y1="8" x2="58" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#1CA79A"/>
+              <stop offset="100%" stop-color="#8DC63F"/>
+            </linearGradient>
+            <clipPath id="heartClip">
+              <path d="M32 54C32 54 8 39 8 22.5C8 14 15 7.5 23 7.5C27 7.5 30.3 9.4 32 12.6C33.7 9.4 37 7.5 41 7.5C49 7.5 56 14 56 22.5C56 39 32 54 32 54Z"/>
+            </clipPath>
+          </defs>
+          <path d="M32 54C32 54 8 39 8 22.5C8 14 15 7.5 23 7.5C27 7.5 30.3 9.4 32 12.6C33.7 9.4 37 7.5 41 7.5C49 7.5 56 14 56 22.5C56 39 32 54 32 54Z" fill="url(#heartGrad)"/>
+          <g clip-path="url(#heartClip)">
+            <g stroke="#FBF4E3" stroke-width="1.6" stroke-linecap="round" fill="none">
+              <path d="M4 21H17"/>
+              <path d="M6 27H21"/>
+              <path d="M9 33H24"/>
+            </g>
+            <g fill="#FBF4E3">
+              <circle cx="19" cy="21" r="2.1"/>
+              <circle cx="23" cy="27" r="2.1"/>
+              <circle cx="26" cy="33" r="2.1"/>
+            </g>
+            <g stroke="#FBF4E3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none">
+              <path d="M28 22c1-4 5-6.5 9-6.2c4.3 0.3 7.6 3.6 7.9 7.9"/>
+              <circle cx="37.5" cy="27" r="10.5"/>
+              <path d="M28.5 24.5c-0.3 3 0.2 5.7 1.3 7.7"/>
+              <path d="M46.5 24.5c0.3 3-0.2 5.7-1.3 7.7"/>
+              <path d="M27.6 28.5c-1.6 0.4-2.5 1.9-2.3 3.6c0.2 1.7 1.6 2.8 3.1 2.6"/>
+              <path d="M47.4 28.5c1.6 0.4 2.5 1.9 2.3 3.6c-0.2 1.7-1.6 2.8-3.1 2.6"/>
+              <path d="M33.2 27.3c0 0.6 0.5 0.6 0.5 0"/>
+              <path d="M41.8 27.3c0 0.6 0.5 0.6 0.5 0"/>
+              <path d="M37.2 28.5l-0.9 3.4h1.6"/>
+              <path d="M33.5 33.8c1.6 1.6 5.4 1.6 8 0"/>
+            </g>
+          </g>
+        </svg>
+        <span class="brand-name"><span class="tech">Tech</span><span class="saude">Saúde</span></span>
+      </div>
+      <div class="a11y-controls" aria-label="Ajustes de acessibilidade">
+        <button class="a11y-btn" id="fontDown" aria-label="Diminuir tamanho do texto" title="Diminuir texto">A-</button>
+        <button class="a11y-btn" id="fontUp" aria-label="Aumentar tamanho do texto" title="Aumentar texto">A+</button>
+        <button class="a11y-btn" id="speakBtn" aria-label="Ouvir instruções em voz alta" title="Ouvir em voz alta">🔊</button>
+      </div>
+    </div>
+    <div class="clock-line">
+      <span id="clockText">Segunda-feira, 2 de Março de 2026</span>
+      <span id="stepLabel">Etapa 1 de 2</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <div class="stage" id="stage">
+
+    <!-- STEP 1: SELFIE / CAMERA -->
+    <section class="step active" id="step-selfie">
+      <div class="step-header">
+        <div class="eyebrow-icon">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="3.4" stroke="#fff" stroke-width="1.8"/><path d="M5 20c1.6-3.9 4.6-5.9 7-5.9s5.4 2 7 5.9" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <h2>Precisamos confirmar sua identidade</h2>
+        <p class="step-sub">Para continuar, toque no botão abaixo e permita o acesso à câmera. A imagem será usada apenas para validar sua identidade.</p>
+      </div>
+
+      <div class="cam-wrap" id="camWrap">
+        <div class="scan-ring" id="scanRing"></div>
+        <video id="camVideo" autoplay playsinline muted></video>
+        <div class="cam-placeholder loading" id="camPlaceholder">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/></svg>
+          <p>Permita o acesso à câmera</p>
+        </div>
+      </div>
+
+      <p class="cam-status" id="camStatus">Aguardando permissão da câmera</p>
+
+      <p class="instruction" id="selfieInstruction" aria-live="polite"></p>
+      <p class="instruction-sub" id="selfieSub"></p>
+
+      <div class="dots" id="blinkDots" aria-hidden="true">
+        <div class="dot" data-i="1"></div>
+        <div class="dot" data-i="2"></div>
+        <div class="dot" data-i="3"></div>
+      </div>
+
+      <div class="permission-box" id="permissionBox" style="display:none;">
+        Não conseguimos acessar a câmera. Verifique se você permitiu o acesso nas configurações do navegador e tente novamente.
+      </div>
+
+      <div class="privacy-note" id="privacyNote">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <p>Sua imagem é usada apenas para confirmar sua identidade e é tratada de acordo com a LGPD.</p>
+      </div>
+
+      <div class="spacer"></div>
+      <button class="btn btn-primary" id="btnRetryCamera">Permitir acesso à câmera</button>
+    </section>
+
+    <!-- STEP 2: PROCESSING -->
+    <section class="step" id="step-processing">
+      <div class="step-header">
+        <h2 style="text-align:center;">Verificando seus dados</h2>
+        <p class="step-sub" style="text-align:center;">Isso leva só alguns segundos.</p>
+      </div>
+      <div class="spinner-wrap"><div class="spinner" role="status" aria-label="Carregando"></div></div>
+      <div class="checklist">
+        <div class="check-item" id="chkBio">
+          <div class="check-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="check-text">Validando biometria facial</div>
+        </div>
+      </div>
+      <div class="spacer"></div>
+    </section>
+
+    <!-- STEP 3A: CONCLUSION -->
+    <section class="step" id="step-success">
+      <div class="screen" style="max-width:100%; min-height:100%; background:transparent; box-shadow:none; border:none; padding:0;">
+        <div class="card" style="width:100%; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
+          <div class="badge" aria-label="Concluído" style="width:120px; height:120px; border-radius:50%; background:var(--success-bg); display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 16px rgba(46, 139, 78, 0.10); animation:pop 0.6s ease;">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width:64px; height:64px; color:var(--success);">
+              <path d="M4 12l5 5L20 6" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <p class="message" style="font-size:clamp(1.1rem, 2vw, 1.5rem); line-height:1.4; font-weight:700; color:var(--forest); max-width:260px; margin:0;">Validação biometrica e de documentos concluida</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3B: FAILURE -->
+    <section class="step" id="step-failure">
+      <div class="result-badge bad">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+      </div>
+      <h2 class="result-title">Verificação falhou</h2>
+      <p class="result-sub">Sua identidade não pôde ser confirmada.</p>
+
+      <div class="result-list">
+        <div class="result-row bad"><svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Biometria: <b>Verificação negada</b></span></div>
+      </div>
+
+      <div class="reason-box">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.3 3.9L2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span>Motivo: não foi possível confirmar sua identidade. Tente novamente em um local bem iluminado.</span>
+      </div>
+
+      <div class="spacer"></div>
+      <button class="btn btn-danger" id="btnRetry">Tentar novamente</button>
+      <p class="footer-note">Precisa de ajuda? <button class="link-btn" id="btnSupport" style="padding:0;">Falar com o suporte</button></p>
+    </section>
+
+  </div>
+
+  <div class="sr-only" id="liveRegion" aria-live="polite"></div>
+</div>
+
+<script>
+(function(){
+  const steps = ['selfie','processing','success','failure'];
+  const stepWeights = {selfie:35, processing:75, success:100, failure:100};
+  const stepLabels = {selfie:'Etapa 1 de 2', processing:'Etapa 2 de 2', success:'Concluído', failure:'Concluído'};
+
+  const progressFill = document.getElementById('progressFill');
+  const stepLabelEl = document.getElementById('stepLabel');
+  const liveRegion = document.getElementById('liveRegion');
+
+  function showStep(name, announce){
+    steps.forEach(s => {
+      document.getElementById('step-'+s).classList.toggle('active', s === name);
+    });
+    progressFill.style.width = stepWeights[name] + '%';
+    stepLabelEl.textContent = stepLabels[name];
+    if(announce){ liveRegion.textContent = announce; }
+    if(name === 'processing'){ runProcessing(); }
+  }
+
+  // ---------- Accessibility: font size ----------
+  let scale = 1;
+  function applyScale(){ document.documentElement.style.setProperty('--scale', scale.toFixed(2)); }
+  document.getElementById('fontUp').addEventListener('click', () => { scale = Math.min(1.4, scale + 0.1); applyScale(); });
+  document.getElementById('fontDown').addEventListener('click', () => { scale = Math.max(0.85, scale - 0.1); applyScale(); });
+
+  // ---------- Text to speech ----------
+  document.getElementById('speakBtn').addEventListener('click', () => {
+    const active = document.querySelector('.step.active');
+    const text = active ? active.innerText.split('\n').slice(0,4).join('. ') : '';
+    if('speechSynthesis' in window && text){
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'pt-BR';
+      window.speechSynthesis.speak(u);
+    }
+  });
+
+  // ---------- Selfie / real camera + liveness ----------
+  const camWrap = document.getElementById('camWrap');
+  const camVideo = document.getElementById('camVideo');
+  const camPlaceholder = document.getElementById('camPlaceholder');
+  const camStatus = document.getElementById('camStatus');
+  const scanRing = document.getElementById('scanRing');
+  const selfieInstruction = document.getElementById('selfieInstruction');
+  const selfieSub = document.getElementById('selfieSub');
+  const dots = Array.from(document.querySelectorAll('#blinkDots .dot'));
+  const permissionBox = document.getElementById('permissionBox');
+  const btnRetryCamera = document.getElementById('btnRetryCamera');
+  let mediaStream = null;
+  let selfieTimer = null;
+
+  btnRetryCamera.addEventListener('click', () => startSelfieFlow());
+
+  function prepareCameraUi(){
+    camWrap.classList.remove('denied');
+    camPlaceholder.style.display = 'flex';
+    camPlaceholder.classList.add('loading');
+    camPlaceholder.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/></svg><p>Permita o acesso à câmera</p>';
+    camStatus.textContent = 'Aguardando permissão da câmera';
+    camStatus.className = 'cam-status';
+    permissionBox.style.display = 'none';
+    dots.forEach(d => d.classList.remove('done','now'));
+    selfieInstruction.textContent = '';
+    selfieSub.textContent = '';
+    btnRetryCamera.textContent = 'Permitir acesso à câmera';
+  }
+
+  async function requestCamera(){
+    prepareCameraUi();
+
+    if(!window.isSecureContext){
+      handleCameraError('A câmera só pode ser usada em um ambiente seguro. Abra este app em HTTPS ou localhost e tente novamente.');
+      return false;
+    }
+
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      handleCameraError('Este navegador não suporta acesso à câmera neste contexto.');
+      return false;
+    }
+    try{
+      mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio:false });
+      camVideo.srcObject = mediaStream;
+      camPlaceholder.style.display = 'none';
+      camStatus.textContent = 'Câmera ativa';
+      camStatus.className = 'cam-status ok';
+      return true;
+    }catch(err){
+      handleCameraError('Não foi possível acessar a câmera. Verifique se o navegador já tem permissão para usar a câmera e tente novamente.');
+      return false;
+    }
+  }
+
+  function handleCameraError(message){
+    camWrap.classList.add('denied');
+    camPlaceholder.style.display = 'flex';
+    camPlaceholder.classList.remove('loading');
+    camPlaceholder.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18M10.5 5H17a2 2 0 0 1 2 2v10M7 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><p>Câmera não disponível</p>';
+    camStatus.textContent = 'Acesso à câmera negado ou indisponível';
+    camStatus.className = 'cam-status denied';
+    permissionBox.textContent = message;
+    permissionBox.style.display = 'block';
+    btnRetryCamera.textContent = 'Tentar novamente';
+    btnRetryCamera.style.display = 'flex';
+    liveRegion.textContent = message;
+  }
+
+  function stopCamera(){
+    if(mediaStream){ mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+  }
+
+  async function startSelfieFlow(){
+    clearTimeout(selfieTimer);
+    scanRing.classList.remove('pulse');
+    const ok = await requestCamera();
+    if(!ok) return;
+
+    selfieInstruction.textContent = 'Olhando para a câmera…';
+    selfieSub.textContent = 'Fique parado e bem iluminado';
+
+    let blink = 0;
+    selfieTimer = setTimeout(() => {
+      scanRing.classList.add('pulse');
+      nextBlink();
+    }, 1400);
+
+    function nextBlink(){
+      blink++;
+      if(blink > 3){
+        selfieInstruction.textContent = 'Perfeito!';
+        selfieSub.textContent = 'Analisando imagem…';
+        selfieTimer = setTimeout(() => { stopCamera(); showStep('processing', 'Verificando seus dados'); }, 1000);
+        return;
+      }
+      dots.forEach(d => d.classList.remove('now'));
+      const dot = dots[blink-1];
+      dot.classList.add('now');
+      selfieInstruction.textContent = 'Pisque os olhos';
+      selfieSub.textContent = blink + ' de 3';
+      selfieTimer = setTimeout(() => {
+        dot.classList.remove('now');
+        dot.classList.add('done');
+        selfieTimer = setTimeout(nextBlink, 500);
+      }, 1300);
+    }
+  }
+
+  // ---------- Processing ----------
+  function runProcessing(){
+    const chkBio = document.getElementById('chkBio');
+    chkBio.classList.remove('on','fail');
+
+    setTimeout(() => {
+      chkBio.classList.add('on');
+    }, 900);
+
+    setTimeout(() => {
+      showStep('success', 'Validação biometrica e de documentos concluida');
+    }, 1900);
+  }
+
+  document.getElementById('btnRetry').addEventListener('click', () => {
+    showStep('selfie', 'Vamos tentar novamente');
+  });
+
+  document.getElementById('btnSupport').addEventListener('click', () => {
+    liveRegion.textContent = 'Conectando você ao suporte TechSaúde.';
+    alert('Em um app real, isso abriria uma ligação com o suporte TechSaúde.');
+  });
+
+  // clock
+  const days = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const now = new Date();
+  document.getElementById('clockText').textContent = days[now.getDay()] + ', ' + now.getDate() + ' de ' + months[now.getMonth()] + ' de ' + now.getFullYear();
+
+  showStep('selfie', 'Aguardando autorização do usuário para acessar a câmera');
+})();
+</script>
+</body>
+</html>
