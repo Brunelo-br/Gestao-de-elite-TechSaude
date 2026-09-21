@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>TechSaúde - Caça-Palavras</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --cream: #f3efdc;
+    --cream-deep: #ece5c9;
+    --card-bg: #faf7ec;
+    --ink: #16301f;
+    --ink-soft: #2e4a37;
+    --green-deep: #1b3a26;
+    --green-mid: #2f6b46;
+    --forest: #1b3a26;
+    --forest-2: #234a34;
+    --teal: #2f9e8f;
+    --line: #cdbf95;
+    --border-soft: #cdbf95;
+    --text: #26332a;
+    --text-soft: #55604f;
+    --muted: #55604f;
+    --error: #a3402c;
+    --error-bg: #f4dcd6;
+    --success: #1b4332;
+    --success-bg: #dcefdf;
+    --success-border: #a5d6a7;
+    --warn-bg: #fff3e0;
+    --warn: #e65100;
+    --warn-border: #ffcc80;
+    --danger: #c0392b;
+    --shadow-outer: 0 30px 60px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;min-height:100%;}
+  body{
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255,255,255,0.06), transparent 40%),
+      linear-gradient(160deg, #16412B 0%, #0F2E1C 100%);
+    padding:48px 24px;
+  }
+  input, select, textarea, button{ font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; }
+  h1, h2{ color:var(--green-deep); font-weight:900; text-transform:uppercase; margin:0 0 .4rem; }
+  .hidden{display:none !important;}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+  /* ===== CARTÃO PRINCIPAL ===== */
+  .site{
+    width:100%;
+    max-width:1000px;
+    background:var(--cream);
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:var(--shadow-outer);
+  }
+  @media (max-width:480px){
+    body{ padding:0; }
+    .site{ max-width:100%; min-height:100vh; border-radius:0; box-shadow:none; }
+  }
+
+  /* ===== CABEÇALHO PADRÃO (emergência / logo / início) ===== */
+  .topbar{
+    background: linear-gradient(160deg, #12583a, #0b3423);
+    padding:20px 20px 18px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .nav-btn{
+    background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer; color:var(--cream); font-family:'Baloo 2', sans-serif; font-weight:700;
+    font-size:11.5px; letter-spacing:0.4px; text-transform:uppercase; text-decoration:none;
+    padding:2px; flex-shrink:0;
+  }
+  .nav-btn .icon-circle{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:2px; }
+  .nav-btn.emergencia .icon-circle{ background:var(--danger); box-shadow:0 4px 12px rgba(192,57,43,.35); }
+  .nav-btn.inicio .icon-circle{ background:rgba(255,255,255,0.18); }
+  .nav-btn .icon-circle svg{ width:20px; height:20px; color:#fff; }
+  .nav-btn:hover{ transform:scale(1.05); }
+  .nav-btn:focus-visible{ outline:3px solid var(--cream); outline-offset:3px; border-radius:8px; }
+  .brand-top{ display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; }
+  .brand-top img{ width:200px; height:200px; object-fit:contain; }
+  .brand-top .app-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:19px; color:var(--cream); letter-spacing:.3px; }
+
+  /* ===== CONTEÚDO ===== */
+  .app{ padding:24px 24px 40px; }
+  @media (min-width:901px){ .app{ padding:32px 40px 48px; } .topbar{ padding:26px 36px 22px; } }
+
+  .datetime{
+    text-align:center; font-weight:700; font-size:13.5px; color:var(--forest);
+    border-bottom:2px solid var(--border-soft); padding-bottom:14px; margin-bottom:18px;
+  }
+
+  .toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:22px; }
+  .font-group{ display:inline-flex; border:2px solid var(--line); border-radius:999px; overflow:hidden; }
+  .font-group button{ border:none; background:#fff; color:var(--green-deep); font-weight:800; padding:9px 13px; cursor:pointer; font-size:12px; }
+  .font-group button.active{ background:var(--green-deep); color:var(--cream); }
+  .chip-btn{
+    background:#fff; border:2px solid var(--line); border-radius:999px; padding:9px 15px; font-size:12px;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--green-deep); cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .chip-btn:hover{ border-color:var(--teal); }
+
+  h2{ font-size:1.4rem; }
+  .subtitle{ color:var(--text-soft); margin:0 0 1rem; font-weight:600; font-size:.95rem; }
+  .subtitle strong{ color:var(--forest); text-transform:none; }
+
+  /* ===== SELEÇÃO DE NÍVEL (mesmo padrão dos cards da Home) ===== */
+  .level-cards{ display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); margin-top:6px; }
+  .level-card{
+    background:var(--cream-deep); border:2px solid var(--line); border-radius:20px;
+    padding:20px 12px 18px; display:flex; flex-direction:column; align-items:center; gap:8px;
+    cursor:pointer; text-align:center; font-family:inherit; min-height:9.5rem;
+    transition:border-color .15s ease, transform .08s ease;
+  }
+  .level-card:hover{ border-color:var(--teal); }
+  .level-card:active{ transform:scale(0.97); }
+  .level-card:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+  .level-emoji{ font-size:1.8rem; }
+  .level-name{ font-weight:800; color:var(--green-deep); font-size:1.1rem; text-transform:uppercase; }
+  .level-desc{ color:var(--text-soft); font-size:.85rem; font-weight:600; }
+
+  /* ===== OPÇÕES DE DIREÇÃO (tela centralizada) ===== */
+  #telaOpcoes{ text-align:center; display:flex; flex-direction:column; align-items:center; }
+  #telaOpcoes .opcoes-topo{ margin-bottom:10px; width:100%; display:flex; justify-content:center; }
+  #telaOpcoes .subtitle{ max-width:560px; }
+  .opcoes-card{ background:var(--card-bg); border:2px solid var(--line); border-radius:20px; padding:16px; display:flex; flex-direction:column; gap:10px; margin:14px auto; max-width:520px; width:100%; text-align:left; }
+  .opcao-linha{ display:flex; align-items:center; gap:14px; font-size:1.05rem; font-weight:700; color:var(--text); padding:12px 14px; border-radius:999px; background:#fff; border:2px solid var(--line); cursor:pointer; transition:border-color .15s ease, background .15s ease; }
+  .opcao-linha.selected{ background:var(--success-bg); border-color:var(--green-mid); }
+  .opcao-linha input[type="checkbox"]{ width:1.5rem; height:1.5rem; accent-color:var(--green-mid); cursor:pointer; flex-shrink:0; }
+  .opcoes-botoes{ display:flex; flex-direction:column; gap:12px; max-width:420px; width:100%; margin:6px auto 0; }
+  .opcoes-nota{ color:var(--text-soft); font-size:.85rem; font-weight:600; max-width:520px; margin-left:auto; margin-right:auto; }
+
+  /* ===== BOTÕES PADRÃO DO APP ===== */
+  .btn-primario{
+    width:100%; background:linear-gradient(180deg, var(--forest-2), var(--green-deep)); color:var(--cream);
+    border:none; border-radius:999px; padding:14px 18px; font-weight:800; font-size:1rem;
+    letter-spacing:.4px; text-transform:uppercase; cursor:pointer; font-family:inherit;
+    box-shadow:0 6px 0 #0e2416, 0 10px 18px rgba(0,0,0,0.25);
+    transition:transform .08s ease, box-shadow .08s ease, background .2s ease;
+  }
+  .btn-primario:hover{ background:var(--forest-2); }
+  .btn-primario:active{ transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.18); }
+  .btn-secundario{
+    width:100%; background:#fff; border:2.5px solid var(--forest); color:var(--forest); border-radius:999px;
+    padding:13px 18px; font-weight:700; font-size:.95rem; text-transform:uppercase; letter-spacing:.3px;
+    cursor:pointer; font-family:inherit;
+  }
+  .btn-secundario:hover{ background:var(--success-bg); }
+  .btn-texto{
+    background:#fff; border:2px solid var(--line); border-radius:999px; padding:.6rem 1.1rem; font-size:.85rem;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--green-deep); cursor:pointer;
+    min-height:2.75rem; font-family:inherit;
+  }
+  .btn-texto:hover{ border-color:var(--teal); }
+
+  /* ===== TOOLBAR DO JOGO ===== */
+  .game-toolbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; margin-bottom:1rem; }
+  .timer{ font-size:1rem; font-weight:800; color:var(--forest); }
+
+  .game-layout{ display:grid; grid-template-columns:1fr; gap:1.25rem; }
+  .painel-grade{ order:1; }
+  .painel-palavras{ order:2; }
+  @media(min-width:760px){
+    .game-layout{ grid-template-columns:260px 1fr; align-items:start; }
+    .painel-palavras{ order:1; }
+    .painel-grade{ order:2; }
+  }
+
+  .painel-palavras{ background:var(--card-bg); border:2px solid var(--line); border-radius:20px; padding:1.1rem; }
+  .direcoes-ativas{ color:var(--text-soft); font-size:.85rem; font-weight:600; margin:0 0 .8rem; }
+  .word-list{ list-style:none; margin:0 0 1rem; padding:0; display:flex; flex-direction:column; gap:.55rem; }
+  .word-list li{ display:flex; align-items:center; gap:.6rem; font-size:1.05rem; font-weight:700; padding:.55rem .7rem; border-radius:14px; background:#fff; border:2px solid var(--line); color:var(--text); }
+  .word-list li.found{ background:var(--success-bg); border-color:var(--success-border); color:var(--success); text-decoration:line-through; }
+  .status-icon{ width:1.3rem; text-align:center; }
+  .hint-note{ color:var(--text-soft); font-size:.82rem; font-weight:600; text-align:center; margin:.7rem 0 0; }
+
+  .painel-grade{ background:var(--card-bg); border:2px solid var(--line); border-radius:20px; padding:1.1rem; display:flex; flex-direction:column; align-items:center; gap:.75rem; }
+  .grid-scroll{ width:100%; overflow-x:auto; display:flex; justify-content:center; }
+  .grid{ display:grid; gap:.25rem; touch-action:manipulation; }
+  .grid.size-8{ --cell-size:3.1rem; }
+  .grid.size-10{ --cell-size:2.6rem; }
+  .grid.size-12{ --cell-size:2.15rem; }
+  @media(max-width:480px){
+    .grid.size-8{ --cell-size:2.1rem; }
+    .grid.size-10{ --cell-size:1.7rem; }
+    .grid.size-12{ --cell-size:1.35rem; }
+  }
+  @media(max-width:360px){
+    .grid.size-8{ --cell-size:1.9rem; }
+    .grid.size-10{ --cell-size:1.5rem; }
+    .grid.size-12{ --cell-size:1.15rem; }
+  }
+  .cell{
+    width:var(--cell-size); height:var(--cell-size); font-size:calc(var(--cell-size) * .42);
+    display:flex; align-items:center; justify-content:center; background:var(--cream-deep);
+    border:2px solid transparent; border-radius:8px; font-weight:800; cursor:pointer; user-select:none; color:var(--text);
+  }
+  .cell:hover{ border-color:var(--teal); }
+  .cell:focus{ outline:3px solid var(--forest); outline-offset:2px; }
+  .cell.selected-start{ background:var(--green-deep); color:var(--cream); }
+  .cell.preview{ background:rgba(47,158,143,.28); }
+  .cell.found{ background:var(--success-bg); color:var(--success); border-color:var(--success-border); }
+  .cell.reject{ background:var(--error-bg); }
+  .cell.hint{ background:var(--warn-bg); box-shadow:0 0 0 3px var(--warn) inset; animation:pulseHint 1.1s ease-in-out infinite; }
+  @keyframes pulseHint{0%,100%{opacity:1;}50%{opacity:.6;}}
+  .instrucao-rapida{ color:var(--text-soft); text-align:center; margin:0; font-size:.85rem; font-weight:600; }
+
+  /* ===== MODAIS (padrão popup-card) ===== */
+  .modal-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:50; }
+  .modal{ background:var(--cream); border:2px solid var(--line); border-radius:22px; padding:2rem 1.6rem; max-width:440px; width:100%; position:relative; box-shadow:var(--shadow-outer); max-height:90vh; overflow-y:auto; }
+  .modal-close{ position:absolute; top:.75rem; right:.75rem; background:var(--cream-deep); border:none; width:2.6rem; height:2.6rem; border-radius:50%; font-size:1.1rem; cursor:pointer; color:var(--forest); }
+  .ajuda-lista{ padding-left:1.2rem; display:flex; flex-direction:column; gap:.5rem; font-size:1rem; font-weight:600; color:var(--text); }
+  .ajuda-extra{ margin-top:1rem; font-size:.95rem; font-weight:600; color:var(--text-soft); }
+  .modal-vitoria{ text-align:center; }
+  .icon-pop{ width:64px; height:64px; margin:0 auto 12px; background:var(--success-bg); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; }
+  .vitoria-tempo{ color:var(--text-soft); font-weight:600; }
+  .vitoria-botoes{ display:flex; flex-direction:column; gap:.75rem; margin-top:1rem; }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(16px);
+    background:var(--green-deep); color:#fff; padding:12px 18px; border-radius:999px; font-weight:700; font-size:13px;
+    opacity:0; transition:all .3s; z-index:200; pointer-events:none; max-width:90%; text-align:center;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="site">
+
+  <!-- CABEÇALHO PADRÃO: emergência (esquerda) · logo (centro) · início (direita) -->
+  <header class="topbar">
+    <button type="button" class="nav-btn emergencia" id="btnEmergencia">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v1.06A7.5 7.5 0 0 0 3 15v3a1 1 0 0 0 1 1h1.17a3.5 3.5 0 0 0 6.66 1h.34a3.5 3.5 0 0 0 6.66-1H20a1 1 0 0 0 1-1v-3a7.5 7.5 0 0 0-4-6.94V7a5 5 0 0 0-5-5Z"/></svg>
+      </span>
+      Emergência
+    </button>
+
+    <div class="brand-top">
+      <img src="logo.png" alt="Logo TechSaúde" onerror="var img=this; if(img.dataset.tentativa!=='1'){ img.dataset.tentativa='1'; img.src='img/logo.png'; } else { img.style.visibility='hidden'; }">
+      <span class="app-title">Caça-Palavras</span>
+    </div>
+
+    <a class="nav-btn inicio" href="home.html">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>
+      </span>
+      Início
+    </a>
+  </header>
+
+  <div class="app">
+    <div class="datetime" id="datetime" aria-live="off">--:-- - carregando data...</div>
+
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho do texto">
+        <button class="font-btn" data-scale="100" aria-label="Texto tamanho normal">A</button>
+        <button class="font-btn" data-scale="115" aria-label="Texto grande">A+</button>
+        <button class="font-btn" data-scale="130" aria-label="Texto extra grande">A++</button>
+      </div>
+      <button id="btnSom" class="chip-btn" aria-pressed="true">🔊 Som</button>
+      <button id="btnAjuda" class="chip-btn">❔ Ajuda</button>
+    </div>
+
+    <main id="telaSelecao" class="screen">
+      <h2>Escolha o nível</h2>
+      <p class="subtitle">Tema de hoje: <strong>Casa e Cotidiano</strong> — mais de 500 palavras no sistema</p>
+      <div class="level-cards">
+        <button class="level-card" data-level="facil">
+          <span class="level-emoji" aria-hidden="true">🙂</span>
+          <span class="level-name">Fácil</span>
+          <span class="level-desc">Grade menor (8x8)<br>5 palavras por partida</span>
+        </button>
+        <button class="level-card" data-level="medio">
+          <span class="level-emoji" aria-hidden="true">🙂🙂</span>
+          <span class="level-name">Médio</span>
+          <span class="level-desc">Grade média (10x10)<br>6 palavras por partida</span>
+        </button>
+        <button class="level-card" data-level="dificil">
+          <span class="level-emoji" aria-hidden="true">🙂🙂🙂</span>
+          <span class="level-name">Difícil</span>
+          <span class="level-desc">Grade maior (12x12)<br>8 palavras por partida</span>
+        </button>
+      </div>
+    </main>
+
+    <main id="telaOpcoes" class="screen hidden">
+      <div class="opcoes-topo">
+        <button id="btnVoltarNivel" class="btn-texto">↩ Voltar</button>
+      </div>
+      <h2>Direções das palavras</h2>
+      <p class="subtitle">Nível: <strong id="opcoesNivelLabel">Fácil</strong> — escolha como as palavras podem aparecer na grade</p>
+      <div class="opcoes-card">
+        <label class="opcao-linha"><input type="checkbox" id="dirHorizontal"> <span>➡️ Horizontal</span></label>
+        <label class="opcao-linha"><input type="checkbox" id="dirVertical"> <span>⬇️ Vertical</span></label>
+        <label class="opcao-linha"><input type="checkbox" id="dirDiagonal"> <span>↘️ Diagonal</span></label>
+        <label class="opcao-linha"><input type="checkbox" id="dirReverso"> <span>🔄 Palavras de trás pra frente</span></label>
+      </div>
+      <p class="opcoes-nota">Marque pelo menos uma direção (horizontal, vertical ou diagonal). Se preferir, use o botão "Aleatório" e o sistema escolhe por você.</p>
+      <div class="opcoes-botoes">
+        <button id="btnComecar" class="btn-primario">▶ Começar a jogar</button>
+        <button id="btnAleatorio" class="btn-secundario">🎲 Aleatório — começar agora</button>
+      </div>
+    </main>
+
+    <main id="telaJogo" class="screen hidden">
+      <div class="game-toolbar">
+        <button id="btnTrocarNivel" class="btn-texto">↩ Trocar nível</button>
+        <div class="timer">⏱ <span id="tempoDecorrido">00:00</span></div>
+        <button id="btnReiniciar" class="btn-texto">🔄 Novo jogo</button>
+      </div>
+      <div class="game-layout">
+        <section class="painel-palavras" aria-label="Lista de palavras">
+          <h2 id="nivelAtualTitulo">Nível: Fácil</h2>
+          <p id="direcoesAtivasLabel" class="direcoes-ativas"></p>
+          <ul id="listaPalavras" class="word-list"></ul>
+          <button id="btnDica" class="btn-primario">💡 Dica</button>
+          <p class="hint-note">Use quantas dicas quiser — não há pontuação.</p>
+        </section>
+        <section class="painel-grade" aria-label="Grade do caça-palavras">
+          <div class="grid-scroll"><div id="grade" class="grid"></div></div>
+          <p class="instrucao-rapida">Toque na primeira letra e depois na última letra da palavra.</p>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="modalAjuda" class="modal-overlay hidden">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button class="modal-close" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <h2 id="ajudaTitulo">Como jogar</h2>
+    <ol class="ajuda-lista">
+      <li>Escolha um dos três níveis.</li>
+      <li>Escolha em quais direções as palavras podem aparecer (ou toque em "Aleatório" pra começar logo).</li>
+      <li>Encontre as palavras da lista escondidas na grade de letras.</li>
+      <li>Toque na primeira letra da palavra.</li>
+      <li>Depois toque na última letra dela (a palavra fica em linha reta).</li>
+      <li>Acertou? A palavra fica pintada e riscada na lista.</li>
+      <li>Errou? Sem problema, é só tentar de novo.</li>
+      <li>Ficou em dúvida? Toque em "Dica" quantas vezes quiser.</li>
+    </ol>
+    <p class="ajuda-extra">Não existe tempo limite nem pontuação. Jogue com calma, no seu ritmo. 💚</p>
+  </div>
+</div>
+
+<div id="modalVitoria" class="modal-overlay hidden">
+  <div class="modal modal-vitoria" role="dialog" aria-modal="true" aria-labelledby="vitoriaTitulo">
+    <div class="icon-pop" aria-hidden="true">🎉</div>
+    <h2 id="vitoriaTitulo">Parabéns!</h2>
+    <p>Você encontrou todas as palavras.</p>
+    <p class="vitoria-tempo">Tempo de jogo: <span id="vitoriaTempo">00:00</span></p>
+    <div class="vitoria-botoes">
+      <button id="btnJogarDeNovo" class="btn-primario">Jogar de novo</button>
+      <button id="btnOutroNivel" class="btn-secundario">Escolher outro nível</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+<div id="liveRegion" class="sr-only" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- RELÓGIO (mesmo padrão de medicamentos.html / lembretedeconsultas.html) ----------
+  var datetimeEl = document.getElementById('datetime');
+  function atualizarDataHora(){
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    var diaSemana = agora.toLocaleDateString('pt-BR', {weekday:'long'});
+    diaSemana = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+    var dataFormatada = agora.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+    datetimeEl.textContent = hora + ' - ' + diaSemana + ', ' + dataFormatada;
+  }
+  atualizarDataHora();
+  setInterval(atualizarDataHora, 30000);
+
+  // ---------- BOTÃO DE EMERGÊNCIA (ainda não conectado — será feito em outra etapa) ----------
+  document.getElementById('btnEmergencia').addEventListener('click', function(){
+    showToast('🚨 Botão de emergência ainda será conectado nesta tela.');
+  });
+
+  // Banco mestre de palavras (tema casa/cotidiano em sentido amplo). Mais de 500 palavras;
+  // cada partida sorteia um subconjunto (ver sampleWords), então tanto a grade quanto a
+  // lista de palavras mudam a cada jogo.
+  const MASTER_POOL = [
+    "SALA","COZINHA","QUARTO","BANHEIRO","VARANDA","GARAGEM","QUINTAL","CORREDOR","SOTAO","PORAO","LAVANDERIA",
+    "ESCRITORIO","DESPENSA","TERRACO","ALPENDRE","SACADA","JARDIM","PATIO","ATICO","HALL","MESA","CADEIRA","SOFA",
+    "CAMA","ARMARIO","ESTANTE","POLTRONA","COMODA","BANQUETA","BERCO","ESTOFADO","BANCO","MESINHA","PUFE","DIVA",
+    "TAMBORETE","ESPELHO","PRATELEIRA","LUSTRE","ABAJUR","CORTINA","TAPETE","RACK","GUARDAROUPA","GELADEIRA","FOGAO",
+    "MICROONDAS","TELEVISAO","RADIO","VENTILADOR","ASPIRADOR","TORRADEIRA","CAFETEIRA","FERRO","COMPUTADOR","CELULAR",
+    "CONTROLE","LAMPADA","TOMADA","CHUVEIRO","SECADORA","BATEDEIRA","TELEFONE","IMPRESSORA","VIDEOGAME","RELOGIO",
+    "PRATO","COPO","XICARA","GARFO","FACA","COLHER","PANELA","FRIGIDEIRA","TIGELA","JARRA","BANDEJA","TABUA","PENEIRA",
+    "ESCORREDOR","ABRIDOR","SACOLA","POTE","VASILHA","TAMPA","TALHER","GUARDANAPO","TOALHA","AVENTAL","FOSFORO","VELA",
+    "BALDE","VASSOURA","RODO","ESPONJA","SABAO","DETERGENTE","CAMISA","CALCA","VESTIDO","SAIA","BLUSA","CASACO",
+    "JAQUETA","SAPATO","CHINELO","SANDALIA","MEIA","ROUPA","CINTO","BONE","CHAPEU","LUVA","CACHECOL","GUARDACHUVA",
+    "BOLSA","CARTEIRA","OCULOS","ANEL","COLAR","PULSEIRA","BRINCO","ARROZ","FEIJAO","MACARRAO","MANTEIGA","QUEIJO",
+    "PRESUNTO","LEITE","ACUCAR","PIMENTA","ALHO","CEBOLA","TOMATE","ALFACE","CENOURA","BATATA","MANDIOCA","ABOBORA",
+    "BERINJELA","PEPINO","MILHO","FARINHA","OLEO","VINAGRE","CAFE","SUCO","AGUA","CERVEJA","VINHO","CARNE","FRANGO",
+    "PEIXE","LINGUICA","BOLO","TORTA","PUDIM","SORVETE","CHOCOLATE","BISCOITO","PIPOCA","DOCE","GELEIA","IOGURTE",
+    "MANGA","BANANA","LARANJA","ABACAXI","MORANGO","MELANCIA","MAMAO","LIMAO","PERA","AMEIXA","GOIABA","MARACUJA",
+    "COCO","CABECA","BRACO","PERNA","OLHO","NARIZ","BOCA","ORELHA","DENTE","CABELO","COSTAS","JOELHO","OMBRO","DEDO",
+    "UNHA","PESCOCO","TESTA","QUEIXO","BARRIGA","FAMILIA","FILHO","FILHA","IRMAO","IRMA","NETO","NETA","PRIMO","PRIMA",
+    "VIZINHO","AMIGO","ESTRELA","NUVEM","CHUVA","VENTO","TROVAO","ARCOIRIS","NEVE","CALOR","FRIO","VERAO","INVERNO",
+    "OUTONO","PRIMAVERA","MONTANHA","PRAIA","FLORESTA","ARVORE","FLOR","FOLHA","CACHORRO","GATO","PASSARO","COELHO",
+    "GALINHA","VACA","CAVALO","PORCO","PATO","TARTARUGA","HAMSTER","BORBOLETA","FORMIGA","ABELHA","MOSCA","ARANHA",
+    "RATO","POMBO","PAPAGAIO","VERMELHO","AZUL","VERDE","AMARELO","ROSA","ROXO","PRETO","BRANCO","CINZA","MARROM",
+    "BEGE","DOURADO","DOIS","TRES","QUATRO","CINCO","SEIS","SETE","OITO","NOVE","VINTE","SEGUNDA","TERCA","QUARTA",
+    "QUINTA","SEXTA","SABADO","DOMINGO","JANEIRO","FEVEREIRO","MARCO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO",
+    "SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO","CARRO","ONIBUS","BICICLETA","MOTO","TREM","AVIAO","BARCO","PRACA",
+    "ESCOLA","IGREJA","MERCADO","PADARIA","FARMACIA","HOSPITAL","LOJA","PARQUE","SEMAFORO","CALCADA","PONTE","TUNEL",
+    "ESTRADA","BAIRRO","CIDADE","LAPIS","CANETA","BORRACHA","REGUA","TESOURA","COLA","LIVRO","REVISTA","JORNAL",
+    "ENVELOPE","CARTA","SELO","AGENDA","CALCULADORA","MOCHILA","CADERNO","MARTELO","CHAVE","PREGO","PARAFUSO","ALICATE",
+    "SERROTE","ENXADA","MANGUEIRA","REGADOR","CARRINHO","ESCADA","CORDA","FITA","TRENA","FURADEIRA","ALEGRIA",
+    "TRISTEZA","SAUDADE","CARINHO","AMIZADE","GRATIDAO","ESPERANCA","CALMA","PACIENCIA","CORAGEM","FELICIDADE",
+    "TERNURA","SIMPATIA","CONFIANCA","CORRER","ANDAR","PULAR","NADAR","CANTAR","DANCAR","COZINHAR","LIMPAR","LAVAR",
+    "ESTUDAR","TRABALHAR","DESCANSAR","PASSEAR","CONVERSAR","SORRIR","BRINCAR","VIAJAR","PASSEIO","DESENHAR","PINTAR",
+    "MUSICA","FILME","NOVELA","FUTEBOL","VIAGEM","FESTA","ANIVERSARIO","PRESENTE","CONVITE","FOTO","ALBUM","CHAVEIRO",
+    "PIPA","BOLA","BONECA","BARALHO","DOMINO","XADREZ","VIOLAO","PIANO","TAMBOR","FLAUTA","MICROFONE","CAMERA",
+    "BUSSOLA","LANTERNA","TERMOMETRO","BALANCA","ESCOVA","PENTE","SABONETE","XAMPU","PERFUME","CREME","ALGODAO",
+    "CURATIVO","SERINGA","BANDAGEM","BENGALA","ANDADOR","TRAVESSEIRO","LENCOL","COBERTOR","EDREDOM","FRONHA","COLCHAO",
+    "PIJAMA","ROBE","PANTUFA","MEDICO","PROFESSOR","ENFERMEIRO","DENTISTA","ADVOGADO","ENGENHEIRO","MOTORISTA",
+    "COZINHEIRO","PEDREIRO","ELETRICISTA","ENCANADOR","VENDEDOR","GARCOM","PADEIRO","AGRICULTOR","PINTOR","COSTUREIRA",
+    "JARDINEIRO","POLICIAL","BOMBEIRO","VETERINARIO","VOLEIBOL","BASQUETE","NATACAO","CORRIDA","CICLISMO","TENIS",
+    "GINASTICA","CAMINHADA","PESCARIA","GUITARRA","BATERIA","SANFONA","PANDEIRO","CAVAQUINHO","JABUTICABA","CAJU",
+    "ACEROLA","CAQUI","FIGO","AMORA","NECTARINA","RABANETE","BETERRABA","CHUCHU","QUIABO","VAGEM","ERVILHA","REPOLHO",
+    "COUVE","ESPINAFRE","BROCOLIS","RUCULA","AEROPORTO","RODOVIARIA","BIBLIOTECA","CINEMA","TEATRO","MUSEU","ACADEMIA",
+    "SALAO","OFICINA","FEIRA","CONDOMINIO","ELEVADOR","PORTARIA","PATINETE","PATINS","BONECO","JOGO","CARTAS","IOIO",
+    "PIAO","BOLICHE","PETECA","GRANDE","PEQUENO","ALTO","BAIXO","LEVE","PESADO","QUENTE","MACIO","DURO","LISO",
+    "SALGADO","AZEDO","LIMPO","SUJO","BONITO","FEIO","NOVO","VELHO","RAPIDO","LENTO","ABRIR","FECHAR","SUBIR","DESCER",
+    "ENTRAR","SAIR","COMPRAR","VENDER","ESCUTAR","OLHAR"
+  ];
+  const LETTER_POOL = "ABCDEFGHIJLMNOPQRSTUVXZ";
+
+  // "size" = lado da grade; "count" = quantas palavras entram em cada partida;
+  // "maxLen" = tamanho máximo de palavra que cabe com folga nessa grade;
+  // "defaultDirections" = configuração de direções sugerida ao entrar no nível
+  // (o jogador pode mudar na tela de opções).
+  const LEVELS = {
+    facil: { label: "Fácil", size: 8, count: 5, maxLen: 7,
+      defaultDirections: {horizontal:true, vertical:true, diagonal:false, reverse:false} },
+    medio: { label: "Médio", size: 10, count: 6, maxLen: 9,
+      defaultDirections: {horizontal:true, vertical:true, diagonal:true, reverse:false} },
+    dificil: { label: "Difícil", size: 12, count: 8, maxLen: 11,
+      defaultDirections: {horizontal:true, vertical:true, diagonal:true, reverse:true} }
+  };
+
+  // Constrói a lista de vetores de direção a partir das opções marcadas pelo jogador.
+  // "reverse" adiciona o sentido invertido de cada direção escolhida (ex.: horizontal
+  // + reverso = pode ler tanto da esquerda pra direita quanto da direita pra esquerda).
+  function buildDirections(cfg){
+    const dirs = [];
+    if(cfg.horizontal){ dirs.push({r:0,c:1}); if(cfg.reverse) dirs.push({r:0,c:-1}); }
+    if(cfg.vertical){ dirs.push({r:1,c:0}); if(cfg.reverse) dirs.push({r:-1,c:0}); }
+    if(cfg.diagonal){
+      dirs.push({r:1,c:1},{r:1,c:-1});
+      if(cfg.reverse) dirs.push({r:-1,c:1},{r:-1,c:-1});
+    }
+    return dirs;
+  }
+  const TODAS_DIRECOES = {horizontal:true, vertical:true, diagonal:true, reverse:true};
+
+  function descreverDirecoes(cfg){
+    const partes = [];
+    if(cfg.horizontal) partes.push("horizontal");
+    if(cfg.vertical) partes.push("vertical");
+    if(cfg.diagonal) partes.push("diagonal");
+    let texto = "Direções: " + (partes.length ? partes.join(", ") : "nenhuma");
+    if(cfg.reverse) texto += " (inclui palavras de trás pra frente)";
+    return texto;
+  }
+
+  function randomDirectionConfig(){
+    let horizontal, vertical, diagonal;
+    do {
+      horizontal = Math.random() < 0.7;
+      vertical = Math.random() < 0.7;
+      diagonal = Math.random() < 0.6;
+    } while(!horizontal && !vertical && !diagonal);
+    return {horizontal, vertical, diagonal, reverse: Math.random() < 0.5};
+  }
+
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function temColisaoDeSubstring(words){
+    for(let i = 0; i < words.length; i++){
+      for(let j = 0; j < words.length; j++){
+        if(i !== j && words[i] !== words[j] && words[j].includes(words[i])) return true;
+      }
+    }
+    return false;
+  }
+
+  // Sorteia "count" palavras do pool (filtradas por tamanho máximo do nível) evitando que
+  // uma palavra sorteada seja "substring" de outra (o que poderia gerar um acerto falso
+  // ao selecionar). Na prática quase sempre acerta de primeira.
+  function sampleWords(pool, count, maxLen){
+    const candidatos = pool.filter(w => w.length <= maxLen);
+    for(let tentativa = 0; tentativa < 50; tentativa++){
+      const sorteio = shuffle(candidatos).slice(0, count);
+      if(!temColisaoDeSubstring(sorteio)) return sorteio;
+    }
+    return shuffle(candidatos).slice(0, count);
+  }
+
+  let currentLevelKey = null;
+  let currentLevel = null;
+  let currentDirections = [];
+  let activeWords = [];
+  let puzzleData = null;
+  let foundWords = new Set();
+  let selStart = null;
+  let timerInterval = null;
+  let secondsElapsed = 0;
+  let soundOn = true;
+  let audioCtx = null;
+  let hintTimeouts = [];
+
+  function clearHintTimeouts(){
+    hintTimeouts.forEach(t => clearTimeout(t));
+    hintTimeouts = [];
+    if(puzzleData){
+      puzzleData.placements.forEach(p => p.cells.forEach(cell => {
+        const c = cellAt(cell.r, cell.c);
+        if(c) c.classList.remove("hint");
+      }));
+    }
+  }
+
+  const el = {
+    telaSelecao: document.getElementById("telaSelecao"),
+    telaOpcoes: document.getElementById("telaOpcoes"),
+    telaJogo: document.getElementById("telaJogo"),
+    grade: document.getElementById("grade"),
+    listaPalavras: document.getElementById("listaPalavras"),
+    nivelAtualTitulo: document.getElementById("nivelAtualTitulo"),
+    direcoesAtivasLabel: document.getElementById("direcoesAtivasLabel"),
+    opcoesNivelLabel: document.getElementById("opcoesNivelLabel"),
+    tempoDecorrido: document.getElementById("tempoDecorrido"),
+    vitoriaTempo: document.getElementById("vitoriaTempo"),
+    modalVitoria: document.getElementById("modalVitoria"),
+    modalAjuda: document.getElementById("modalAjuda"),
+    toast: document.getElementById("toast"),
+    liveRegion: document.getElementById("liveRegion"),
+    btnSom: document.getElementById("btnSom")
+  };
+
+  function capitalize(word){ return word.charAt(0) + word.slice(1).toLowerCase(); }
+  function pickLetter(){ return LETTER_POOL[Math.floor(Math.random() * LETTER_POOL.length)]; }
+
+  function tryPlaceWord(grid, size, word, directions){
+    const len = word.length;
+    for(let attempt = 0; attempt < 200; attempt++){
+      const dir = directions[Math.floor(Math.random() * directions.length)];
+      const row = Math.floor(Math.random() * size);
+      const col = Math.floor(Math.random() * size);
+      const endRow = row + dir.r * (len - 1);
+      const endCol = col + dir.c * (len - 1);
+      if(endRow < 0 || endRow >= size || endCol < 0 || endCol >= size) continue;
+      let ok = true;
+      const cells = [];
+      for(let i = 0; i < len; i++){
+        const r = row + dir.r * i, c = col + dir.c * i;
+        const existing = grid[r][c];
+        if(existing !== null && existing !== word[i]){ ok = false; break; }
+        cells.push({r, c});
+      }
+      if(!ok) continue;
+      cells.forEach((cell, i) => { grid[cell.r][cell.c] = word[i]; });
+      return cells;
+    }
+    return null;
+  }
+
+  function generatePuzzle(size, words, directions){
+    for(let regen = 0; regen < 60; regen++){
+      const grid = Array.from({length: size}, () => Array(size).fill(null));
+      const placements = [];
+      const wordsSorted = [...words].sort((a, b) => b.length - a.length);
+      let success = true;
+      for(const word of wordsSorted){
+        const cells = tryPlaceWord(grid, size, word, directions);
+        if(!cells){ success = false; break; }
+        placements.push({word, cells});
+      }
+      if(success){
+        for(let r = 0; r < size; r++){
+          for(let c = 0; c < size; c++){
+            if(grid[r][c] === null) grid[r][c] = pickLetter();
+          }
+        }
+        return {grid, placements, size};
+      }
+    }
+    return null;
+  }
+
+  function cellAt(r, c){ return el.grade.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`); }
+
+  function renderPuzzle(){
+    const {grid, size} = puzzleData;
+    el.grade.innerHTML = "";
+    el.grade.className = "grid size-" + size;
+    el.grade.style.pointerEvents = "";
+    el.grade.style.gridTemplateColumns = `repeat(${size}, var(--cell-size))`;
+    el.grade.style.gridTemplateRows = `repeat(${size}, var(--cell-size))`;
+    for(let r = 0; r < size; r++){
+      for(let c = 0; c < size; c++){
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.textContent = grid[r][c];
+        cell.dataset.r = r;
+        cell.dataset.c = c;
+        cell.tabIndex = 0;
+        cell.setAttribute("role", "button");
+        cell.setAttribute("aria-label", "Letra " + grid[r][c]);
+        cell.addEventListener("click", () => onCellActivate(r, c));
+        cell.addEventListener("mouseenter", () => onCellHover(r, c));
+        cell.addEventListener("keydown", (e) => {
+          if(e.key === "Enter" || e.key === " "){ e.preventDefault(); onCellActivate(r, c); }
+        });
+        el.grade.appendChild(cell);
+      }
+    }
+  }
+
+  function renderWordList(){
+    el.listaPalavras.innerHTML = "";
+    activeWords.forEach(word => {
+      const li = document.createElement("li");
+      li.dataset.word = word;
+      const icon = document.createElement("span");
+      icon.className = "status-icon";
+      icon.textContent = "⬜";
+      icon.setAttribute("aria-hidden", "true");
+      const text = document.createElement("span");
+      text.className = "word-text";
+      text.textContent = capitalize(word);
+      li.appendChild(icon);
+      li.appendChild(text);
+      el.listaPalavras.appendChild(li);
+    });
+  }
+
+  function computePath(start, end){
+    const deltaR = end.r - start.r, deltaC = end.c - start.c;
+    const absR = Math.abs(deltaR), absC = Math.abs(deltaC);
+    if(!(absR === 0 || absC === 0 || absR === absC)) return null;
+    const dr = Math.sign(deltaR), dc = Math.sign(deltaC);
+    const steps = Math.max(absR, absC);
+    const path = [];
+    for(let i = 0; i <= steps; i++){ path.push({r: start.r + dr * i, c: start.c + dc * i}); }
+    return path;
+  }
+
+  function clearPreview(){
+    el.grade.querySelectorAll(".cell.preview").forEach(cell => cell.classList.remove("preview"));
+  }
+
+  function onCellHover(r, c){
+    if(!selStart) return;
+    clearPreview();
+    const path = computePath(selStart, {r, c});
+    if(!path) return;
+    path.forEach(p => {
+      if(!(p.r === selStart.r && p.c === selStart.c)) cellAt(p.r, p.c).classList.add("preview");
+    });
+  }
+
+  function flashReject(cells){
+    cells.forEach(cell => cell && cell.classList.add("reject"));
+    setTimeout(() => cells.forEach(cell => cell && cell.classList.remove("reject")), 500);
+  }
+
+  function onCellActivate(r, c){
+    if(!selStart){
+      selStart = {r, c};
+      cellAt(r, c).classList.add("selected-start");
+      return;
+    }
+    const start = selStart;
+    clearPreview();
+    cellAt(start.r, start.c).classList.remove("selected-start");
+    selStart = null;
+    if(start.r === r && start.c === c) return;
+    const path = computePath(start, {r, c});
+    if(!path){
+      flashReject([cellAt(start.r, start.c), cellAt(r, c)]);
+      return;
+    }
+    const letters = path.map(p => puzzleData.grid[p.r][p.c]).join("");
+    const reversed = letters.split("").reverse().join("");
+    const matchWord = activeWords.find(w => !foundWords.has(w) && (w === letters || w === reversed));
+    if(matchWord){
+      markFound(matchWord, path);
+    } else {
+      flashReject(path.map(p => cellAt(p.r, p.c)));
+    }
+  }
+
+  function markFound(word, path){
+    foundWords.add(word);
+    path.forEach(p => {
+      const cell = cellAt(p.r, p.c);
+      cell.classList.add("found");
+      cell.classList.remove("selected-start");
+    });
+    const li = el.listaPalavras.querySelector(`li[data-word="${word}"]`);
+    li.classList.add("found");
+    li.querySelector(".status-icon").textContent = "✅";
+    announce("Você encontrou a palavra " + capitalize(word));
+    playTone(660, 0.15);
+    if(foundWords.size === activeWords.length){ onVitoria(); }
+  }
+
+  function onDica(){
+    const remaining = activeWords.filter(w => !foundWords.has(w));
+    if(remaining.length === 0) return;
+    const word = remaining[Math.floor(Math.random() * remaining.length)];
+    const placement = puzzleData.placements.find(p => p.word === word);
+    placement.cells.forEach(p => cellAt(p.r, p.c).classList.add("hint"));
+    announce("Dica: observe a palavra " + capitalize(word) + " destacada na grade");
+    const hintTimeout = setTimeout(() => {
+      placement.cells.forEach(p => {
+        const c = cellAt(p.r, p.c);
+        if(c) c.classList.remove("hint");
+      });
+    }, 2200);
+    hintTimeouts.push(hintTimeout);
+  }
+
+  function startTimer(){
+    secondsElapsed = 0;
+    updateTimerDisplay();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => { secondsElapsed++; updateTimerDisplay(); }, 1000);
+  }
+  function stopTimer(){ clearInterval(timerInterval); }
+  function updateTimerDisplay(){
+    const m = String(Math.floor(secondsElapsed / 60)).padStart(2, "0");
+    const s = String(secondsElapsed % 60).padStart(2, "0");
+    el.tempoDecorrido.textContent = m + ":" + s;
+  }
+
+  function onVitoria(){
+    stopTimer();
+    el.vitoriaTempo.textContent = el.tempoDecorrido.textContent;
+    el.grade.style.pointerEvents = "none";
+    playVictoryChime();
+    el.modalVitoria.classList.remove("hidden");
+    announce("Parabéns! Você completou o caça-palavras.");
+  }
+
+  function novoJogo(){
+    clearHintTimeouts();
+    foundWords = new Set();
+    selStart = null;
+    activeWords = sampleWords(MASTER_POOL, currentLevel.count, currentLevel.maxLen);
+    puzzleData = generatePuzzle(currentLevel.size, activeWords, currentDirections);
+    if(!puzzleData){
+      puzzleData = generatePuzzle(currentLevel.size, activeWords, buildDirections(TODAS_DIRECOES));
+      if(puzzleData) showToast("Ajustamos as direções desta rodada para conseguir montar o jogo.");
+    }
+    if(!puzzleData){
+      showToast("Não foi possível gerar a grade. Tente novamente.");
+      return;
+    }
+    renderWordList();
+    renderPuzzle();
+    startTimer();
+  }
+
+  function abrirTelaOpcoes(levelKey){
+    currentLevelKey = levelKey;
+    currentLevel = LEVELS[levelKey];
+    const defaults = currentLevel.defaultDirections;
+    document.getElementById("dirHorizontal").checked = defaults.horizontal;
+    document.getElementById("dirVertical").checked = defaults.vertical;
+    document.getElementById("dirDiagonal").checked = defaults.diagonal;
+    document.getElementById("dirReverso").checked = defaults.reverse;
+    atualizarEstiloOpcoes();
+    el.opcoesNivelLabel.textContent = currentLevel.label;
+    el.telaSelecao.classList.add("hidden");
+    el.telaJogo.classList.add("hidden");
+    el.telaOpcoes.classList.remove("hidden");
+  }
+
+  function atualizarEstiloOpcoes(){
+    document.querySelectorAll(".opcao-linha").forEach(linha => {
+      const input = linha.querySelector("input[type=checkbox]");
+      linha.classList.toggle("selected", input.checked);
+    });
+  }
+  document.querySelectorAll(".opcao-linha input[type=checkbox]").forEach(input => {
+    input.addEventListener("change", atualizarEstiloOpcoes);
+  });
+
+  function lerConfigDirecoes(){
+    return {
+      horizontal: document.getElementById("dirHorizontal").checked,
+      vertical: document.getElementById("dirVertical").checked,
+      diagonal: document.getElementById("dirDiagonal").checked,
+      reverse: document.getElementById("dirReverso").checked
+    };
+  }
+
+  function comecarPartida(cfg){
+    if(!cfg.horizontal && !cfg.vertical && !cfg.diagonal){
+      showToast("Escolha pelo menos uma direção para jogar.");
+      return;
+    }
+    currentDirections = buildDirections(cfg);
+    el.nivelAtualTitulo.textContent = "Nível: " + currentLevel.label;
+    el.direcoesAtivasLabel.textContent = descreverDirecoes(cfg);
+    novoJogo();
+    el.telaOpcoes.classList.add("hidden");
+    el.telaJogo.classList.remove("hidden");
+  }
+
+  function voltarParaSelecao(){
+    stopTimer();
+    clearHintTimeouts();
+    el.telaJogo.classList.add("hidden");
+    el.telaOpcoes.classList.add("hidden");
+    el.telaSelecao.classList.remove("hidden");
+  }
+
+  function announce(msg){
+    el.liveRegion.textContent = "";
+    setTimeout(() => { el.liveRegion.textContent = msg; }, 50);
+  }
+
+  function showToast(msg){
+    el.toast.textContent = msg;
+    el.toast.classList.add("show");
+    clearTimeout(el.toast._timer);
+    el.toast._timer = setTimeout(() => el.toast.classList.remove("show"), 2600);
+  }
+
+  function playTone(freq, duration){
+    if(!soundOn) return;
+    try{
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = freq;
+      osc.type = "sine";
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration + 0.02);
+    }catch(e){ /* áudio indisponível — segue sem som */ }
+  }
+  function playVictoryChime(){
+    playTone(523, 0.18);
+    setTimeout(() => playTone(659, 0.18), 160);
+    setTimeout(() => playTone(784, 0.28), 320);
+  }
+
+  document.querySelectorAll(".level-card").forEach(card => {
+    card.addEventListener("click", () => abrirTelaOpcoes(card.dataset.level));
+  });
+  document.getElementById("btnVoltarNivel").addEventListener("click", () => {
+    el.telaOpcoes.classList.add("hidden");
+    el.telaSelecao.classList.remove("hidden");
+  });
+  document.getElementById("btnComecar").addEventListener("click", () => comecarPartida(lerConfigDirecoes()));
+  document.getElementById("btnAleatorio").addEventListener("click", () => comecarPartida(randomDirectionConfig()));
+  document.getElementById("btnTrocarNivel").addEventListener("click", voltarParaSelecao);
+  document.getElementById("btnReiniciar").addEventListener("click", novoJogo);
+  document.getElementById("btnDica").addEventListener("click", onDica);
+  document.getElementById("btnJogarDeNovo").addEventListener("click", () => {
+    el.modalVitoria.classList.add("hidden");
+    novoJogo();
+  });
+  document.getElementById("btnOutroNivel").addEventListener("click", () => {
+    el.modalVitoria.classList.add("hidden");
+    voltarParaSelecao();
+  });
+  document.getElementById("btnAjuda").addEventListener("click", () => el.modalAjuda.classList.remove("hidden"));
+  document.getElementById("fecharAjuda").addEventListener("click", () => el.modalAjuda.classList.add("hidden"));
+  el.modalAjuda.addEventListener("click", (e) => { if(e.target === el.modalAjuda) el.modalAjuda.classList.add("hidden"); });
+  document.querySelectorAll(".font-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".font-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.documentElement.style.fontSize = btn.dataset.scale + "%";
+    });
+  });
+  document.querySelector('.font-btn[data-scale="100"]').classList.add("active");
+  el.btnSom.addEventListener("click", () => {
+    soundOn = !soundOn;
+    el.btnSom.textContent = soundOn ? "🔊 Som" : "🔇 Som";
+    el.btnSom.setAttribute("aria-pressed", String(soundOn));
+  });
+
+})();
+</script>
+</body>
+</html>
