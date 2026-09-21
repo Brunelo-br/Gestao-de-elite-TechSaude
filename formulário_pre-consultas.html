@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde – Pré-consulta</title>
+<style>
+:root{
+  --cream:#f3efdc;
+  --cream-deep:#ece5c9;
+  --ink:#16301f;
+  --ink-soft:#2e4a37;
+  --green-deep:#1b3a26;
+  --green-mid:#2f6b46;
+  --teal:#2f9e8f;
+  --line:#cdbf95;
+  --text:#26332a;
+  --text-soft:#55604f;
+  --error:#a3402c;
+  /* aliases mantidos para compatibilidade com o restante do arquivo */
+  --green-soft:#dcefdf;
+  --danger:var(--error);
+  --bg-field:#fbf9ee;
+  --border:var(--line);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;}
+body{
+  font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+  background:linear-gradient(135deg,var(--green-deep) 0%,var(--green-mid) 100%);
+  min-height:100vh;
+  display:flex;justify-content:center;align-items:flex-start;
+  padding:16px;
+}
+input, select, textarea, button{ font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; }
+.container{
+  width:100%;max-width:480px;background:var(--cream);border-radius:20px;
+  box-shadow:0 10px 50px rgba(0,0,0,.3);overflow:hidden;
+  min-height:min(720px, calc(100vh - 32px));
+  display:flex;flex-direction:column;
+}
+.header{
+  background:linear-gradient(135deg,var(--green-deep) 0%,var(--green-mid) 100%);
+  padding:16px 14px 12px;color:#fff;flex-shrink:0;
+}
+.header-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.header-btn{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:none;border:none;cursor:pointer;padding:0;min-width:56px;
+  text-decoration:none;color:#fff;
+}
+.header-btn.emergencia .icon{
+  width:42px;height:42px;background:var(--danger);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.header-btn.inicio .icon{
+  width:42px;height:42px;background:rgba(255,255,255,.15);
+  border:2px solid rgba(255,255,255,.3);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.header-btn label{font-size:10px;font-weight:700;text-transform:uppercase;color:#fff;}
+.header-center{text-align:center;flex:1;min-width:0;}
+.logo-section{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px;}
+.logo-icon{width:42px;height:auto;display:block;flex-shrink:0;}
+.app-title{font-size:22px;font-weight:bold;letter-spacing:.5px;}
+.datetime{font-size:12px;color:rgba(255,255,255,.9);}
+.main-content{flex:1;overflow-y:auto;padding:20px 18px 28px;}
+.screen{display:none;}
+.screen.active{display:block;}
+.page-title{
+  font-size:18px;color:var(--green-deep);font-weight:700;margin-bottom:8px;
+  text-transform:uppercase;letter-spacing:.4px;text-align:center;
+}
+.page-sub{text-align:center;color:var(--text-soft);font-size:13px;margin-bottom:18px;line-height:1.4;}
+.nav-row{display:flex;gap:8px;margin-bottom:16px;}
+.nav-row button{
+  flex:1;border:2px solid var(--green-mid);background:#fff;color:var(--green-mid);
+  border-radius:50px;padding:10px 8px;font-weight:700;font-size:12px;text-transform:uppercase;cursor:pointer;
+}
+.nav-row button.active{background:var(--green-mid);color:#fff;}
+.form-group{margin-bottom:12px;}
+.field-label{
+  font-size:11px;color:var(--green-deep);font-weight:700;text-transform:uppercase;
+  letter-spacing:.4px;margin-bottom:6px;display:block;
+}
+.form-field{
+  display:flex;align-items:center;gap:10px;background:var(--bg-field);
+  padding:12px 14px;border-radius:12px;border:2px solid var(--border);
+}
+.form-field:focus-within{border-color:var(--teal);background:#fdfcf4;box-shadow:0 0 0 3px rgba(47,158,143,0.25);}
+.form-field input,.form-field select,.form-field textarea{
+  flex:1;border:none;background:transparent;font-size:15px;font-family:inherit;color:var(--text);outline:none;min-width:0;
+}
+.form-field textarea{resize:vertical;min-height:72px;}
+.row-2{display:flex;gap:8px;}
+.row-2 .form-group{flex:1;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{
+  border:2px solid var(--border);background:var(--bg-field);border-radius:50px;
+  padding:8px 12px;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;
+}
+.chip input{display:none;}
+.chip.on{border-color:var(--green-mid);background:var(--green-soft);color:var(--green-deep);}
+.btn-block{
+  display:block;width:100%;border:none;border-radius:999px;padding:14px 16px;
+  font-weight:800;font-size:14px;letter-spacing:.4px;text-transform:uppercase;cursor:pointer;
+  background:linear-gradient(180deg,#234a34,var(--green-deep));color:var(--cream);font-family:inherit;
+  box-shadow:0 6px 0 #0e2416,0 10px 18px rgba(0,0,0,.25);
+  transition:transform .08s ease;
+}
+.btn-block:active{transform:translateY(3px);box-shadow:0 3px 0 #0e2416;}
+.btn-block:focus-visible{outline:3px solid var(--teal);outline-offset:3px;}
+.btn-ghost{
+  display:block;width:100%;margin-top:8px;border:2px solid var(--green-deep);background:transparent;
+  color:var(--green-deep);border-radius:999px;padding:12px;font-weight:800;text-transform:uppercase;cursor:pointer;
+}
+.list{display:flex;flex-direction:column;gap:10px;}
+.card{
+  background:var(--bg-field);border:2px solid var(--border);border-radius:16px;padding:14px;
+}
+.card h3{margin:0 0 4px;color:var(--green-deep);font-size:15px;}
+.card p{margin:0;font-size:13px;color:var(--text-soft);line-height:1.4;}
+.card-actions{display:flex;gap:8px;margin-top:10px;}
+.btn-sm{
+  flex:1;border-radius:50px;padding:8px;font-size:11px;font-weight:700;text-transform:uppercase;cursor:pointer;background:#fff;
+}
+.btn-sm.outline{border:2px solid var(--green-mid);color:var(--green-mid);}
+.btn-sm.danger{border:2px solid var(--danger);color:var(--danger);}
+.empty{text-align:center;color:var(--text-soft);padding:24px 10px;background:var(--bg-field);border-radius:14px;}
+.popup-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:120;display:none;
+  align-items:center;justify-content:center;padding:20px;
+}
+.popup-overlay.show{display:flex;}
+.popup-card{
+  background:#fff;border-radius:18px;padding:22px 18px 18px;max-width:360px;width:100%;text-align:center;
+}
+.popup-card h2{margin:0 0 10px;font-size:16px;color:var(--green-deep);text-transform:uppercase;}
+.popup-card p{margin:0 0 16px;font-size:14px;color:var(--text);line-height:1.45;}
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:var(--green-deep);color:#fff;padding:12px 18px;border-radius:50px;
+  font-weight:700;font-size:13px;opacity:0;transition:.3s;z-index:200;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (min-width:768px){
+  body{align-items:center;padding:28px 24px;}
+  .container{max-width:860px;border-radius:24px;}
+  .header{padding:20px 28px 16px;}
+  .logo-icon{width:50px;}
+  .app-title{font-size:26px;}
+  .main-content{padding:28px 36px 36px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+  .form-grid .full{grid-column:1/-1;}
+  .list{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+}
+@media (min-width:1100px){
+  .container{max-width:1100px;}
+}
+@media (max-width:480px){
+  body{padding:0;}
+  .container{max-width:100%;border-radius:0;min-height:100vh;box-shadow:none;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="header">
+    <div class="header-top">
+      <button type="button" class="header-btn emergencia" onclick="toast('Chamado de Emergência (em breve)')">
+        <div class="icon">🔔</div><label>Emergência</label>
+      </button>
+      <div class="header-center">
+        <div class="logo-section">
+          <img class="logo-icon" src="img/logo.png" alt="Logo TechSaúde">
+          <div class="app-title">TechSaúde</div>
+        </div>
+        <div class="datetime" id="datetime"></div>
+      </div>
+      <button type="button" class="header-btn inicio" onclick="toast('Tela Home (em breve)')">
+        <div class="icon">🏠</div><label>Início</label>
+      </button>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="nav-row">
+      <button type="button" id="tab-form" class="active" onclick="goTo('form')">Preencher ficha</button>
+      <button type="button" id="tab-list" onclick="goTo('list')">Minhas fichas</button>
+    </div>
+
+    <section class="screen active" id="screen-form">
+      <h1 class="page-title" id="form-title">Formulário de pré-consulta</h1>
+      <p class="page-sub">Preencha antes da consulta para o médico já saber o motivo e o que você usa de remédio.</p>
+      <form id="form-pre" onsubmit="salvar(event)">
+        <input type="hidden" id="f-id">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="field-label">Especialidade / médico</label>
+            <div class="form-field"><input id="f-medico" type="text" placeholder="Ex: Dr. Silva — cardiologia" required></div>
+          </div>
+          <div class="form-group">
+            <label class="field-label">Data da consulta</label>
+            <div class="form-field"><input id="f-data" type="date" required></div>
+          </div>
+          <div class="form-group full">
+            <label class="field-label">Qual o motivo da consulta?</label>
+            <div class="form-field"><textarea id="f-motivo" placeholder="Ex: dor no peito, revisão de pressão, resultado de exame..." required></textarea></div>
+          </div>
+          <div class="form-group">
+            <label class="field-label">Principais sintomas</label>
+            <div class="form-field"><textarea id="f-sintomas" placeholder="O que você está sentindo?"></textarea></div>
+          </div>
+          <div class="form-group">
+            <label class="field-label">Há quanto tempo?</label>
+            <div class="form-field">
+              <select id="f-tempo">
+                <option value="">Selecione</option>
+                <option>Hoje / de ontem</option>
+                <option>Alguns dias</option>
+                <option>Algumas semanas</option>
+                <option>Mais de 1 mês</option>
+                <option>Consulta de rotina</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label class="field-label">Você já tem alguma dessas condições?</label>
+            <div class="chips" id="chips">
+              <label class="chip"><input type="checkbox" value="Pressão alta">Pressão alta</label>
+              <label class="chip"><input type="checkbox" value="Diabetes">Diabetes</label>
+              <label class="chip"><input type="checkbox" value="Coração">Coração</label>
+              <label class="chip"><input type="checkbox" value="Asma">Asma</label>
+              <label class="chip"><input type="checkbox" value="Tireoide">Tireoide</label>
+              <label class="chip"><input type="checkbox" value="Colesterol">Colesterol</label>
+              <label class="chip"><input type="checkbox" value="Nenhuma">Nenhuma</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="field-label">Remédios que você toma</label>
+            <div class="form-field"><textarea id="f-remedios" placeholder="Nome e horário, se souber"></textarea></div>
+          </div>
+          <div class="form-group">
+            <label class="field-label">Alergia a remédio ou alimento</label>
+            <div class="form-field"><input id="f-alergia" type="text" placeholder="Ex: dipirona, camarão — ou nenhuma"></div>
+          </div>
+          <div class="form-group full">
+            <label class="field-label">O que você quer perguntar ao médico?</label>
+            <div class="form-field"><textarea id="f-perguntas" placeholder="Ex: posso caminhar? preciso de exame?"></textarea></div>
+          </div>
+        </div>
+        <button type="submit" class="btn-block" id="btn-salvar" style="margin-top:8px">Salvar pré-consulta</button>
+        <button type="button" class="btn-ghost" onclick="limpar()">Limpar</button>
+      </form>
+    </section>
+
+    <section class="screen" id="screen-list">
+      <h1 class="page-title">Minhas fichas de pré-consulta</h1>
+      <p class="page-sub">Fichas salvas neste aparelho, para levar ou mostrar na consulta.</p>
+      <div class="list" id="lista"></div>
+    </section>
+  </div>
+</div>
+
+<div class="popup-overlay" id="pop-ok">
+  <div class="popup-card">
+    <h2>Pré-consulta salva</h2>
+    <p>Sua ficha foi guardada. Você pode ver em Minhas fichas ou preencher outra.</p>
+    <button type="button" class="btn-block" onclick="fecharOk(true)">Ver minhas fichas</button>
+    <button type="button" class="btn-ghost" onclick="fecharOk(false)">Continuar aqui</button>
+  </div>
+</div>
+<div class="popup-overlay" id="pop-del">
+  <div class="popup-card">
+    <h2>Excluir ficha?</h2>
+    <p id="del-txt"></p>
+    <button type="button" class="btn-block" style="background:var(--danger)" onclick="confirmarDel()">Sim, excluir</button>
+    <button type="button" class="btn-ghost" onclick="document.getElementById('pop-del').classList.remove('show')">Cancelar</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'techsaude_preconsulta_v1';
+const COND = ['Pressão alta','Diabetes','Coração','Asma','Tireoide','Colesterol','Nenhuma'];
+function canStore(){
+  try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; }catch(e){ return false; }
+}
+const HAS = canStore();
+function load(){
+  if(HAS){ try{ const r=JSON.parse(localStorage.getItem(KEY)||'[]'); if(Array.isArray(r)) return r; }catch(e){} }
+  return [];
+}
+function saveAll(arr){ if(HAS){ try{ localStorage.setItem(KEY, JSON.stringify(arr)); }catch(e){} } }
+let fichas = load();
+let delId = null;
+let editId = null;
+
+document.querySelectorAll('#chips .chip').forEach(ch => {
+  ch.addEventListener('click', () => {
+    const inp = ch.querySelector('input');
+    setTimeout(() => {
+      if(inp.value === 'Nenhuma' && inp.checked){
+        document.querySelectorAll('#chips input').forEach(i => { if(i.value!=='Nenhuma') i.checked=false; i.parentElement.classList.toggle('on', i.checked); });
+      } else if(inp.checked){
+        const n = document.querySelector('#chips input[value="Nenhuma"]');
+        n.checked = false; n.parentElement.classList.remove('on');
+      }
+      ch.classList.toggle('on', inp.checked);
+    }, 0);
+  });
+});
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function clock(){
+  const n=new Date(), s=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const m=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  document.getElementById('datetime').textContent = pad(n.getHours())+':'+pad(n.getMinutes())+' - '+s[n.getDay()]+', '+n.getDate()+' de '+m[n.getMonth()]+' de '+n.getFullYear();
+}
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function goTo(name){
+  document.getElementById('screen-form').classList.toggle('active', name==='form');
+  document.getElementById('screen-list').classList.toggle('active', name==='list');
+  document.getElementById('tab-form').classList.toggle('active', name==='form');
+  document.getElementById('tab-list').classList.toggle('active', name==='list');
+  if(name==='list') render();
+}
+function condicoes(){
+  return [...document.querySelectorAll('#chips input:checked')].map(i=>i.value);
+}
+function salvar(e){
+  e.preventDefault();
+  const item = {
+    id: editId || Date.now(),
+    medico: document.getElementById('f-medico').value.trim(),
+    data: document.getElementById('f-data').value,
+    motivo: document.getElementById('f-motivo').value.trim(),
+    sintomas: document.getElementById('f-sintomas').value.trim(),
+    tempo: document.getElementById('f-tempo').value,
+    condicoes: condicoes(),
+    remedios: document.getElementById('f-remedios').value.trim(),
+    alergia: document.getElementById('f-alergia').value.trim(),
+    perguntas: document.getElementById('f-perguntas').value.trim()
+  };
+  if(!item.medico || !item.data || !item.motivo){ toast('Preencha médico, data e motivo'); return; }
+  if(editId){ fichas = fichas.map(x => x.id===editId ? item : x); }
+  else { fichas.unshift(item); }
+  saveAll(fichas);
+  document.getElementById('pop-ok').classList.add('show');
+}
+function fecharOk(irLista){
+  document.getElementById('pop-ok').classList.remove('show');
+  limpar();
+  if(irLista) goTo('list');
+}
+function limpar(){
+  editId = null;
+  document.getElementById('form-title').textContent = 'Formulário de pré-consulta';
+  document.getElementById('btn-salvar').textContent = 'Salvar pré-consulta';
+  document.getElementById('form-pre').reset();
+  document.querySelectorAll('#chips .chip').forEach(c => c.classList.remove('on'));
+}
+function fmt(iso){
+  if(!iso) return '';
+  const [y,m,d]=iso.split('-'); return d+'/'+m+'/'+y;
+}
+function esc(s){ return String(s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function render(){
+  const el = document.getElementById('lista');
+  if(!fichas.length){ el.innerHTML = '<div class="empty" style="grid-column:1/-1">Nenhuma ficha salva ainda.</div>'; return; }
+  el.innerHTML = fichas.map(f =>
+    '<article class="card"><h3>'+esc(f.medico)+'</h3><p>'+fmt(f.data)+(f.motivo? ' — '+esc(f.motivo):'')+'</p>'+
+    (f.condicoes&&f.condicoes.length?'<p style="margin-top:6px">'+esc(f.condicoes.join(', '))+'</p>':'')+
+    '<div class="card-actions">'+
+    '<button type="button" class="btn-sm outline" onclick="editar('+f.id+')">Editar</button>'+
+    '<button type="button" class="btn-sm danger" onclick="pedirDel('+f.id+')">Excluir</button>'+
+    '</div></article>'
+  ).join('');
+}
+function editar(id){
+  const f = fichas.find(x=>x.id===id); if(!f) return;
+  editId = id;
+  document.getElementById('form-title').textContent = 'Editar pré-consulta';
+  document.getElementById('btn-salvar').textContent = 'Salvar alteração';
+  document.getElementById('f-medico').value = f.medico||'';
+  document.getElementById('f-data').value = f.data||'';
+  document.getElementById('f-motivo').value = f.motivo||'';
+  document.getElementById('f-sintomas').value = f.sintomas||'';
+  document.getElementById('f-tempo').value = f.tempo||'';
+  document.getElementById('f-remedios').value = f.remedios||'';
+  document.getElementById('f-alergia').value = f.alergia||'';
+  document.getElementById('f-perguntas').value = f.perguntas||'';
+  document.querySelectorAll('#chips input').forEach(i => {
+    i.checked = (f.condicoes||[]).includes(i.value);
+    i.parentElement.classList.toggle('on', i.checked);
+  });
+  goTo('form');
+}
+function pedirDel(id){
+  const f = fichas.find(x=>x.id===id); if(!f) return;
+  delId = id;
+  document.getElementById('del-txt').textContent = f.medico+' — '+fmt(f.data);
+  document.getElementById('pop-del').classList.add('show');
+}
+function confirmarDel(){
+  fichas = fichas.filter(x=>x.id!==delId);
+  saveAll(fichas);
+  document.getElementById('pop-del').classList.remove('show');
+  render();
+  toast('Ficha excluída.');
+}
+clock();
+setInterval(clock, 30000);
+</script>
+</body>
+</html>
