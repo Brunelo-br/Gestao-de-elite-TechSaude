@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>TechSaúde - Jogo da Memória</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --cream: #f3efdc;
+    --cream-deep: #ece5c9;
+    --card-bg: #faf7ec;
+    --ink: #16301f;
+    --ink-soft: #2e4a37;
+    --green-deep: #1b3a26;
+    --green-mid: #2f6b46;
+    --forest: #1b3a26;
+    --forest-2: #234a34;
+    --teal: #2f9e8f;
+    --line: #cdbf95;
+    --border-soft: #cdbf95;
+    --text: #26332a;
+    --text-soft: #55604f;
+    --muted: #55604f;
+    --error: #a3402c;
+    --error-bg: #f4dcd6;
+    --success: #1b4332;
+    --success-bg: #dcefdf;
+    --success-border: #a5d6a7;
+    --warn-bg: #fff3e0;
+    --warn: #e65100;
+    --warn-border: #ffcc80;
+    --danger: #c0392b;
+    --shadow-outer: 0 30px 60px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;min-height:100%;}
+  body{
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255,255,255,0.06), transparent 40%),
+      linear-gradient(160deg, #16412B 0%, #0F2E1C 100%);
+    padding:48px 24px;
+  }
+  input, select, textarea, button{ font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; }
+  h1, h2{ color:var(--green-deep); font-weight:900; text-transform:uppercase; margin:0 0 .4rem; }
+  .hidden{display:none !important;}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+  /* ===== CARTÃO PRINCIPAL ===== */
+  .site{
+    width:100%;
+    max-width:1000px;
+    background:var(--cream);
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:var(--shadow-outer);
+  }
+  @media (max-width:480px){
+    body{ padding:0; }
+    .site{ max-width:100%; min-height:100vh; border-radius:0; box-shadow:none; }
+  }
+
+  /* ===== CABEÇALHO PADRÃO (emergência / logo / início) ===== */
+  .topbar{
+    background: linear-gradient(160deg, #12583a, #0b3423);
+    padding:20px 20px 18px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .nav-btn{
+    background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer; color:var(--cream); font-family:'Baloo 2', sans-serif; font-weight:700;
+    font-size:11.5px; letter-spacing:0.4px; text-transform:uppercase; text-decoration:none;
+    padding:2px; flex-shrink:0;
+  }
+  .nav-btn .icon-circle{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:2px; }
+  .nav-btn.emergencia .icon-circle{ background:var(--danger); box-shadow:0 4px 12px rgba(192,57,43,.35); }
+  .nav-btn.inicio .icon-circle{ background:rgba(255,255,255,0.18); }
+  .nav-btn .icon-circle svg{ width:20px; height:20px; color:#fff; }
+  .nav-btn:hover{ transform:scale(1.05); }
+  .nav-btn:focus-visible{ outline:3px solid var(--cream); outline-offset:3px; border-radius:8px; }
+  .brand-top{ display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; }
+  .brand-top img{ width:200px; height:200px; object-fit:contain; }
+  .brand-top .app-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:19px; color:var(--cream); letter-spacing:.3px; }
+
+  /* ===== CONTEÚDO ===== */
+  .app{ padding:24px 24px 40px; }
+  @media (min-width:901px){ .app{ padding:32px 40px 48px; } .topbar{ padding:26px 36px 22px; } }
+
+  .datetime{
+    text-align:center; font-weight:700; font-size:13.5px; color:var(--forest);
+    border-bottom:2px solid var(--border-soft); padding-bottom:14px; margin-bottom:18px;
+  }
+
+  .toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:22px; }
+  .font-group{ display:inline-flex; border:2px solid var(--line); border-radius:999px; overflow:hidden; }
+  .font-group button{ border:none; background:#fff; color:var(--green-deep); font-weight:800; padding:9px 13px; cursor:pointer; font-size:12px; }
+  .font-group button.active{ background:var(--green-deep); color:var(--cream); }
+  .chip-btn{
+    background:#fff; border:2px solid var(--line); border-radius:999px; padding:9px 15px; font-size:12px;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--green-deep); cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .chip-btn:hover{ border-color:var(--teal); }
+  .chip-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+  h2{ font-size:1.4rem; }
+  .subtitle{ color:var(--text-soft); margin:0 0 1rem; font-weight:600; font-size:.95rem; }
+  .subtitle strong{ color:var(--forest); text-transform:none; }
+
+  /* ===== SELEÇÃO DE NÍVEL (mesmo padrão dos cards da Home) ===== */
+  .level-cards{ display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); margin-top:6px; }
+  .level-card{
+    background:var(--cream-deep); border:2px solid var(--line); border-radius:20px;
+    padding:20px 12px 18px; display:flex; flex-direction:column; align-items:center; gap:8px;
+    cursor:pointer; text-align:center; font-family:inherit; min-height:9.5rem;
+    transition:border-color .15s ease, transform .08s ease;
+  }
+  .level-card:hover{ border-color:var(--teal); }
+  .level-card:active{ transform:scale(0.97); }
+  .level-card:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+  .level-emoji{ font-size:1.8rem; }
+  .level-name{ font-weight:800; color:var(--green-deep); font-size:1.1rem; text-transform:uppercase; }
+  .level-desc{ color:var(--text-soft); font-size:.85rem; font-weight:600; }
+
+  /* ===== BOTÕES PADRÃO DO APP ===== */
+  .btn-primario{
+    width:100%; background:linear-gradient(180deg, var(--forest-2), var(--green-deep)); color:var(--cream);
+    border:none; border-radius:999px; padding:14px 18px; font-weight:800; font-size:1rem;
+    letter-spacing:.4px; text-transform:uppercase; cursor:pointer; font-family:inherit;
+    box-shadow:0 6px 0 #0e2416, 0 10px 18px rgba(0,0,0,0.25);
+    transition:transform .08s ease, box-shadow .08s ease, background .2s ease;
+  }
+  .btn-primario:hover{ background:var(--forest-2); }
+  .btn-primario:active{ transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.18); }
+  .btn-secundario{
+    width:100%; background:#fff; border:2.5px solid var(--forest); color:var(--forest); border-radius:999px;
+    padding:13px 18px; font-weight:700; font-size:.95rem; text-transform:uppercase; letter-spacing:.3px;
+    cursor:pointer; font-family:inherit;
+  }
+  .btn-secundario:hover{ background:var(--success-bg); }
+  .btn-secundario:disabled{ opacity:.5; cursor:not-allowed; background:#fff; }
+  .btn-texto{
+    background:#fff; border:2px solid var(--line); border-radius:999px; padding:.6rem 1.1rem; font-size:.85rem;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--green-deep); cursor:pointer;
+    min-height:2.75rem; font-family:inherit;
+  }
+  .btn-texto:hover{ border-color:var(--teal); }
+
+  /* ===== TOOLBAR DO JOGO ===== */
+  .game-toolbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; margin-bottom:.9rem; }
+  .timer{ font-size:1rem; font-weight:800; color:var(--forest); }
+
+  .mem-stats{ text-align:center; font-weight:700; font-size:.95rem; color:var(--forest); margin:0 0 1rem; }
+  .mem-stats span{ color:var(--text-soft); font-weight:600; }
+
+  .painel-grade-memoria{ background:var(--card-bg); border:2px solid var(--line); border-radius:20px; padding:1.1rem; display:flex; flex-direction:column; align-items:center; gap:.9rem; }
+  .mem-controls{ width:100%; max-width:420px; display:flex; flex-direction:column; gap:.6rem; align-items:center; }
+  .mem-grid-scroll{ width:100%; overflow-x:auto; display:flex; justify-content:center; }
+  .mem-grid{ display:grid; gap:.6rem; touch-action:manipulation; }
+  .mem-grid.size-6{ --card-size:5.2rem; }
+  .mem-grid.size-8{ --card-size:4.6rem; }
+  .mem-grid.size-10{ --card-size:4.1rem; }
+  @media(max-width:480px){
+    .mem-grid.size-6{ --card-size:4.3rem; }
+    .mem-grid.size-8{ --card-size:3.7rem; }
+    .mem-grid.size-10{ --card-size:3.15rem; }
+  }
+  @media(max-width:360px){
+    .mem-grid.size-6{ --card-size:3.8rem; }
+    .mem-grid.size-8{ --card-size:3.25rem; }
+    .mem-grid.size-10{ --card-size:2.75rem; }
+  }
+
+  .mem-card{ background:none; border:none; padding:0; cursor:pointer; width:var(--card-size); height:var(--card-size); perspective:900px; }
+  .mem-card:focus-visible .mem-card-inner{ outline:3px solid var(--forest); outline-offset:3px; }
+  .mem-card-inner{
+    display:block; position:relative; width:100%; height:100%; border-radius:16px;
+    transition:transform .35s ease; transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
+  }
+  .mem-card.flipped .mem-card-inner, .mem-card.matched .mem-card-inner, .mem-card.peek .mem-card-inner{ transform:rotateY(180deg); }
+  .mem-card-face{
+    display:flex; position:absolute; inset:0; border-radius:16px; align-items:center; justify-content:center;
+    backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  }
+  .mem-card-back{
+    background:linear-gradient(180deg, var(--forest-2), var(--green-deep)); box-shadow:0 4px 0 #0e2416;
+    color:rgba(255,255,255,.5); font-size:calc(var(--card-size) * .34);
+  }
+  .mem-card-front{
+    background:var(--cream-deep); border:2px solid var(--line); transform:rotateY(180deg);
+    font-size:calc(var(--card-size) * .48);
+  }
+  .mem-card.matched .mem-card-front{
+    background:var(--success-bg); border:3px solid var(--green-mid);
+    box-shadow:0 0 0 3px rgba(47,107,70,.18);
+  }
+  .mem-card.matched .mem-card-front::after{
+    content:"✓"; position:absolute; top:.2rem; right:.2rem; width:1.15rem; height:1.15rem;
+    background:var(--green-mid); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:.72rem; font-weight:900; line-height:1; box-shadow:0 2px 4px rgba(0,0,0,.25);
+  }
+  .mem-card.mismatch .mem-card-front{ background:var(--error-bg); border-color:var(--error); }
+  .mem-card.matched{ cursor:default; }
+  @media (prefers-reduced-motion: reduce){
+    .mem-card-inner{ transition:none; }
+  }
+  .instrucao-rapida{ color:var(--text-soft); text-align:center; margin:0; font-size:.85rem; font-weight:600; }
+
+  /* ===== MODAIS (padrão popup-card) ===== */
+  .modal-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:50; }
+  .modal{ background:var(--cream); border:2px solid var(--line); border-radius:22px; padding:2rem 1.6rem; max-width:440px; width:100%; position:relative; box-shadow:var(--shadow-outer); max-height:90vh; overflow-y:auto; }
+  .modal-close{ position:absolute; top:.75rem; right:.75rem; background:var(--cream-deep); border:none; width:2.6rem; height:2.6rem; border-radius:50%; font-size:1.1rem; cursor:pointer; color:var(--forest); }
+  .ajuda-lista{ padding-left:1.2rem; display:flex; flex-direction:column; gap:.5rem; font-size:1rem; font-weight:600; color:var(--text); }
+  .ajuda-extra{ margin-top:1rem; font-size:.95rem; font-weight:600; color:var(--text-soft); }
+  .modal-vitoria{ text-align:center; }
+  .icon-pop{ width:64px; height:64px; margin:0 auto 12px; background:var(--success-bg); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; }
+  .vitoria-tempo{ color:var(--text-soft); font-weight:600; }
+  .vitoria-botoes{ display:flex; flex-direction:column; gap:.75rem; margin-top:1rem; }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(16px);
+    background:var(--green-deep); color:#fff; padding:12px 18px; border-radius:999px; font-weight:700; font-size:13px;
+    opacity:0; transition:all .3s; z-index:200; pointer-events:none; max-width:90%; text-align:center;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="site">
+
+  <!-- CABEÇALHO PADRÃO: emergência (esquerda) · logo (centro) · início (direita) -->
+  <header class="topbar">
+    <button type="button" class="nav-btn emergencia" id="btnEmergencia">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v1.06A7.5 7.5 0 0 0 3 15v3a1 1 0 0 0 1 1h1.17a3.5 3.5 0 0 0 6.66 1h.34a3.5 3.5 0 0 0 6.66-1H20a1 1 0 0 0 1-1v-3a7.5 7.5 0 0 0-4-6.94V7a5 5 0 0 0-5-5Z"/></svg>
+      </span>
+      Emergência
+    </button>
+
+    <div class="brand-top">
+      <img src="logo.png" alt="Logo TechSaúde" onerror="var img=this; if(img.dataset.tentativa!=='1'){ img.dataset.tentativa='1'; img.src='img/logo.png'; } else { img.style.visibility='hidden'; }">
+      <span class="app-title">Jogo da Memória</span>
+    </div>
+
+    <a class="nav-btn inicio" href="home.html">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>
+      </span>
+      Início
+    </a>
+  </header>
+
+  <div class="app">
+    <div class="datetime" id="datetime" aria-live="off">--:-- - carregando data...</div>
+
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho do texto">
+        <button class="font-btn" data-scale="100" aria-label="Texto tamanho normal">A</button>
+        <button class="font-btn" data-scale="115" aria-label="Texto grande">A+</button>
+        <button class="font-btn" data-scale="130" aria-label="Texto extra grande">A++</button>
+      </div>
+      <button id="btnSom" class="chip-btn" aria-pressed="true">🔊 Som</button>
+      <button id="btnAjuda" class="chip-btn">❔ Ajuda</button>
+    </div>
+
+    <main id="telaSelecao" class="screen">
+      <h2>Escolha o nível</h2>
+      <p class="subtitle">Tema de hoje: <strong>Casa e Cotidiano</strong> — encontre os pares de cartas iguais</p>
+      <div class="level-cards">
+        <button class="level-card" data-level="facil">
+          <span class="level-emoji" aria-hidden="true">🙂</span>
+          <span class="level-name">Fácil</span>
+          <span class="level-desc">6 pares<br>12 cartas</span>
+        </button>
+        <button class="level-card" data-level="medio">
+          <span class="level-emoji" aria-hidden="true">🙂🙂</span>
+          <span class="level-name">Médio</span>
+          <span class="level-desc">8 pares<br>16 cartas</span>
+        </button>
+        <button class="level-card" data-level="dificil">
+          <span class="level-emoji" aria-hidden="true">🙂🙂🙂</span>
+          <span class="level-name">Difícil</span>
+          <span class="level-desc">10 pares<br>20 cartas</span>
+        </button>
+      </div>
+    </main>
+
+    <main id="telaJogo" class="screen hidden">
+      <div class="game-toolbar">
+        <button id="btnTrocarNivel" class="btn-texto">↩ Trocar nível</button>
+        <div class="timer">⏱ <span id="tempoDecorrido">00:00</span></div>
+        <button id="btnReiniciar" class="btn-texto">🔄 Novo jogo</button>
+      </div>
+      <p class="mem-stats" id="nivelAtualTitulo">Nível: Fácil</p>
+      <p class="mem-stats">Pares encontrados: <strong id="paresEncontrados">0/6</strong> <span>· Tentativas: <span id="tentativas">0</span></span></p>
+      <section class="painel-grade-memoria" aria-label="Grade do jogo da memória">
+        <div class="mem-controls">
+          <button id="btnEspiadela" class="btn-secundario">👀 Dar uma espiadela (1x por jogo)</button>
+        </div>
+        <div class="mem-grid-scroll"><div id="gradeMemoria" class="mem-grid"></div></div>
+        <p class="instrucao-rapida">Toque em duas cartas para tentar formar um par. Cartas iguais ficam viradas.</p>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div id="modalAjuda" class="modal-overlay hidden">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button class="modal-close" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <h2 id="ajudaTitulo">Como jogar</h2>
+    <ol class="ajuda-lista">
+      <li>Escolha um dos três níveis.</li>
+      <li>Todas as cartas começam viradas para baixo.</li>
+      <li>Toque em uma carta para virá-la, depois toque em outra.</li>
+      <li>Se as duas cartas forem iguais, elas ficam viradas e marcadas como encontradas.</li>
+      <li>Se forem diferentes, elas viram de volta para baixo depois de um instante — tente lembrar onde estavam.</li>
+      <li>Ficou em dúvida? Toque em "Dar uma espiadela" uma vez por jogo para ver todas as cartas por alguns segundos.</li>
+      <li>O jogo termina quando todos os pares forem encontrados.</li>
+    </ol>
+    <p class="ajuda-extra">Não existe tempo limite nem pontuação. Jogue com calma, no seu ritmo. 💚</p>
+  </div>
+</div>
+
+<div id="modalVitoria" class="modal-overlay hidden">
+  <div class="modal modal-vitoria" role="dialog" aria-modal="true" aria-labelledby="vitoriaTitulo">
+    <div class="icon-pop" aria-hidden="true">🎉</div>
+    <h2 id="vitoriaTitulo">Parabéns!</h2>
+    <p>Você encontrou todos os pares.</p>
+    <p class="vitoria-tempo">Tempo de jogo: <span id="vitoriaTempo">00:00</span> · Tentativas: <span id="vitoriaTentativas">0</span></p>
+    <div class="vitoria-botoes">
+      <button id="btnJogarDeNovo" class="btn-primario">Jogar de novo</button>
+      <button id="btnOutroNivel" class="btn-secundario">Escolher outro nível</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+<div id="liveRegion" class="sr-only" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- RELÓGIO (mesmo padrão de medicamentos.html / lembretedeconsultas.html) ----------
+  var datetimeEl = document.getElementById('datetime');
+  function atualizarDataHora(){
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    var diaSemana = agora.toLocaleDateString('pt-BR', {weekday:'long'});
+    diaSemana = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+    var dataFormatada = agora.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+    datetimeEl.textContent = hora + ' - ' + diaSemana + ', ' + dataFormatada;
+  }
+  atualizarDataHora();
+  setInterval(atualizarDataHora, 30000);
+
+  // ---------- BOTÃO DE EMERGÊNCIA (ainda não conectado — será feito em outra etapa) ----------
+  document.getElementById('btnEmergencia').addEventListener('click', function(){
+    showToast('🚨 Botão de emergência ainda será conectado nesta tela.');
+  });
+
+  // Banco de itens do tema casa/cotidiano. Cada partida sorteia um subconjunto (sampleItems),
+  // então tanto os itens quanto a posição das cartas mudam a cada jogo.
+  const MASTER_POOL = [
+    {e:"🏠", n:"Casa"}, {e:"🛋️", n:"Sofá"}, {e:"🛏️", n:"Cama"}, {e:"🚪", n:"Porta"}, {e:"🪟", n:"Janela"},
+    {e:"🪑", n:"Cadeira"}, {e:"🍽️", n:"Prato"}, {e:"🥄", n:"Colher"}, {e:"🍴", n:"Garfo"}, {e:"🔪", n:"Faca"},
+    {e:"☕", n:"Café"}, {e:"🍵", n:"Chá"}, {e:"🥛", n:"Leite"}, {e:"🍞", n:"Pão"}, {e:"🧈", n:"Manteiga"},
+    {e:"🧀", n:"Queijo"}, {e:"🍎", n:"Maçã"}, {e:"🍌", n:"Banana"}, {e:"🍊", n:"Laranja"}, {e:"🍇", n:"Uva"},
+    {e:"🍉", n:"Melancia"}, {e:"🍓", n:"Morango"}, {e:"🍍", n:"Abacaxi"}, {e:"🥕", n:"Cenoura"}, {e:"🥔", n:"Batata"},
+    {e:"🍅", n:"Tomate"}, {e:"🧅", n:"Cebola"}, {e:"🌽", n:"Milho"}, {e:"🐶", n:"Cachorro"}, {e:"🐱", n:"Gato"},
+    {e:"🐦", n:"Pássaro"}, {e:"🐰", n:"Coelho"}, {e:"🐴", n:"Cavalo"}, {e:"🐄", n:"Vaca"}, {e:"🐔", n:"Galinha"},
+    {e:"🦋", n:"Borboleta"}, {e:"🌳", n:"Árvore"}, {e:"🌸", n:"Flor"}, {e:"🌻", n:"Girassol"}, {e:"☀️", n:"Sol"},
+    {e:"🌙", n:"Lua"}, {e:"⭐", n:"Estrela"}, {e:"☂️", n:"Guarda-chuva"}, {e:"🌧️", n:"Chuva"}, {e:"❄️", n:"Neve"},
+    {e:"🌈", n:"Arco-íris"}, {e:"👕", n:"Camisa"}, {e:"👖", n:"Calça"}, {e:"👗", n:"Vestido"}, {e:"👞", n:"Sapato"},
+    {e:"🧦", n:"Meia"}, {e:"🧤", n:"Luva"}, {e:"🧣", n:"Cachecol"}, {e:"👒", n:"Chapéu"}, {e:"👓", n:"Óculos"},
+    {e:"📺", n:"Televisão"}, {e:"☎️", n:"Telefone"}, {e:"💡", n:"Lâmpada"}, {e:"🕰️", n:"Relógio"}, {e:"📖", n:"Livro"},
+    {e:"✏️", n:"Lápis"}, {e:"🖊️", n:"Caneta"}, {e:"🎂", n:"Bolo"}, {e:"🍪", n:"Biscoito"}, {e:"🍫", n:"Chocolate"},
+    {e:"🍦", n:"Sorvete"}, {e:"🚗", n:"Carro"}, {e:"🚲", n:"Bicicleta"}, {e:"✈️", n:"Avião"}, {e:"🚌", n:"Ônibus"},
+    {e:"⚽", n:"Bola"}, {e:"🎈", n:"Balão"}, {e:"🎁", n:"Presente"}, {e:"🔑", n:"Chave"}, {e:"🧴", n:"Sabonete"},
+    {e:"🪥", n:"Escova de dente"}, {e:"🧹", n:"Vassoura"}, {e:"🪣", n:"Balde"}, {e:"🔨", n:"Martelo"}, {e:"✂️", n:"Tesoura"},
+    {e:"🎵", n:"Música"}, {e:"🎸", n:"Violão"}, {e:"📷", n:"Câmera"}, {e:"🕯️", n:"Vela"}
+  ];
+
+  // "pairs" = quantos pares de cartas entram em cada partida; "cols" = colunas da grade.
+  const LEVELS = {
+    facil: { label: "Fácil", pairs: 6, cols: 4 },
+    medio: { label: "Médio", pairs: 8, cols: 4 },
+    dificil: { label: "Difícil", pairs: 10, cols: 5 }
+  };
+
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function sampleItems(pool, count){
+    return shuffle(pool).slice(0, count);
+  }
+
+  function buildDeck(items){
+    const deck = [];
+    items.forEach((item, pairId) => {
+      deck.push({ pairId, item, flipped: false, matched: false });
+      deck.push({ pairId, item, flipped: false, matched: false });
+    });
+    return shuffle(deck);
+  }
+
+  let currentLevelKey = null;
+  let currentLevel = null;
+  let deck = [];
+  let flippedIndexes = [];
+  let matchedPairs = 0;
+  let attempts = 0;
+  let lock = false;
+  let peekUsed = false;
+  let timerInterval = null;
+  let secondsElapsed = 0;
+  let soundOn = true;
+  let audioCtx = null;
+  let pendingTimeouts = [];
+
+  function clearPendingTimeouts(){
+    pendingTimeouts.forEach(t => clearTimeout(t));
+    pendingTimeouts = [];
+  }
+
+  const el = {
+    telaSelecao: document.getElementById("telaSelecao"),
+    telaJogo: document.getElementById("telaJogo"),
+    gradeMemoria: document.getElementById("gradeMemoria"),
+    nivelAtualTitulo: document.getElementById("nivelAtualTitulo"),
+    paresEncontrados: document.getElementById("paresEncontrados"),
+    tentativas: document.getElementById("tentativas"),
+    tempoDecorrido: document.getElementById("tempoDecorrido"),
+    vitoriaTempo: document.getElementById("vitoriaTempo"),
+    vitoriaTentativas: document.getElementById("vitoriaTentativas"),
+    modalVitoria: document.getElementById("modalVitoria"),
+    modalAjuda: document.getElementById("modalAjuda"),
+    toast: document.getElementById("toast"),
+    liveRegion: document.getElementById("liveRegion"),
+    btnSom: document.getElementById("btnSom"),
+    btnEspiadela: document.getElementById("btnEspiadela")
+  };
+
+  function cardAt(i){ return el.gradeMemoria.querySelector(`.mem-card[data-i="${i}"]`); }
+
+  function renderGrade(){
+    el.gradeMemoria.innerHTML = "";
+    el.gradeMemoria.className = "mem-grid size-" + currentLevel.pairs;
+    el.gradeMemoria.style.gridTemplateColumns = `repeat(${currentLevel.cols}, var(--card-size))`;
+    deck.forEach((card, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mem-card";
+      btn.dataset.i = i;
+      btn.setAttribute("aria-label", "Carta virada para baixo");
+      btn.innerHTML =
+        '<span class="mem-card-inner">' +
+          '<span class="mem-card-face mem-card-back" aria-hidden="true">❔</span>' +
+          '<span class="mem-card-face mem-card-front" aria-hidden="true">' + card.item.e + '</span>' +
+        '</span>';
+      btn.addEventListener("click", () => onCardClick(i));
+      el.gradeMemoria.appendChild(btn);
+    });
+  }
+
+  function updateCardVisual(i){
+    const card = deck[i];
+    const btn = cardAt(i);
+    if(!btn) return;
+    btn.classList.toggle("flipped", card.flipped && !card.matched);
+    btn.classList.toggle("matched", card.matched);
+    btn.setAttribute("aria-label", (card.flipped || card.matched) ? ("Carta: " + card.item.n) : "Carta virada para baixo");
+  }
+
+  function updateStats(){
+    el.paresEncontrados.textContent = matchedPairs + "/" + currentLevel.pairs;
+    el.tentativas.textContent = attempts;
+  }
+
+  function onCardClick(i){
+    if(lock) return;
+    const card = deck[i];
+    if(card.flipped || card.matched) return;
+    card.flipped = true;
+    updateCardVisual(i);
+    flippedIndexes.push(i);
+    if(flippedIndexes.length === 2){
+      lock = true;
+      attempts++;
+      updateStats();
+      const [a, b] = flippedIndexes;
+      if(deck[a].pairId === deck[b].pairId){
+        const t = setTimeout(() => {
+          deck[a].matched = true; deck[b].matched = true;
+          updateCardVisual(a); updateCardVisual(b);
+          matchedPairs++;
+          updateStats();
+          playTone(660, 0.15);
+          announce("Par encontrado: " + deck[a].item.n);
+          flippedIndexes = [];
+          lock = false;
+          if(matchedPairs === currentLevel.pairs){ onVitoria(); }
+        }, 350);
+        pendingTimeouts.push(t);
+      } else {
+        const t1 = setTimeout(() => {
+          const btnA = cardAt(a), btnB = cardAt(b);
+          if(btnA) btnA.classList.add("mismatch");
+          if(btnB) btnB.classList.add("mismatch");
+          const t2 = setTimeout(() => {
+            deck[a].flipped = false; deck[b].flipped = false;
+            if(btnA) btnA.classList.remove("mismatch");
+            if(btnB) btnB.classList.remove("mismatch");
+            updateCardVisual(a); updateCardVisual(b);
+            flippedIndexes = [];
+            lock = false;
+          }, 550);
+          pendingTimeouts.push(t2);
+        }, 700);
+        pendingTimeouts.push(t1);
+      }
+    }
+  }
+
+  function onEspiadela(){
+    if(peekUsed || lock) return;
+    peekUsed = true;
+    el.btnEspiadela.disabled = true;
+    el.btnEspiadela.textContent = "👀 Espiadela já usada nesta partida";
+    clearPendingTimeouts();
+    // Se havia uma carta solitária virada (o jogador ainda não tinha escolhido a segunda),
+    // desfaz essa seleção de forma limpa antes de espiar — sem isso, a carta ficava "perdida"
+    // (virada pra sempre, sem nunca ser comparada com outra).
+    if(flippedIndexes.length === 1){
+      const i = flippedIndexes[0];
+      deck[i].flipped = false;
+      updateCardVisual(i);
+    }
+    flippedIndexes = [];
+    lock = true;
+    deck.forEach((card, i) => {
+      if(!card.matched){ cardAt(i).classList.add("peek"); }
+    });
+    announce("Espiadela: observe as cartas por alguns segundos.");
+    const t = setTimeout(() => {
+      deck.forEach((card, i) => {
+        if(!card.matched){ cardAt(i).classList.remove("peek"); }
+      });
+      lock = false;
+    }, 2600);
+    pendingTimeouts.push(t);
+  }
+
+  function startTimer(){
+    secondsElapsed = 0;
+    updateTimerDisplay();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => { secondsElapsed++; updateTimerDisplay(); }, 1000);
+  }
+  function stopTimer(){ clearInterval(timerInterval); }
+  function updateTimerDisplay(){
+    const m = String(Math.floor(secondsElapsed / 60)).padStart(2, "0");
+    const s = String(secondsElapsed % 60).padStart(2, "0");
+    el.tempoDecorrido.textContent = m + ":" + s;
+  }
+
+  function onVitoria(){
+    stopTimer();
+    el.vitoriaTempo.textContent = el.tempoDecorrido.textContent;
+    el.vitoriaTentativas.textContent = attempts;
+    playVictoryChime();
+    el.modalVitoria.classList.remove("hidden");
+    announce("Parabéns! Você encontrou todos os pares.");
+  }
+
+  function novoJogo(){
+    clearPendingTimeouts();
+    flippedIndexes = [];
+    matchedPairs = 0;
+    attempts = 0;
+    lock = false;
+    peekUsed = false;
+    el.btnEspiadela.disabled = false;
+    el.btnEspiadela.textContent = "👀 Dar uma espiadela (1x por jogo)";
+    const items = sampleItems(MASTER_POOL, currentLevel.pairs);
+    deck = buildDeck(items);
+    renderGrade();
+    updateStats();
+    startTimer();
+  }
+
+  function abrirNivel(levelKey){
+    currentLevelKey = levelKey;
+    currentLevel = LEVELS[levelKey];
+    el.nivelAtualTitulo.textContent = "Nível: " + currentLevel.label;
+    el.telaSelecao.classList.add("hidden");
+    el.telaJogo.classList.remove("hidden");
+    novoJogo();
+  }
+
+  function voltarParaSelecao(){
+    stopTimer();
+    clearPendingTimeouts();
+    el.telaJogo.classList.add("hidden");
+    el.telaSelecao.classList.remove("hidden");
+  }
+
+  function announce(msg){
+    el.liveRegion.textContent = "";
+    setTimeout(() => { el.liveRegion.textContent = msg; }, 50);
+  }
+
+  function showToast(msg){
+    el.toast.textContent = msg;
+    el.toast.classList.add("show");
+    clearTimeout(el.toast._timer);
+    el.toast._timer = setTimeout(() => el.toast.classList.remove("show"), 2600);
+  }
+
+  function playTone(freq, duration){
+    if(!soundOn) return;
+    try{
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = freq;
+      osc.type = "sine";
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration + 0.02);
+    }catch(e){ /* áudio indisponível — segue sem som */ }
+  }
+  function playVictoryChime(){
+    playTone(523, 0.18);
+    setTimeout(() => playTone(659, 0.18), 160);
+    setTimeout(() => playTone(784, 0.28), 320);
+  }
+
+  document.querySelectorAll(".level-card").forEach(card => {
+    card.addEventListener("click", () => abrirNivel(card.dataset.level));
+  });
+  document.getElementById("btnTrocarNivel").addEventListener("click", voltarParaSelecao);
+  document.getElementById("btnReiniciar").addEventListener("click", novoJogo);
+  el.btnEspiadela.addEventListener("click", onEspiadela);
+  document.getElementById("btnJogarDeNovo").addEventListener("click", () => {
+    el.modalVitoria.classList.add("hidden");
+    novoJogo();
+  });
+  document.getElementById("btnOutroNivel").addEventListener("click", () => {
+    el.modalVitoria.classList.add("hidden");
+    voltarParaSelecao();
+  });
+  document.getElementById("btnAjuda").addEventListener("click", () => el.modalAjuda.classList.remove("hidden"));
+  document.getElementById("fecharAjuda").addEventListener("click", () => el.modalAjuda.classList.add("hidden"));
+  el.modalAjuda.addEventListener("click", (e) => { if(e.target === el.modalAjuda) el.modalAjuda.classList.add("hidden"); });
+  document.querySelectorAll(".font-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".font-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.documentElement.style.fontSize = btn.dataset.scale + "%";
+    });
+  });
+  document.querySelector('.font-btn[data-scale="100"]').classList.add("active");
+  el.btnSom.addEventListener("click", () => {
+    soundOn = !soundOn;
+    el.btnSom.textContent = soundOn ? "🔊 Som" : "🔇 Som";
+    el.btnSom.setAttribute("aria-pressed", String(soundOn));
+  });
+
+})();
+</script>
+</body>
+</html>
