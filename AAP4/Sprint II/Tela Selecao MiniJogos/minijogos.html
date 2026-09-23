@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>TechSaúde - Mini Jogos</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --cream: #f3efdc;
+    --cream-deep: #ece5c9;
+    --card-bg: #faf7ec;
+    --ink: #16301f;
+    --ink-soft: #2e4a37;
+    --green-deep: #1b3a26;
+    --green-mid: #2f6b46;
+    --forest: #1b3a26;
+    --forest-2: #234a34;
+    --teal: #2f9e8f;
+    --line: #cdbf95;
+    --border-soft: #cdbf95;
+    --text: #26332a;
+    --text-soft: #55604f;
+    --muted: #55604f;
+    --error: #a3402c;
+    --error-bg: #f4dcd6;
+    --success: #1b4332;
+    --success-bg: #dcefdf;
+    --success-border: #a5d6a7;
+    --warn-bg: #fff3e0;
+    --warn: #e65100;
+    --warn-border: #ffcc80;
+    --danger: #c0392b;
+    --shadow-outer: 0 30px 60px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;min-height:100%;}
+  body{
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255,255,255,0.06), transparent 40%),
+      linear-gradient(160deg, #16412B 0%, #0F2E1C 100%);
+    padding:48px 24px;
+  }
+  input, select, textarea, button{ font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; }
+  h1, h2{ color:var(--green-deep); font-weight:900; text-transform:uppercase; margin:0 0 .4rem; }
+  .hidden{display:none !important;}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+  /* ===== CARTÃO PRINCIPAL ===== */
+  .site{
+    width:100%;
+    max-width:1000px;
+    background:var(--cream);
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:var(--shadow-outer);
+  }
+  @media (max-width:480px){
+    body{ padding:0; }
+    .site{ max-width:100%; min-height:100vh; border-radius:0; box-shadow:none; }
+  }
+
+  /* ===== CABEÇALHO PADRÃO (emergência / logo / início) ===== */
+  .topbar{
+    background: linear-gradient(160deg, #12583a, #0b3423);
+    padding:20px 20px 18px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .nav-btn{
+    background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer; color:var(--cream); font-family:'Baloo 2', sans-serif; font-weight:700;
+    font-size:11.5px; letter-spacing:0.4px; text-transform:uppercase; text-decoration:none;
+    padding:2px; flex-shrink:0;
+  }
+  .nav-btn .icon-circle{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:2px; }
+  .nav-btn.emergencia .icon-circle{ background:var(--danger); box-shadow:0 4px 12px rgba(192,57,43,.35); }
+  .nav-btn.inicio .icon-circle{ background:rgba(255,255,255,0.18); }
+  .nav-btn .icon-circle svg{ width:20px; height:20px; color:#fff; }
+  .nav-btn:hover{ transform:scale(1.05); }
+  .nav-btn:focus-visible{ outline:3px solid var(--cream); outline-offset:3px; border-radius:8px; }
+  .brand-top{ display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; }
+  .brand-top img{ width:200px; height:200px; object-fit:contain; }
+  .brand-top .app-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:19px; color:var(--cream); letter-spacing:.3px; }
+
+  /* ===== CONTEÚDO ===== */
+  .app{ padding:24px 24px 40px; }
+  @media (min-width:901px){ .app{ padding:32px 40px 48px; } .topbar{ padding:26px 36px 22px; } }
+
+  .datetime{
+    text-align:center; font-weight:700; font-size:13.5px; color:var(--forest);
+    border-bottom:2px solid var(--border-soft); padding-bottom:14px; margin-bottom:18px;
+  }
+
+  .toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:22px; }
+  .font-group{ display:inline-flex; border:2px solid var(--line); border-radius:999px; overflow:hidden; }
+  .font-group button{ border:none; background:#fff; color:var(--green-deep); font-weight:800; padding:9px 13px; cursor:pointer; font-size:12px; }
+  .font-group button.active{ background:var(--green-deep); color:var(--cream); }
+  .chip-btn{
+    background:#fff; border:2px solid var(--line); border-radius:999px; padding:9px 15px; font-size:12px;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--green-deep); cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .chip-btn:hover{ border-color:var(--teal); }
+
+  h2{ font-size:1.4rem; }
+  .subtitle{ color:var(--text-soft); margin:0 0 1.3rem; font-weight:600; font-size:.95rem; }
+  .subtitle strong{ color:var(--forest); text-transform:none; }
+
+  /* ===== CARDS DE SELEÇÃO DE JOGO ===== */
+  .game-select-list{ display:flex; flex-direction:column; gap:16px; }
+  .game-card{
+    display:flex; align-items:center; gap:16px;
+    background:var(--card-bg); border:2.5px solid var(--line); border-radius:22px;
+    padding:18px 18px 18px 16px; text-decoration:none; color:inherit; font-family:inherit;
+    cursor:pointer; transition:border-color .15s ease, transform .08s ease, box-shadow .15s ease;
+  }
+  .game-card:hover{ border-color:var(--teal); box-shadow:0 6px 16px rgba(0,0,0,.08); }
+  .game-card:active{ transform:scale(0.985); }
+  .game-card:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; }
+  .game-card-icon{
+    flex-shrink:0; width:64px; height:64px; border-radius:18px;
+    background:linear-gradient(180deg, var(--forest-2), var(--green-deep));
+    display:flex; align-items:center; justify-content:center; font-size:2rem;
+    box-shadow:0 4px 0 #0e2416;
+  }
+  .game-card-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+  .game-card-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.15rem; color:var(--green-deep); }
+  .game-card-desc{ font-size:.92rem; font-weight:600; color:var(--text-soft); line-height:1.4; }
+  .game-card-tags{ display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
+  .game-tag{
+    background:var(--success-bg); border:1.5px solid var(--success-border); color:var(--green-mid);
+    border-radius:999px; padding:4px 10px; font-size:.72rem; font-weight:800; text-transform:uppercase;
+    letter-spacing:.3px; white-space:nowrap;
+  }
+  .game-card-arrow{ flex-shrink:0; font-size:1.8rem; color:var(--line); font-weight:900; }
+  .game-card:hover .game-card-arrow{ color:var(--teal); }
+  @media (max-width:480px){
+    .game-card{ padding:16px 14px; gap:12px; }
+    .game-card-icon{ width:52px; height:52px; font-size:1.6rem; border-radius:15px; }
+    .game-card-title{ font-size:1.05rem; }
+  }
+
+  /* ===== MODAL (padrão popup-card) ===== */
+  .modal-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:50; }
+  .modal{ background:var(--cream); border:2px solid var(--line); border-radius:22px; padding:2rem 1.6rem; max-width:440px; width:100%; position:relative; box-shadow:var(--shadow-outer); max-height:90vh; overflow-y:auto; }
+  .modal-close{ position:absolute; top:.75rem; right:.75rem; background:var(--cream-deep); border:none; width:2.6rem; height:2.6rem; border-radius:50%; font-size:1.1rem; cursor:pointer; color:var(--forest); }
+  .ajuda-lista{ padding-left:1.2rem; display:flex; flex-direction:column; gap:.5rem; font-size:1rem; font-weight:600; color:var(--text); }
+  .ajuda-extra{ margin-top:1rem; font-size:.95rem; font-weight:600; color:var(--text-soft); }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(16px);
+    background:var(--green-deep); color:#fff; padding:12px 18px; border-radius:999px; font-weight:700; font-size:13px;
+    opacity:0; transition:all .3s; z-index:200; pointer-events:none; max-width:90%; text-align:center;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="site">
+
+  <!-- CABEÇALHO PADRÃO: emergência (esquerda) · logo (centro) · início (direita) -->
+  <header class="topbar">
+    <button type="button" class="nav-btn emergencia" id="btnEmergencia">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v1.06A7.5 7.5 0 0 0 3 15v3a1 1 0 0 0 1 1h1.17a3.5 3.5 0 0 0 6.66 1h.34a3.5 3.5 0 0 0 6.66-1H20a1 1 0 0 0 1-1v-3a7.5 7.5 0 0 0-4-6.94V7a5 5 0 0 0-5-5Z"/></svg>
+      </span>
+      Emergência
+    </button>
+
+    <div class="brand-top">
+      <img src="logo.png" alt="Logo TechSaúde" onerror="var img=this; if(img.dataset.tentativa!=='1'){ img.dataset.tentativa='1'; img.src='img/logo.png'; } else { img.style.visibility='hidden'; }">
+      <span class="app-title">Mini Jogos</span>
+    </div>
+
+    <a class="nav-btn inicio" href="home.html">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>
+      </span>
+      Início
+    </a>
+  </header>
+
+  <div class="app">
+    <div class="datetime" id="datetime" aria-live="off">--:-- - carregando data...</div>
+
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho do texto">
+        <button class="font-btn" data-scale="100" aria-label="Texto tamanho normal">A</button>
+        <button class="font-btn" data-scale="115" aria-label="Texto grande">A+</button>
+        <button class="font-btn" data-scale="130" aria-label="Texto extra grande">A++</button>
+      </div>
+      <button id="btnAjuda" class="chip-btn">❔ Ajuda</button>
+    </div>
+
+    <main>
+      <h2>Escolha um jogo</h2>
+      <p class="subtitle">Jogos simples para ajudar a exercitar a mente. Toque em um jogo para começar — <strong>não há tempo limite nem pontuação</strong>.</p>
+
+      <div class="game-select-list">
+        <a class="game-card" href="jogo-caca-palavras.html">
+          <span class="game-card-icon" aria-hidden="true">🔤</span>
+          <span class="game-card-body">
+            <span class="game-card-title">Caça-Palavras</span>
+            <span class="game-card-desc">Encontre palavras escondidas em uma grade de letras. Escolha o nível e como as palavras aparecem.</span>
+            <span class="game-card-tags">
+              <span class="game-tag">Atenção visual</span>
+              <span class="game-tag">Vocabulário</span>
+              <span class="game-tag">Concentração</span>
+            </span>
+          </span>
+          <span class="game-card-arrow" aria-hidden="true">›</span>
+        </a>
+
+        <a class="game-card" href="jogo-da-memoria.html">
+          <span class="game-card-icon" aria-hidden="true">🃏</span>
+          <span class="game-card-body">
+            <span class="game-card-title">Jogo da Memória</span>
+            <span class="game-card-desc">Vire as cartas, uma de cada vez, e encontre os pares de figuras iguais.</span>
+            <span class="game-card-tags">
+              <span class="game-tag">Memória</span>
+              <span class="game-tag">Reconhecimento visual</span>
+              <span class="game-tag">Concentração</span>
+            </span>
+          </span>
+          <span class="game-card-arrow" aria-hidden="true">›</span>
+        </a>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="modalAjuda" class="modal-overlay hidden">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button class="modal-close" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <h2 id="ajudaTitulo">Sobre os Mini Jogos</h2>
+    <ol class="ajuda-lista">
+      <li>Toque em um dos jogos da lista para abri-lo.</li>
+      <li>Cada jogo tem 3 níveis de dificuldade, do mais fácil ao mais difícil.</li>
+      <li>As etiquetas abaixo do nome de cada jogo mostram o que ele ajuda a exercitar.</li>
+      <li>Nenhum dos jogos tem tempo limite ou pontuação — jogue no seu ritmo.</li>
+      <li>Use o botão "Início" a qualquer momento para voltar à tela principal.</li>
+    </ol>
+    <p class="ajuda-extra">Praticar esses jogos com regularidade pode ajudar a manter a mente ativa. 💚</p>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- RELÓGIO (mesmo padrão de medicamentos.html / lembretedeconsultas.html) ----------
+  var datetimeEl = document.getElementById('datetime');
+  function atualizarDataHora(){
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    var diaSemana = agora.toLocaleDateString('pt-BR', {weekday:'long'});
+    diaSemana = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+    var dataFormatada = agora.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+    datetimeEl.textContent = hora + ' - ' + diaSemana + ', ' + dataFormatada;
+  }
+  atualizarDataHora();
+  setInterval(atualizarDataHora, 30000);
+
+  // ---------- BOTÃO DE EMERGÊNCIA (ainda não conectado — será feito em outra etapa) ----------
+  document.getElementById('btnEmergencia').addEventListener('click', function(){
+    showToast('🚨 Botão de emergência ainda será conectado nesta tela.');
+  });
+
+  function showToast(msg){
+    var toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(function(){ toast.classList.remove('show'); }, 2600);
+  }
+
+  // ---------- AJUDA ----------
+  var modalAjuda = document.getElementById('modalAjuda');
+  document.getElementById('btnAjuda').addEventListener('click', function(){ modalAjuda.classList.remove('hidden'); });
+  document.getElementById('fecharAjuda').addEventListener('click', function(){ modalAjuda.classList.add('hidden'); });
+  modalAjuda.addEventListener('click', function(e){ if(e.target === modalAjuda) modalAjuda.classList.add('hidden'); });
+
+  // ---------- CONTROLE DE FONTE ----------
+  document.querySelectorAll('.font-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.font-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      document.documentElement.style.fontSize = btn.dataset.scale + '%';
+    });
+  });
+  document.querySelector('.font-btn[data-scale="100"]').classList.add('active');
+
+})();
+</script>
+</body>
+</html>
