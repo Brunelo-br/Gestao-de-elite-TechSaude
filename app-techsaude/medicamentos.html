@@ -115,9 +115,11 @@
     margin-bottom:2px;
   }
 
-  .nav-btn.emergencia .icon-circle{ background:#C23B2E; }
+  .nav-btn.emergencia .icon-circle{ background:#c0392b; }
   .nav-btn.inicio .icon-circle{ background:rgba(255,255,255,0.18); }
   .nav-btn .icon-circle svg{ width:20px;height:20px; color:#fff; }
+  .nav-btn.emergencia .icon-circle svg:not(:last-child){ display:none; }
+  .nav-btn.inicio .icon-circle svg{ stroke:#fff; }
 
   .nav-btn:focus-visible{ outline:3px solid var(--cream); outline-offset:3px; border-radius:8px; }
 
@@ -632,6 +634,8 @@
     <button type="button" class="nav-btn emergencia" id="btnEmergencia" onclick="dispararEmergencia()">
       <span class="icon-circle">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v1.06A7.5 7.5 0 0 0 3 15v3a1 1 0 0 0 1 1h1.17a3.5 3.5 0 0 0 6.66 1h.34a3.5 3.5 0 0 0 6.66-1H20a1 1 0 0 0 1-1v-3a7.5 7.5 0 0 0-4-6.94V7a5 5 0 0 0-5-5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v1.06A7.5 7.5 0 0 0 3 15v3a1 1 0 0 0 1 1h1.17a3.5 3.5 0 0 0 6.66 1h.34a3.5 3.5 0 0 0 6.66-1H20a1 1 0 0 0 1-1v-3a7.5 7.5 0 0 0-4-6.94V7a5 5 0 0 0-5-5Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a5 5 0 0 0-5 5v3.5c0 1-.4 1.9-1.1 2.6L4 16h16l-1.9-1.9c-.7-.7-1.1-1.6-1.1-2.6V8a5 5 0 0 0-5-5Z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></svg>
       </span>
       EMERGÊNCIA
     </button>

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TechSaúde – Configurações da Conta</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1e4d0f;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 0;
+    }
+
+    /* ══ SHELL — mesma proporção das telas de referência ══ */
+    .app-shell {
+      width: 100%;
+      max-width: 1060px;
+      min-height: 100vh;
+      background: #f5f0e8;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 60px rgba(0,0,0,0.5);
+    }
+
+    /* ══ HEADER ══ */
+    .header {
+      background: #1a3a0a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 32px;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .header-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: 80px;
+    }
+
+    .emergency-btn {
+      background: none; border: none; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: #f3efdc; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.3px;
+      text-transform: uppercase; padding: 2px; width: 60px; font-family: inherit;
+    }
+    .emergency-circle {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: #c0392b;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .emergency-circle svg { width: 20px; height: 20px; }
+
+    .home-btn {
+      background: none; border: none; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    }
+    .home-circle {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 2px;
+    }
+    .home-circle svg { width: 20px; height: 20px; color: #fff; }
+
+    .header-center {
+      display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1;
+    }
+    .header-logo-row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .logo-img {
+      width: min(200px, 52vw); height: min(200px, 52vw); object-fit: contain;
+    }
+    /* Fallback SVG logo (usado quando imagem não carrega) */
+    .logo-svg-fallback { width: min(200px, 52vw); height: min(200px, 52vw); }
+
+    .header-datetime {
+      font-size: 13px; color: #d1fae5; font-weight: 400; margin-top: 2px;
+    }
+
+    /* ══ MAIN CONTENT ══ */
+    .main {
+      flex: 1;
+      padding: 32px 40px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* Page title */
+    .page-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .page-header h1 {
+      font-size: 20px; font-weight: 900; color: #1a3a0a;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .page-header p {
+      font-size: 13px; color: #4a6e3a; margin-top: 4px;
+    }
+
+    /* ── Sections ── */
+    .section {
+      background: #fff;
+      border: 1.5px solid #c8d8b0;
+      border-radius: 12px;
+      padding: 24px 28px 20px;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      font-size: 13px; font-weight: 900; color: #1a3a0a;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    /* Profile top section */
+    .profile-hero {
+      background: #edf7e4;
+      border: 1.5px solid #b0d890;
+      border-radius: 12px;
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 18px;
+    }
+
+    .avatar-wrap { position: relative; flex-shrink: 0; }
+    .avatar-circle {
+      width: 96px; height: 96px; border-radius: 50%;
+      background: #d4eec4;
+      border: 3px solid #4ade80;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .avatar-circle:hover { opacity: 0.85; }
+    .avatar-circle img { width: 96px; height: 96px; object-fit: cover; }
+    .avatar-circle i { font-size: 56px; color: #6b8f5a; }
+
+    .avatar-cam {
+      position: absolute; bottom: 0; right: -4px;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #1a3a0a; border: 2px solid #4ade80;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .avatar-cam:hover { background: #2d5c14; }
+    .avatar-cam i { font-size: 14px; color: #bbf7d0; }
+
+    .profile-info { flex: 1; }
+    .profile-info .label {
+      font-size: 11px; font-weight: 700; color: #4a6e3a;
+      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 3px;
+    }
+    .profile-info .value {
+      font-size: 20px; font-weight: 800; color: #1a3a0a;
+    }
+    .profile-info .edit-hint {
+      font-size: 12px; color: #4a6e3a; margin-top: 6px;
+      display: flex; align-items: center; gap: 4px; cursor: pointer;
+    }
+    .profile-info .edit-hint:hover { color: #1a3a0a; }
+    .profile-info .edit-hint i { font-size: 14px; }
+
+    /* Field rows inside sections */
+    .field-row {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #e8f0d8;
+      cursor: pointer;
+      transition: background 0.12s;
+      border-radius: 6px;
+      margin: 0 -4px;
+      padding-left: 4px; padding-right: 4px;
+    }
+    .field-row:last-of-type { border-bottom: none; }
+    .field-row:hover { background: #f5faf0; }
+
+    .field-icon { font-size: 20px; color: #4a6e3a; flex-shrink: 0; margin-top: 2px; }
+    .field-body { flex: 1; }
+    .field-label {
+      font-size: 11px; font-weight: 700; color: #4a6e3a;
+      letter-spacing: 0.07em; text-transform: uppercase; display: block; margin-bottom: 3px;
+    }
+    .field-value {
+      font-size: 15px; font-weight: 600; color: #1a1200; display: block;
+    }
+    .field-edit { font-size: 18px; color: #4a6e3a; flex-shrink: 0; margin-top: 2px; }
+
+    /* Two-col grid */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* Pref rows */
+    .pref-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 0;
+      border-bottom: 1px solid #e8f0d8;
+      cursor: pointer;
+      transition: background 0.12s;
+      border-radius: 6px;
+      margin: 0 -4px;
+      padding-left: 4px; padding-right: 4px;
+    }
+    .pref-row:last-child { border-bottom: none; }
+    .pref-row:hover { background: #f5faf0; }
+    .pref-icon { font-size: 22px; color: #1a3a0a; flex-shrink: 0; }
+    .pref-text { flex: 1; }
+    .pref-title-text {
+      font-size: 15px; font-weight: 800; color: #1a1200;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .pref-sub { font-size: 12px; color: #4a6e3a; margin-top: 2px; }
+    .pref-chevron { font-size: 20px; color: #4a6e3a; }
+
+    /* Buttons */
+    .btn-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+      margin-top: 8px;
+    }
+    .btn-primary {
+      background: #1a3a0a; color: #d4f0a0;
+      border: 2px solid #1a3a0a; border-radius: 50px;
+      padding: 16px 24px; font-size: 15px; font-weight: 800;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.15s, transform 0.1s;
+      grid-column: span 2;
+    }
+    .btn-primary:hover  { background: #2d5c14; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary i { font-size: 20px; }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 18px;
+      font-size: 11px; color: #6b8f5a;
+      border-top: 1px solid #d4e8b8;
+      line-height: 1.8;
+    }
+
+    /* ══════════════════════
+       MODALS
+    ══════════════════════ */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      border: 2px solid #b0d890;
+      width: 100%; max-width: 440px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+      animation: popIn 0.2s ease;
+      overflow: hidden;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+
+    .modal-head {
+      background: #1a3a0a;
+      padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-head-title { font-size: 15px; font-weight: 800; color: #d4f0a0; text-transform: uppercase; letter-spacing: 0.05em; }
+    .modal-x { background: none; border: none; cursor: pointer; color: #d4f0a0; font-size: 22px; display: flex; }
+    .modal-x:hover { color: #fff; }
+
+    .modal-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+
+    .mfield label {
+      display: block; font-size: 11px; font-weight: 700;
+      color: #4a6e3a; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px;
+    }
+    .mfield input,
+    .mfield textarea,
+    .mfield select {
+      width: 100%;
+      background: #f5faf0;
+      border: 1.5px solid #b0d890;
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-size: 15px; font-weight: 500; color: #1a1200;
+      font-family: inherit; outline: none; resize: none;
+      transition: border-color 0.15s;
+    }
+    .mfield input:focus,
+    .mfield textarea:focus,
+    .mfield select:focus { border-color: #1a3a0a; background: #edf7e4; }
+    .mfield textarea { min-height: 80px; }
+
+    .modal-actions { display: flex; gap: 10px; padding: 0 22px 20px; }
+    .mbtn-cancel {
+      flex: 1; padding: 13px;
+      background: #fff; color: #1a3a0a;
+      border: 2px solid #b0d890; border-radius: 50px;
+      font-size: 14px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.05em; cursor: pointer; transition: background 0.15s;
+    }
+    .mbtn-cancel:hover { background: #f0fae8; }
+    .mbtn-ok {
+      flex: 1; padding: 13px;
+      background: #1a3a0a; color: #d4f0a0;
+      border: 2px solid #1a3a0a; border-radius: 50px;
+      font-size: 14px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.05em; cursor: pointer; transition: background 0.15s;
+    }
+    .mbtn-ok:hover { background: #2d5c14; }
+
+    /* strength bar */
+    .strength-bar { display: flex; gap: 4px; margin-top: 6px; }
+    .seg { flex: 1; height: 5px; border-radius: 4px; background: #e0e0e0; transition: background 0.3s; }
+    .seg.weak   { background: #ef4444; }
+    .seg.medium { background: #f59e0b; }
+    .seg.strong { background: #22c55e; }
+    .strength-hint { font-size: 11px; color: #4a6e3a; margin-top: 3px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: #1a3a0a; color: #d4f0a0;
+      padding: 13px 28px; border-radius: 50px;
+      font-size: 14px; font-weight: 700;
+      border: 2px solid #4ade80;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      z-index: 300; opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .main { padding: 20px 16px 32px; }
+      .header { padding: 10px 16px; }
+      .two-col { grid-template-columns: 1fr; }
+      .btn-row { grid-template-columns: 1fr; }
+      .btn-primary { grid-column: span 1; }
+      .profile-hero { flex-direction: column; text-align: center; }
+      .profile-info .edit-hint { justify-content: center; }
+    }
+    @media (max-width: 480px) {
+      .header-datetime { font-size: 11px; }
+      .header-side { min-width: 60px; }
+      .header { padding: 10px 8px; gap: 8px; }
+      .page-header h1 { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ════ HEADER ════ -->
+  <header class="header">
+    <div class="header-side">
+      <button class="emergency-btn" onclick="showToast('🚨 Emergência acionada!')">
+        <div class="emergency-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a5 5 0 0 0-5 5v3.5c0 1-.4 1.9-1.1 2.6L4 16h16l-1.9-1.9c-.7-.7-1.1-1.6-1.1-2.6V8a5 5 0 0 0-5-5Z"/>
+            <path d="M9.5 19a2.5 2.5 0 0 0 5 0"/>
+          </svg>
+        </div>
+        EMERGÊNCIA
+      </button>
+    </div>
+
+    <div class="header-center">
+      <div class="header-logo-row">
+        <!-- Logo da pasta assets/ — troque o src pelo caminho real -->
+        <img
+          class="logo-img"
+          src="img/logo.png"
+          alt="Logo TechSaúde"
+          onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='block';"
+        />
+        <!-- SVG fallback idêntico ao padrão do projeto -->
+        <svg id="logoFallback" class="logo-svg-fallback" style="display:none" viewBox="0 0 80 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M40 65 C20 50, 4 38, 4 24 C4 14, 12 6, 22 6 C28 6, 34 9, 40 14 C46 9, 52 6, 58 6 C68 6, 76 14, 76 24 C76 38, 60 50, 40 65Z" fill="#1a9a7a"/>
+          <circle cx="32" cy="28" r="12" fill="#e8f8f8" opacity="0.9"/>
+          <path d="M26 24 Q27 20 32 22 Q35 18 38 22 Q40 26 35 30 Q32 32 26 28Z" fill="#22b8a0" opacity="0.7"/>
+          <path d="M20 26 L26 26 M23 23 L23 29" stroke="#2d9a80" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="49" cy="26" r="10" fill="#d4f0e4" opacity="0.85"/>
+          <path d="M44 26 C45 22 49 21 49 26 C49 21 53 22 54 26 C55 30 49 34 49 34 C49 34 43 30 44 26Z" fill="#22b8a0"/>
+        </svg>
+      </div>
+      <div class="header-datetime" id="headerDatetime">carregando...</div>
+    </div>
+
+    <div class="header-side" style="align-items:flex-end">
+      <button class="home-btn" onclick="window.location.href='home.html'">
+        <div class="home-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>
+        </div>
+        INÍCIO
+      </button>
+    </div>
+  </header>
+
+  <!-- ════ MAIN ════ -->
+  <main class="main">
+
+    <!-- Page title -->
+    <div class="page-header">
+      <h1>Configurações da Conta</h1>
+      <p>Edite seu perfil, dados de contato e preferências.</p>
+    </div>
+
+    <!-- ── Perfil hero ── -->
+    <div class="profile-hero">
+      <div class="avatar-wrap">
+        <div class="avatar-circle" id="avatarCircle" onclick="triggerPhoto()" title="Trocar foto">
+          <i class="ti ti-user" id="avatarIcon"></i>
+        </div>
+        <button class="avatar-cam" onclick="triggerPhoto()" aria-label="Alterar foto">
+          <i class="ti ti-camera"></i>
+        </button>
+        <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)" />
+      </div>
+      <div class="profile-info">
+        <div class="label">Nome social</div>
+        <div class="value" id="nomeDisplay">PEDRO - PAI</div>
+        <div class="edit-hint" onclick="openModal('nome')">
+          <i class="ti ti-pencil"></i> Clique para editar
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Dados cadastrais ── -->
+    <div class="section">
+      <div class="section-title">Dados Cadastrais</div>
+
+      <div class="two-col">
+        <div class="field-row" onclick="openModal('endereco')" style="flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:10px;width:100%">
+            <i class="ti ti-map-pin field-icon"></i>
+            <div class="field-body">
+              <span class="field-label">Endereço</span>
+              <span class="field-value" id="enderecoDisplay">Não informado</span>
+            </div>
+            <i class="ti ti-pencil field-edit"></i>
+          </div>
+        </div>
+
+        <div class="field-row" onclick="openModal('telefone')" style="flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:10px;width:100%">
+            <i class="ti ti-phone field-icon"></i>
+            <div class="field-body">
+              <span class="field-label">Telefone</span>
+              <span class="field-value" id="telefoneDisplay">Não informado</span>
+            </div>
+            <i class="ti ti-pencil field-edit"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Preferências ── -->
+    <div class="section">
+      <div class="section-title">Preferências da Conta</div>
+
+      <div class="pref-row" onclick="openModal('senha')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+        <i class="ti ti-key pref-icon"></i>
+        <div class="pref-text">
+          <div class="pref-title-text">Alterar Senha</div>
+          <div class="pref-sub">Atualize sua senha de acesso</div>
+        </div>
+        <i class="ti ti-chevron-right pref-chevron"></i>
+      </div>
+
+      <div class="pref-row" onclick="openModal('sobre')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+        <i class="ti ti-info-circle pref-icon"></i>
+        <div class="pref-text">
+          <div class="pref-title-text">Sobre o App</div>
+          <div class="pref-sub">Versão, equipe e termos de uso</div>
+        </div>
+        <i class="ti ti-chevron-right pref-chevron"></i>
+      </div>
+    </div>
+
+    <!-- ── Salvar ── -->
+    <div class="btn-row">
+      <button class="btn-primary" onclick="saveAll()">
+        <i class="ti ti-device-floppy"></i>
+        SALVAR ALTERAÇÕES
+      </button>
+    </div>
+
+  </main>
+
+  <!-- ════ FOOTER ════ -->
+  <footer class="footer">
+    TechSaúde · versão acadêmica 2026<br>
+    FATEC Barueri — Gestão da Tecnologia da Informação
+  </footer>
+
+</div><!-- /app-shell -->
+
+
+<!-- ════ MODAL: NOME ════ -->
+<div class="modal-overlay" id="modal-nome" onclick="ovClose(event,'nome')">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-head-title">✏️ Editar Nome Social</span>
+      <button class="modal-x" onclick="closeModal('nome')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield">
+        <label>Nome social</label>
+        <input type="text" id="nomeInput" placeholder="Ex: Pedro - Pai" maxlength="60" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="mbtn-cancel" onclick="closeModal('nome')">Cancelar</button>
+      <button class="mbtn-ok" onclick="saveNome()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: ENDEREÇO ════ -->
+<div class="modal-overlay" id="modal-endereco" onclick="ovClose(event,'endereco')">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-head-title">📍 Endereço</span>
+      <button class="modal-x" onclick="closeModal('endereco')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield">
+        <label>Endereço completo</label>
+        <textarea id="enderecoInput" placeholder="Rua, número, bairro, cidade, estado..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="mbtn-cancel" onclick="closeModal('endereco')">Cancelar</button>
+      <button class="mbtn-ok" onclick="saveEndereco()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: TELEFONE ════ -->
+<div class="modal-overlay" id="modal-telefone" onclick="ovClose(event,'telefone')">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-head-title">📞 Telefone</span>
+      <button class="modal-x" onclick="closeModal('telefone')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield">
+        <label>Número de telefone</label>
+        <input type="tel" id="telefoneInput" placeholder="(11) 99999-9999" maxlength="20" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="mbtn-cancel" onclick="closeModal('telefone')">Cancelar</button>
+      <button class="mbtn-ok" onclick="saveTelefone()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: SENHA ════ -->
+<div class="modal-overlay" id="modal-senha" onclick="ovClose(event,'senha')">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-head-title">🔑 Alterar Senha</span>
+      <button class="modal-x" onclick="closeModal('senha')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield">
+        <label>Senha atual</label>
+        <input type="password" id="senhaAtual" placeholder="••••••••" />
+      </div>
+      <div class="mfield">
+        <label>Nova senha</label>
+        <input type="password" id="senhaNova1" placeholder="••••••••" oninput="checkStr()" />
+        <div class="strength-bar">
+          <div class="seg" id="s1"></div><div class="seg" id="s2"></div>
+          <div class="seg" id="s3"></div><div class="seg" id="s4"></div>
+        </div>
+        <div class="strength-hint" id="strHint"></div>
+      </div>
+      <div class="mfield">
+        <label>Confirmar nova senha</label>
+        <input type="password" id="senhaNova2" placeholder="••••••••" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="mbtn-cancel" onclick="closeModal('senha')">Cancelar</button>
+      <button class="mbtn-ok" onclick="saveSenha()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: SOBRE ════ -->
+<div class="modal-overlay" id="modal-sobre" onclick="ovClose(event,'sobre')">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-head-title">ℹ️ Sobre o App</span>
+      <button class="modal-x" onclick="closeModal('sobre')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;padding:12px 0 8px;">
+        <img src="img/logo.png" alt="Logo" style="width:60px;height:60px;object-fit:contain;margin-bottom:8px;"
+          onerror="this.style.display='none'" />
+        <div style="font-size:22px;font-weight:900;color:#1a3a0a;">TechSaúde</div>
+        <div style="font-size:13px;color:#4a6e3a;margin-top:4px;">Versão 1.0.0 · Acadêmica 2026</div>
+        <hr style="margin:14px 0;border:none;border-top:1px solid #d4e8b8;" />
+        <div style="font-size:13px;color:#2d2d2d;line-height:1.7;text-align:left;">
+          Um acompanhante digital simples para a rotina de quem tem mais idade — e de quem ajuda no celular.<br><br>
+          Projeto acadêmico da equipe TechSaúde, do curso de Gestão da Tecnologia da Informação da FATEC Barueri (4º semestre, 2026).
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="mbtn-ok" style="flex:unset;width:100%;" onclick="closeModal('sobre')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ── Clock ── */
+  (function tick() {
+    const d = new Date();
+    const dias  = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+    const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    document.getElementById('headerDatetime').textContent =
+      `${hh}:${mm} - ${dias[d.getDay()]}, ${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+    setTimeout(tick, 10000);
+  })();
+
+  /* ── Avatar ── */
+  function triggerPhoto() { document.getElementById('photoInput').click(); }
+  function handlePhoto(e) {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      const c = document.getElementById('avatarCircle');
+      c.innerHTML = `<img src="${ev.target.result}" alt="Foto" />`;
+      showToast('✅ Foto atualizada!');
+    };
+    r.readAsDataURL(f);
+  }
+
+  /* ── Modal helpers ── */
+  function openModal(id) {
+    if (id==='nome')     document.getElementById('nomeInput').value     = document.getElementById('nomeDisplay').textContent;
+    if (id==='endereco') document.getElementById('enderecoInput').value = document.getElementById('enderecoDisplay').textContent === 'Não informado' ? '' : document.getElementById('enderecoDisplay').textContent;
+    if (id==='telefone') document.getElementById('telefoneInput').value = document.getElementById('telefoneDisplay').textContent === 'Não informado' ? '' : document.getElementById('telefoneDisplay').textContent;
+    if (id==='senha')    { ['senhaAtual','senhaNova1','senhaNova2'].forEach(x=>document.getElementById(x).value=''); resetStr(); }
+    document.getElementById('modal-'+id).classList.add('open');
+    // focus first input
+    setTimeout(() => {
+      const inp = document.querySelector('#modal-'+id+' input, #modal-'+id+' textarea');
+      if (inp) inp.focus();
+    }, 120);
+  }
+  function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
+  function ovClose(e,id)  { if (e.target===e.currentTarget) closeModal(id); }
+
+  /* ── Saves ── */
+  function saveNome() {
+    const v = document.getElementById('nomeInput').value.trim();
+    if (!v) { showToast('⚠️ Digite um nome!'); return; }
+    document.getElementById('nomeDisplay').textContent = v.toUpperCase();
+    closeModal('nome'); showToast('✅ Nome atualizado!');
+  }
+  function saveEndereco() {
+    const v = document.getElementById('enderecoInput').value.trim();
+    if (!v) { showToast('⚠️ Digite um endereço!'); return; }
+    document.getElementById('enderecoDisplay').textContent = v;
+    closeModal('endereco'); showToast('✅ Endereço salvo!');
+  }
+  function saveTelefone() {
+    const v = document.getElementById('telefoneInput').value.trim();
+    if (!v) { showToast('⚠️ Digite um telefone!'); return; }
+    document.getElementById('telefoneDisplay').textContent = v;
+    closeModal('telefone'); showToast('✅ Telefone salvo!');
+  }
+
+  /* ── Strength ── */
+  function checkStr() {
+    const v = document.getElementById('senhaNova1').value;
+    let s = 0;
+    if (v.length>=6)  s++;
+    if (v.length>=10) s++;
+    if (/[A-Z]/.test(v)&&/[0-9]/.test(v)) s++;
+    if (/[^A-Za-z0-9]/.test(v)) s++;
+    const cls = s<=1?'weak':s<=2?'medium':'strong';
+    const lbl = ['','Fraca','Razoável','Boa','Forte'];
+    ['s1','s2','s3','s4'].forEach((id,i)=>{
+      document.getElementById(id).className = 'seg'+(i<s?' '+cls:'');
+    });
+    document.getElementById('strHint').textContent = v.length ? 'Força: '+lbl[s] : '';
+  }
+  function resetStr() {
+    ['s1','s2','s3','s4'].forEach(id=>document.getElementById(id).className='seg');
+    document.getElementById('strHint').textContent='';
+  }
+  function saveSenha() {
+    const a=document.getElementById('senhaAtual').value;
+    const n1=document.getElementById('senhaNova1').value;
+    const n2=document.getElementById('senhaNova2').value;
+    if (!a)      { showToast('⚠️ Digite a senha atual!'); return; }
+    if (n1.length<6) { showToast('⚠️ Nova senha deve ter 6+ caracteres!'); return; }
+    if (n1!==n2) { showToast('⚠️ Senhas não conferem!'); return; }
+    closeModal('senha'); showToast('✅ Senha alterada!');
+  }
+
+  /* ── Save all ── */
+  function saveAll() { showToast('💾 Alterações salvas com sucesso!'); }
+
+  /* ── Toast ── */
+  let _tt;
+  function showToast(msg) {
+    const t=document.getElementById('toast');
+    clearTimeout(_tt); t.textContent=msg; t.classList.add('show');
+    _tt=setTimeout(()=>t.classList.remove('show'),2800);
+  }
+
+  /* ── Phone mask ── */
+  document.getElementById('telefoneInput').addEventListener('input',function(){
+    let v=this.value.replace(/\D/g,'').slice(0,11);
+    if(v.length>6) v='('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);
+    else if(v.length>2) v='('+v.slice(0,2)+') '+v.slice(2);
+    else if(v.length) v='('+v;
+    this.value=v;
+  });
+
+  /* ── ESC ── */
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape')
+      ['nome','endereco','telefone','senha','sobre'].forEach(closeModal);
+  });
+</script>
+</body>
+</html>
