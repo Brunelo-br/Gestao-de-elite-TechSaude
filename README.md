@@ -29,6 +29,6 @@ A partir daí é só criar a conta ou fazer login. A tela inicial (`home.html`) 
 >
 > ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
-## 🐍 Contribuições dos Desenvolvedores
+## 🐍 Equipe Tech Sáude
 
 ![Snake animation](https://raw.githubusercontent.com/thiago0070107/Thiago-GTI/output/github-contribution-grid-snake.svg)
