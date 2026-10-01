@@ -318,6 +318,12 @@ body{
   color:var(--green-mid);
   border:2px solid var(--green-mid);
 }
+.btn-sm.danger{
+  background:var(--danger);
+  color:#fff;
+  border:2px solid var(--danger);
+}
+.btn-sm.danger:hover{background:#8f1029;}
 
 /* ===== EMPTY / LINKS ===== */
 .empty-state{
@@ -947,7 +953,10 @@ function renderConsultas(){
       '<div class="card-line"><span class="lbl">Horário:</span> ' + escapeHtml(c.hora) + '</div>' +
       '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local_atendimento) + '</div>' +
       badge +
-      '<div class="card-actions"><button type="button" class="btn-sm" onclick="abrirConfig(' + c.id_consulta + ')">Configurar Lembrete</button></div>' +
+      '<div class="card-actions">' +
+      '<button type="button" class="btn-sm" onclick="abrirConfig(' + c.id_consulta + ')">Configurar Lembrete</button>' +
+      '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id_consulta + ')">Excluir</button>' +
+      '</div>' +
       '</article>';
   }).join('');
 }
@@ -965,9 +974,39 @@ function renderLembretes(){
     '<div class="card-line"><span class="lbl">Data:</span> ' + fmtData(c.data) + ' às ' + escapeHtml(c.hora) + '</div>' +
     '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local_atendimento) + '</div>' +
     '<span class="badge badge-ok">Avisar ' + textoLembrete(c.lembrete) + '</span>' +
-    '<div class="card-actions"><button type="button" class="btn-sm outline" onclick="abrirConfig(' + c.id_consulta + ')">Alterar</button></div>' +
+    '<div class="card-actions">' +
+    '<button type="button" class="btn-sm outline" onclick="abrirConfig(' + c.id_consulta + ')">Alterar</button>' +
+    '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id_consulta + ')">Excluir</button>' +
+    '</div>' +
     '</article>'
   ).join('');
+}
+
+async function removerConsulta(id){
+  const consulta = consultas.find(function(item){ return Number(item.id_consulta) === Number(id); });
+  if(!consulta){ return; }
+
+  const confirmar = window.confirm('Deseja excluir esta consulta de ' + consulta.medico + '?');
+  if(!confirmar){ return; }
+
+  consultas = consultas.filter(function(item){ return Number(item.id_consulta) !== Number(id); });
+  salvarStorage();
+
+  if(supabaseClient){
+    const { error } = await supabaseClient
+      .from('consulta')
+      .delete()
+      .eq('id_consulta', Number(id))
+      .eq('id_usuario', userId);
+
+    if(error){
+      console.warn('Exclusão sincronizada apenas localmente:', error);
+    }
+  }
+
+  renderConsultas();
+  renderLembretes();
+  mostrarToast('Consulta excluída');
 }
 
 function escapeHtml(s){
