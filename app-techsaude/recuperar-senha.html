@@ -7,6 +7,7 @@
 
 <!-- SUPABASE JS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="password-hash.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -931,9 +932,10 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
     btnSalvarSenha.textContent = 'SALVANDO...';
 
     try{
+      const senhaHash = await TechSaudePassword.hash(novaSenha);
       const { data: usuarioAtualizado, error } = await supabaseClient
         .from('usuario')
-        .update({ senha_hash: novaSenha })
+        .update({ senha_hash: senhaHash })
         .eq('id_usuario', usuarioEncontrado.id_usuario)
         .select('id_usuario')
         .maybeSingle();

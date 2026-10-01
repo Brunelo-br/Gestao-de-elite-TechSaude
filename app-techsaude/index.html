@@ -7,6 +7,7 @@
 
 <!-- BIBLIOTECA DO SUPABASE JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="password-hash.js"></script>
 
 <style>
   :root{
@@ -724,6 +725,14 @@
       return;
     }
 
+    let senhaHash;
+    try {
+      senhaHash = await TechSaudePassword.hash(senha);
+    } catch(error) {
+      showMsg('cadastro-msg', 'Não foi possível proteger a senha neste navegador.', 'error');
+      return;
+    }
+
     showMsg('cadastro-msg', 'Cadastrando no banco de dados...', 'ok');
 
     // Inserção direta na tabela usuario do Supabase
@@ -736,7 +745,7 @@
         idade: idade,
         telefone: telefone,
         email: email,
-        senha_hash: senha
+        senha_hash: senhaHash
       }]);
 
     if(error){
@@ -789,9 +798,31 @@
       return;
     }
 
-    if(data.senha_hash !== senha){
+    let senhaValida;
+    try {
+      senhaValida = await TechSaudePassword.verify(senha, data.senha_hash);
+    } catch(error) {
+      showMsg('login-msg', 'Não foi possível validar a senha neste navegador.', 'error');
+      return;
+    }
+
+    if(!senhaValida){
       showMsg('login-msg', 'Senha incorreta. Tente novamente.', 'error');
       return;
+    }
+
+    if(!TechSaudePassword.isHashed(data.senha_hash)){
+      try {
+        const senhaHash = await TechSaudePassword.hash(senha);
+        const { error: erroMigracao } = await supabaseClient
+          .from('usuario')
+          .update({ senha_hash: senhaHash })
+          .eq('id_usuario', data.id_usuario);
+        if(erroMigracao) console.error('Não foi possível migrar o hash da senha:', erroMigracao);
+        else data.senha_hash = senhaHash;
+      } catch(error) {
+        console.error('Não foi possível migrar o hash da senha:', error);
+      }
     }
 
     // Grava log de autenticação
@@ -801,7 +832,9 @@
       sucesso: true
     }]);
 
-    localStorage.setItem('usuario_logado', JSON.stringify(Array.isArray(data) ? data[0] : data));
+    const usuarioSessao = { ...data };
+    delete usuarioSessao.senha_hash;
+    localStorage.setItem('usuario_logado', JSON.stringify(usuarioSessao));
     window.location.href = 'home.html';
   });
 

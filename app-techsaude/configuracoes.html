@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TechSaúde – Configurações da Conta</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="password-hash.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -504,7 +506,7 @@
       </div>
       <div class="profile-info">
         <div class="label">Nome social</div>
-        <div class="value" id="nomeDisplay">PEDRO - PAI</div>
+        <div class="value" id="nomeDisplay">Não informado</div>
         <div class="edit-hint" onclick="openModal('nome')">
           <i class="ti ti-pencil"></i> Clique para editar
         </div>
@@ -610,9 +612,31 @@
       <button class="modal-x" onclick="closeModal('endereco')"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body">
-      <div class="mfield">
-        <label>Endereço completo</label>
-        <textarea id="enderecoInput" placeholder="Rua, número, bairro, cidade, estado..."></textarea>
+      <div class="two-col">
+        <div class="mfield">
+          <label for="enderecoLogradouro">Logradouro</label>
+          <input type="text" id="enderecoLogradouro" />
+        </div>
+        <div class="mfield">
+          <label for="enderecoNumero">Número</label>
+          <input type="text" id="enderecoNumero" />
+        </div>
+        <div class="mfield">
+          <label for="enderecoBairro">Bairro</label>
+          <input type="text" id="enderecoBairro" />
+        </div>
+        <div class="mfield">
+          <label for="enderecoCidade">Cidade</label>
+          <input type="text" id="enderecoCidade" />
+        </div>
+        <div class="mfield">
+          <label for="enderecoEstado">Estado</label>
+          <input type="text" id="enderecoEstado" maxlength="2" />
+        </div>
+        <div class="mfield">
+          <label for="enderecoCep">CEP</label>
+          <input type="text" id="enderecoCep" maxlength="9" />
+        </div>
       </div>
     </div>
     <div class="modal-actions">
@@ -705,6 +729,74 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  /* ── Supabase e perfil ── */
+  const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+  const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let usuarioLogado = null;
+  let enderecoAtual = { logradouro: '', numero: '', bairro: '', cidade: '', estado: '', cep: '' };
+
+  function valorOuNaoInformado(valor) {
+    return valor != null && String(valor).trim() ? String(valor).trim() : 'Não informado';
+  }
+
+  function formatarEndereco(endereco) {
+    if (!Object.values(endereco).some(valor => String(valor ?? '').trim())) return 'Não informado';
+    return `${valorOuNaoInformado(endereco.logradouro)}, ${valorOuNaoInformado(endereco.numero)}, ${valorOuNaoInformado(endereco.bairro)}, ${valorOuNaoInformado(endereco.cidade)} - ${valorOuNaoInformado(endereco.estado)}, CEP ${valorOuNaoInformado(endereco.cep)}`;
+  }
+
+  async function carregarDadosPerfil() {
+    const usuarioSalvo = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
+
+    if (!usuarioSalvo) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    try {
+      const usuarioSalvoParseado = JSON.parse(usuarioSalvo);
+      usuarioLogado = Array.isArray(usuarioSalvoParseado) ? usuarioSalvoParseado[0] : usuarioSalvoParseado;
+      const cpfDoUsuario = String(usuarioLogado?.cpf ?? '').replace(/\D/g, '');
+
+      if (!cpfDoUsuario) throw new Error('CPF do usuário não encontrado na sessão.');
+      if (!supabaseClient) throw new Error('Biblioteca do Supabase não carregada.');
+
+      const { data, error } = await supabaseClient
+        .from('usuario')
+        .select('nome_social, telefone, foto_perfil_url, endereco(logradouro, numero, bairro, cidade, estado, cep)')
+        .eq('cpf', cpfDoUsuario)
+        .single();
+
+      if (error) throw error;
+
+      document.getElementById('nomeDisplay').textContent = valorOuNaoInformado(data.nome_social);
+      document.getElementById('telefoneDisplay').textContent = valorOuNaoInformado(data.telefone);
+
+      const endereco = Array.isArray(data.endereco) ? data.endereco[0] : data.endereco;
+      if (endereco) {
+        enderecoAtual = {
+          logradouro: endereco.logradouro ?? '',
+          numero: endereco.numero ?? '',
+          bairro: endereco.bairro ?? '',
+          cidade: endereco.cidade ?? '',
+          estado: endereco.estado ?? '',
+          cep: endereco.cep ?? ''
+        };
+      }
+      document.getElementById('enderecoDisplay').textContent = formatarEndereco(enderecoAtual);
+
+      if (data.foto_perfil_url) {
+        const imagemPerfil = document.createElement('img');
+        imagemPerfil.src = data.foto_perfil_url;
+        imagemPerfil.alt = 'Foto do perfil';
+        document.getElementById('avatarCircle').replaceChildren(imagemPerfil);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do perfil:', error);
+      showToast('Não foi possível carregar os dados do perfil.');
+    }
+  }
+
   /* ── Clock ── */
   (function tick() {
     const d = new Date();
@@ -733,7 +825,12 @@
   /* ── Modal helpers ── */
   function openModal(id) {
     if (id==='nome')     document.getElementById('nomeInput').value     = document.getElementById('nomeDisplay').textContent;
-    if (id==='endereco') document.getElementById('enderecoInput').value = document.getElementById('enderecoDisplay').textContent === 'Não informado' ? '' : document.getElementById('enderecoDisplay').textContent;
+    if (id==='endereco') {
+      Object.entries(enderecoAtual).forEach(([campo, valor]) => {
+        const idCampo = { logradouro: 'enderecoLogradouro', numero: 'enderecoNumero', bairro: 'enderecoBairro', cidade: 'enderecoCidade', estado: 'enderecoEstado', cep: 'enderecoCep' }[campo];
+        document.getElementById(idCampo).value = valor;
+      });
+    }
     if (id==='telefone') document.getElementById('telefoneInput').value = document.getElementById('telefoneDisplay').textContent === 'Não informado' ? '' : document.getElementById('telefoneDisplay').textContent;
     if (id==='senha')    { ['senhaAtual','senhaNova1','senhaNova2'].forEach(x=>document.getElementById(x).value=''); resetStr(); }
     document.getElementById('modal-'+id).classList.add('open');
@@ -754,10 +851,18 @@
     closeModal('nome'); showToast('✅ Nome atualizado!');
   }
   function saveEndereco() {
-    const v = document.getElementById('enderecoInput').value.trim();
-    if (!v) { showToast('⚠️ Digite um endereço!'); return; }
-    document.getElementById('enderecoDisplay').textContent = v;
-    closeModal('endereco'); showToast('✅ Endereço salvo!');
+    const novoEndereco = {
+      logradouro: document.getElementById('enderecoLogradouro').value.trim(),
+      numero: document.getElementById('enderecoNumero').value.trim(),
+      bairro: document.getElementById('enderecoBairro').value.trim(),
+      cidade: document.getElementById('enderecoCidade').value.trim(),
+      estado: document.getElementById('enderecoEstado').value.trim(),
+      cep: document.getElementById('enderecoCep').value.trim()
+    };
+    if (!Object.values(novoEndereco).some(valor => valor)) { showToast('⚠️ Preencha ao menos um campo do endereço!'); return; }
+    enderecoAtual = novoEndereco;
+    document.getElementById('enderecoDisplay').textContent = formatarEndereco(enderecoAtual);
+    closeModal('endereco'); showToast('✅ Endereço atualizado!');
   }
   function saveTelefone() {
     const v = document.getElementById('telefoneInput').value.trim();
@@ -785,18 +890,94 @@
     ['s1','s2','s3','s4'].forEach(id=>document.getElementById(id).className='seg');
     document.getElementById('strHint').textContent='';
   }
-  function saveSenha() {
+  async function saveSenha() {
     const a=document.getElementById('senhaAtual').value;
     const n1=document.getElementById('senhaNova1').value;
     const n2=document.getElementById('senhaNova2').value;
     if (!a)      { showToast('⚠️ Digite a senha atual!'); return; }
     if (n1.length<6) { showToast('⚠️ Nova senha deve ter 6+ caracteres!'); return; }
     if (n1!==n2) { showToast('⚠️ Senhas não conferem!'); return; }
-    closeModal('senha'); showToast('✅ Senha alterada!');
+
+    const cpfDoUsuario = String(usuarioLogado?.cpf ?? '').replace(/\D/g, '');
+    if (!cpfDoUsuario || !supabaseClient) { showToast('Não foi possível identificar sua conta.'); return; }
+
+    const botaoSalvarSenha = document.querySelector('#modal-senha .mbtn-ok');
+    botaoSalvarSenha.disabled = true;
+    try {
+      const { data: usuario, error: erroConsulta } = await supabaseClient
+        .from('usuario')
+        .select('senha_hash')
+        .eq('cpf', cpfDoUsuario)
+        .single();
+
+      if (erroConsulta || !usuario) throw erroConsulta || new Error('Usuário não encontrado.');
+      if (!await TechSaudePassword.verify(a, usuario.senha_hash)) {
+        showToast('Senha atual incorreta.');
+        return;
+      }
+
+      const senhaHash = await TechSaudePassword.hash(n1);
+      const { data: usuarioAtualizado, error: erroAtualizacao } = await supabaseClient
+        .from('usuario')
+        .update({ senha_hash: senhaHash })
+        .eq('cpf', cpfDoUsuario)
+        .select('cpf')
+        .single();
+
+      if (erroAtualizacao || !usuarioAtualizado) throw erroAtualizacao || new Error('Usuário não atualizado.');
+
+      ['senhaAtual','senhaNova1','senhaNova2'].forEach(id => { document.getElementById(id).value = ''; });
+      resetStr();
+      closeModal('senha');
+      showToast('✅ Senha alterada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao alterar senha:', error);
+      showToast('Não foi possível alterar a senha.');
+    } finally {
+      botaoSalvarSenha.disabled = false;
+    }
   }
 
   /* ── Save all ── */
-  function saveAll() { showToast('💾 Alterações salvas com sucesso!'); }
+  async function saveAll() {
+    const cpfDoUsuario = String(usuarioLogado?.cpf ?? '').replace(/\D/g, '');
+    if (!cpfDoUsuario || !supabaseClient) {
+      showToast('Não foi possível identificar sua conta.');
+      return;
+    }
+
+    const botaoSalvar = document.querySelector('.btn-primary');
+    botaoSalvar.disabled = true;
+
+    try {
+      const nomeSocial = document.getElementById('nomeDisplay').textContent.trim();
+      const telefone = document.getElementById('telefoneDisplay').textContent.trim();
+      const { error: erroUsuario } = await supabaseClient
+        .from('usuario')
+        .update({
+          nome_social: nomeSocial === 'Não informado' ? null : nomeSocial,
+          telefone: telefone === 'Não informado' ? null : telefone
+        })
+        .eq('cpf', cpfDoUsuario);
+
+      if (erroUsuario) throw erroUsuario;
+
+      const dadosEndereco = Object.fromEntries(
+        Object.entries(enderecoAtual).map(([campo, valor]) => [campo, valor.trim() || null])
+      );
+      const { error: erroEndereco } = await supabaseClient
+        .from('endereco')
+        .upsert({ cpf_usuario: cpfDoUsuario, ...dadosEndereco }, { onConflict: 'cpf_usuario' });
+
+      if (erroEndereco) throw erroEndereco;
+      showToast('✅ Alterações salvas com sucesso!');
+    } catch (error) {
+      console.error('Erro ao salvar alterações do perfil:', error);
+      showToast('Não foi possível salvar as alterações.');
+    } finally {
+      botaoSalvar.disabled = false;
+    }
+  }
 
   /* ── Toast ── */
   let _tt;
@@ -820,6 +1001,8 @@
     if(e.key==='Escape')
       ['nome','endereco','telefone','senha','sobre'].forEach(closeModal);
   });
+
+  carregarDadosPerfil();
 </script>
 </body>
 </html>
