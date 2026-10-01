@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TechSaúde — Política de Privacidade e Termos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+
+    --cream:#F1EAD6;
+    --cream-soft:#F7F2E4;
+    --white:#FFFFFF;
+    --green-deep:#1F3B2C;
+    --green-deep-dark:#152A20;
+    --green-mid:#2F6B49;
+    --green-light-bg:#DCEEDA;
+    --green-light-border:#A9CFAE;
+    --blue-accent:#4A7FE0;
+    --text:#1F2D22;
+    --text-soft:#5B6459;
+    --red:#C0392B;
+    --focus:#0B57D0;
+    --bg-outer:#0E2A1E;
+    --card-shadow: rgba(31,59,44,.14);
+    --font-scale: 1;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg-outer);
+    font-family:'Poppins', system-ui, -apple-system, "Segoe UI", sans-serif;
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --cream:#2B2A20;
+      --cream-soft:#33321F;
+      --white:#3A3826;
+      --green-light-bg:#294235;
+      --green-light-border:#3E5A48;
+      --text:#EFE9D6;
+      --text-soft:#C7C1AA;
+      --bg-outer:#081711;
+    }
+  }
+  :root[data-theme="dark"]{
+    --cream:#2B2A20;
+    --cream-soft:#33321F;
+    --white:#3A3826;
+    --green-light-bg:#294235;
+    --green-light-border:#3E5A48;
+    --text:#EFE9D6;
+    --text-soft:#C7C1AA;
+    --bg-outer:#081711;
+  }
+  .app{
+    width:100%;
+    max-width:480px;
+    min-height:100%;
+    background:var(--cream);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible{
+    outline:3px solid var(--focus);
+    outline-offset:2px;
+  }
+
+  /* ---------- Cabeçalho ---------- */
+  .app{ border-radius:22px; overflow:hidden; }
+  header.topbar{
+    background:linear-gradient(180deg, var(--green-deep), var(--green-deep-dark));
+    padding: calc(env(safe-area-inset-top,0px) + 14px) 12px 14px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:6px;
+  }
+  .circle-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    background:none;
+    border:none;
+    font-family:inherit;
+    cursor:pointer;
+    padding:2px 4px;
+    border-radius:12px;
+    flex:0 0 64px;
+  }
+  .circle-icon{
+    width:46px;height:46px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:21px;
+  }
+  .circle-emergencia .circle-icon{
+    background:linear-gradient(180deg,#E2542A,#B3321A);
+    box-shadow:0 2px 5px rgba(0,0,0,.35);
+  }
+  .circle-inicio .circle-icon{
+    background:rgba(255,255,255,.18);
+    box-shadow:0 2px 5px rgba(0,0,0,.25);
+  }
+  .circle-label{
+    color:#EAF2E4;
+    font-weight:800;
+    font-size:calc(10.5px * var(--font-scale));
+    letter-spacing:.02em;
+    text-align:center;
+  }
+
+  .brand{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    min-width:0;
+    padding-top:6px;
+  }
+  .brand-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .brand-row img{
+    width:28px;height:28px;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
+  }
+  .brand-name{
+    margin:0;
+    font-size:calc(21px * var(--font-scale));
+    font-weight:800;
+    color:#FFFFFF;
+  }
+  header.topbar .datetime{
+    color:#CFE0CB;
+    padding:2px 0 0;
+  }
+
+  .top-controls{
+    padding: 14px 14px 2px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+  }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--white);
+    border:2px solid var(--green-deep);
+    color:var(--green-deep);
+    font-family:inherit;
+    font-weight:700;
+    font-size:calc(13px * var(--font-scale));
+    border-radius:999px;
+    padding:9px 14px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .pill.pill-solid{
+    background:var(--green-deep);
+    color:var(--white);
+    border-color:var(--green-deep);
+  }
+  .pill[aria-pressed="true"]{
+    background:var(--green-deep);
+    color:var(--white);
+  }
+
+  .segmented{
+    display:inline-flex;
+    background:var(--white);
+    border:2px solid var(--green-deep);
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .segmented button{
+    font-family:inherit;
+    border:none;
+    background:transparent;
+    color:var(--green-deep);
+    font-weight:800;
+    font-size:calc(13px * var(--font-scale));
+    padding:9px 13px;
+    cursor:pointer;
+  }
+  .segmented button[aria-pressed="true"]{
+    background:var(--green-deep);
+    color:var(--white);
+  }
+
+  .datetime{
+    text-align:center;
+    padding:6px 18px 2px;
+    font-weight:600;
+    font-size:calc(13px * var(--font-scale));
+    color:var(--text-soft);
+  }
+  .screen-title{
+    text-align:center;
+    padding:6px 18px 4px;
+    font-size:calc(22px * var(--font-scale));
+    font-weight:800;
+    letter-spacing:.02em;
+    color:var(--green-deep);
+    text-transform:uppercase;
+  }
+  .screen-subtitle{
+    text-align:center;
+    padding:0 24px 14px;
+    font-size:calc(14px * var(--font-scale));
+    color:var(--text-soft);
+    font-weight:500;
+    line-height:1.5;
+  }
+  .screen-subtitle b{ color:var(--text); font-weight:700; }
+
+  .a11y-row{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    padding:0 14px 16px;
+    flex-wrap:wrap;
+  }
+
+  /* ---------- Conteúdo ---------- */
+  main{ flex:1; padding:0 14px 18px; }
+
+  section.card{
+    background:var(--cream-soft);
+    border:2px solid var(--green-light-border);
+    border-radius:20px;
+    padding:14px;
+    margin-bottom:16px;
+    box-shadow: 0 4px 10px var(--card-shadow);
+  }
+  .card > h2{
+    margin:2px 4px 12px;
+    font-size:calc(17px * var(--font-scale));
+    font-weight:800;
+    color:var(--green-deep);
+  }
+
+  .list-item{
+    width:100%;
+    background:var(--white);
+    border:2px solid var(--green-light-border);
+    border-radius:16px;
+    padding:0;
+    margin-bottom:10px;
+    text-align:left;
+    font-family:inherit;
+    color:var(--text);
+    cursor:pointer;
+    display:block;
+    overflow:hidden;
+  }
+  .list-item.is-done{
+    background:var(--green-light-bg);
+    border-color:var(--green-mid);
+  }
+
+  .list-item-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:13px 14px;
+  }
+  .list-item-icon{
+    width:38px;height:38px;flex:0 0 38px;
+    border-radius:11px;
+    background:var(--blue-accent);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;
+  }
+  .list-item-text{ flex:1; min-width:0; }
+  .list-item-title{
+    font-weight:800;
+    font-size:calc(16px * var(--font-scale));
+    letter-spacing:.01em;
+    display:block;
+  }
+  .list-item-sub{
+    font-size:calc(12.5px * var(--font-scale));
+    color:var(--text-soft);
+    font-weight:600;
+    margin-top:2px;
+    display:block;
+  }
+  .list-item-chevron{ font-size:22px; color:var(--text-soft); flex:0 0 auto; }
+  .status-pill{
+    display:inline-block;
+    margin-top:6px;
+    font-size:calc(11px * var(--font-scale));
+    font-weight:800;
+    padding:3px 10px;
+    border-radius:999px;
+    background:var(--green-light-bg);
+    color:var(--green-mid);
+    border:1px solid var(--green-light-border);
+  }
+  .status-pill.pendente{ background:#F3E7C4; color:#7A5B00; border-color:#E3D4A0; }
+
+  .placeholder-box{
+    background:var(--white);
+    border:2px dashed var(--green-light-border);
+    border-radius:14px;
+    padding:20px 16px;
+    text-align:center;
+    color:var(--text-soft);
+    font-weight:600;
+    font-size:calc(13.5px * var(--font-scale));
+  }
+
+  .support-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    width:calc(100% - 28px);
+    margin:6px 14px calc(18px + env(safe-area-inset-bottom,0px));
+    background:var(--green-deep);
+    color:#fff;
+    font-weight:800;
+    font-size:calc(16px * var(--font-scale));
+    border:none;
+    border-radius:999px;
+    padding:16px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .support-btn:active{ background:var(--green-deep-dark); }
+
+  /* ---------- Modal de leitura ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(15,25,18,.55);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:50;
+    padding-top:env(safe-area-inset-top,0px);
+  }
+  .overlay.open{ display:flex; }
+  .sheet{
+    background:var(--cream);
+    width:100%;
+    max-width:480px;
+    height:92%;
+    border-radius:22px 22px 0 0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    border:2px solid var(--green-light-border);
+    border-bottom:none;
+  }
+  .sheet-head{
+    background:var(--green-deep);
+    color:#fff;
+    padding:14px 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .sheet-head h2{
+    flex:1; margin:0;
+    font-size:calc(16px * var(--font-scale));
+    font-weight:800;
+  }
+  .sheet-close, .sheet-listen{
+    background:rgba(255,255,255,.16);
+    border:none;
+    color:#fff;
+    border-radius:10px;
+    min-width:42px; min-height:42px;
+    font-size:18px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .sheet-listen[aria-pressed="true"]{ background:var(--blue-accent); }
+
+  .progress-track{
+    height:6px;
+    background:var(--green-light-border);
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:var(--blue-accent);
+    transition:width .1s linear;
+  }
+
+  .sheet-body{
+    flex:1;
+    overflow-y:auto;
+    padding:18px 18px 26px;
+    background:var(--cream-soft);
+  }
+  .sheet-body h3{
+    font-size:calc(16.5px * var(--font-scale));
+    font-weight:800;
+    margin:20px 0 8px;
+    color:var(--green-deep);
+  }
+  .sheet-body h3:first-child{ margin-top:0; }
+  .sheet-body h4{
+    font-size:calc(14.5px * var(--font-scale));
+    font-weight:700;
+    margin:14px 0 6px;
+    color:var(--text);
+  }
+  .sheet-body p, .sheet-body li{
+    font-size:calc(14.5px * var(--font-scale));
+    line-height:1.65;
+    color:var(--text);
+    margin:0 0 8px;
+    max-width:64ch;
+    font-weight:500;
+  }
+  .sheet-body ul{ margin:0 0 10px; padding-left:22px; }
+  .meta-line{
+    font-size:calc(12.5px * var(--font-scale));
+    color:var(--text-soft);
+    font-weight:700;
+    margin-bottom:16px;
+  }
+
+  .sheet-footer{
+    padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));
+    background:var(--cream);
+    border-top:2px solid var(--green-light-border);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .footer-hint{
+    font-size:calc(12px * var(--font-scale));
+    color:var(--text-soft);
+    font-weight:600;
+    text-align:center;
+  }
+  .footer-buttons{ display:flex; gap:10px; }
+  .btn{
+    flex:1;
+    min-height:52px;
+    border-radius:999px;
+    border:2px solid var(--green-deep);
+    font-family:inherit;
+    font-weight:800;
+    font-size:calc(14.5px * var(--font-scale));
+    cursor:pointer;
+    background:var(--white);
+    color:var(--green-deep);
+  }
+  .btn-primary{
+    background:var(--green-deep);
+    border-color:var(--green-deep);
+    color:#fff;
+  }
+  .btn-primary:disabled{
+    background:#9AA79E;
+    border-color:#9AA79E;
+    cursor:not-allowed;
+    opacity:.85;
+  }
+  .btn-decline{ color:var(--red); border-color:var(--red); background:var(--white); }
+
+  .sr-only{
+    position:absolute; width:1px; height:1px;
+    padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <header class="topbar">
+    <button class="circle-btn circle-emergencia" id="btnEmergencia" type="button" aria-label="Emergência, acionar contato de emergência">
+      <span class="circle-icon" aria-hidden="true">🔔</span>
+      <span class="circle-label">EMERGÊNCIA</span>
+    </button>
+
+    <div class="brand">
+      <div class="brand-row">
+        <img id="logoImg" src="" alt="" aria-hidden="true">
+        <p class="brand-name">TechSaúde</p>
+      </div>
+      <p class="datetime" id="dataHora" aria-live="off"></p>
+    </div>
+
+    <button class="circle-btn circle-inicio" id="btnInicio" type="button" aria-label="Voltar para o início">
+      <span class="circle-icon" aria-hidden="true">🏠</span>
+      <span class="circle-label">INÍCIO</span>
+    </button>
+  </header>
+
+  <div class="top-controls">
+    <div class="segmented" role="group" aria-label="Tamanho do texto">
+      <button data-scale="0" type="button" aria-pressed="true">A</button>
+      <button data-scale="1" type="button" aria-pressed="false">A+</button>
+      <button data-scale="2" type="button" aria-pressed="false">A++</button>
+    </div>
+  </div>
+
+  <h1 class="screen-title">Política de Privacidade e Termos</h1>
+  <p class="screen-subtitle">Antes de continuar, <b>selecione um documento</b> para revisar o conteúdo completo.</p>
+
+  <main>
+    <section class="card" aria-labelledby="titTermos">
+      <h2 id="titTermos">Termos e Privacidade</h2>
+
+      <button class="list-item" data-term="privacidade" aria-haspopup="dialog">
+        <span class="list-item-row">
+          <span class="list-item-icon" aria-hidden="true">📄</span>
+          <span class="list-item-text">
+            <span class="list-item-title">Política de Privacidade</span>
+            <span class="list-item-sub">Como usamos e protegemos seus dados</span>
+            <span class="status-pill pendente" id="statusPrivacidade">Aguardando leitura</span>
+          </span>
+          <span class="list-item-chevron" aria-hidden="true">›</span>
+        </span>
+      </button>
+
+      <button class="list-item" data-term="uso" aria-haspopup="dialog">
+        <span class="list-item-row">
+          <span class="list-item-icon" aria-hidden="true">📃</span>
+          <span class="list-item-text">
+            <span class="list-item-title">Termos de Uso</span>
+            <span class="list-item-sub">Seus direitos e deveres no aplicativo</span>
+            <span class="status-pill pendente">Em preparação</span>
+          </span>
+          <span class="list-item-chevron" aria-hidden="true">›</span>
+        </span>
+      </button>
+    </section>
+
+    <section class="card" aria-labelledby="titSobre">
+      <h2 id="titSobre">Sobre o Aplicativo</h2>
+      <div class="placeholder-box">
+        Conteúdo em preparação.<br>Em breve você verá aqui a versão do aplicativo e outras informações gerais.
+      </div>
+    </section>
+  </main>
+
+  <button class="support-btn" type="button">
+    <span aria-hidden="true">＋</span> CONTATAR SUPORTE
+  </button>
+
+  <!-- Painel de leitura (modal) -->
+  <div class="overlay" id="overlay" role="presentation">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" id="sheet">
+      <div class="sheet-head">
+        <button class="sheet-close" id="sheetClose" type="button" aria-label="Fechar">✕</button>
+        <h2 id="sheetTitle">Política de Privacidade</h2>
+        <button class="sheet-listen" id="sheetListen" type="button" aria-pressed="false" aria-label="Ouvir o texto em voz alta">🔊</button>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+      <div class="sheet-body" id="sheetBody" tabindex="0">
+        <!-- conteúdo inserido via JS -->
+      </div>
+
+      <div class="sheet-footer">
+        <p class="footer-hint" id="footerHint">Role o texto até o final para poder decidir.</p>
+        <div class="footer-buttons">
+          <button class="btn btn-decline" id="btnDecline" type="button">Não aceito</button>
+          <button class="btn btn-primary" id="btnAccept" type="button" disabled>Li e aceito</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sr-only" role="status" aria-live="polite" id="liveRegion"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var LOGO_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAH4AAAB1CAYAAACI5FVLAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAABrpSURBVHhe7Z15nFXVle+/e597q24NzFUFCkLJPBYogogIiqioOAY14tRq2pentknaxGh3v8R0Om0nxhg7z9cx5gUTO7aiPkfAgUEcQAZRJgVB5qKoKqqKmu909uo/9j63bpWY9OtuqIJ7f59Pfe5w9hnu+a1pr7X2KSUiQhYZB93xiywyA1niMxRZ4jMUWeIzFFniMxRZ4jMUWeIzFFniMxRZ4jMUWeIzFFniMxRZ4jMUWeIzFFniMxRZ4jMUWeIzFFniMxRZ4jMUWeIzFFniMxRZ4jMUWeIzFFniMxRZ4jMUWeIzFFniMxRZ4jMUWeIzFFniMxRZ4jMUWeIzFFniMxTqeHswggDKvYoIRgQUKBQK0Ep13OW/DeLOZQQEAbHnU4A6iuc9GjhuiBcRkmKobmnhtf3beWnXZxyKxjDiA4JCkxsOM62kP7cNP42B3boR8cL/ZUEQhGgySXlzIwt2beHt/TupT8RRKDSCUoqiSCGXDCjl8tJR9M0rJEfrLi8IxwXxlS3NfG/NEnY2HqYlHsMIeFqjVKD/6e9B8NECheF8fjxpOlNLBvyniNhad4hvr13C4eZGEkbQyrMblAIMWilELPnGJEEUYe3ROz+P/z31Ekq79ex4yC6DLk38vqYG7lu7nB31NRh3gwGM77cR6UxtygW4nyNi+VFKUZSfx60jJnBd6ej0w38ldjYd5oG1y9nVcBgRY49prbw7rj2jUiBihcBuVWgB7dkxp3bryQ9On86InkUdT9Hp6LLE//STD3hx51aSxqC89BjU3ujgqi0JAfWOmWCkZR6lBAHO7tufR868kJA6ckybND7fX7ecFeV7QFn3kQ4RgxKQDtbDfmfPp8S4eEO5OEC46JSh/GDidEL6yOftDHQ54uPG594Pl/L+gT3WcCtt76zT7I5ou/oOPyMIujSWFWcNuufksGDm1RTnFbQbXh+P8dcfLuWj6n0uYFMoJyDKmfQ2pL/vIASO8iAKFDEIhoHde/HUuVfQPSe33fjOQpcivjER5y8/WMzn9TUo3940sCQGr1Z33Xtnfq0ZbvsZopXVdrFEiJg2ekTID4f5t5lXMaCgOwB1sSh3r36TbbXViGmbJYDz4Vrb19QZ/hSsnWi7rYISe9UFebm8OHMufSL5HfY59ugytifqJ7lv7XK219eiRVuN1fY1hXYyqq1GiqRI6gihTXic0qOUojWZ5OsrXqaitYlWP8kD699h2+Fae0ztARoDqakiLr6QNrFLCdaXIRi3QTD2KpQ9bnMswaVvP8fheLTjTsccXULjBfjnTWv4/eefoLVnDaVSGMT6z/RLDL5XCi2BCW6v7XZYe/MsWI/hufdaa3rn5jK5qD+Lync6yyEdTLolT6cJlrhxgUB+WdwslB0IiBVQZY8iymdIYS9+f+6V5HhultAJ6BIav6aqnKc/34wiZLUMR7YRG2QphVEg2sNgzbgygo/BaLHb3Pfa8daRQMu8xmgFLlisjraycO92lBisJ24TIRs0WsMt7njiBE4phVbt5M2GIe4P4zYoDdqz1sYJlfiKHQ0NvLxna9vOnYBOJ15E+NnGVU7Lsf7QkWbNqdU2Dw8ENMq6AqzGXz1gBC/OvJrvjJmMOELFBtPtzmGnXn7qsxHre61lsIKk+Co/7r411opobd1M2PMIaw9P2+sRX8A3qXhDROx1iI0RRAQNaGN4+OOVHGxtan+aY4hON/WLy3fwd6vftR8EUMYSoQPzKl8yqPaKhcemzOTsfoNAWYE40NLAnCXPI8b6Z6WCxE5Avp3etZvyBQFiGgJtbwdjKOtTzDdGTaI4N0Lv3AgRL0RIaZLGcDgRpTYa5aPKcp7c+jHxgPwOV5+yCgg3jijjr8ZNTtt67NDpxK+qKmd3Yz04LRUXHLX3oG0+VRAwkKtg7qmj+OOuLTz5+Udc1H8Y948/m0c3ruKZL7Zi3O4B8V8FRZppBicsbeQX5uTyndGTmFoygJ6RXDyxpr4tzLNjnS1Bo4gnk7y0ayu/3LwO37kraLNk2iWB8nJCLLp4HvmhcOpYxwqdTrxvbMLDMhBkQtz7AEKbpiqFEjAkQeDW9xaypfYQPXLzWHrxPDbVVHLLe4tSImOUjeoDIlOa75Cu8enbPM/jqtJh3D1qEt3COanxHce1c0sdxqyt3M+3Vr6NL8ZNE504uzhBAQ+cPpUrSke22/dYoFOJX3FwDz/5eCUh5chO+WKc1qtUlsxLK4poT1GgNPOnX8ayij08vX0LM/uVcsuIMu5Z+xYfHqgAZx3EBYcpBLbXvbrcUHB6bBAGPznjHC4aONwGcR2cQUfhOSIEDsdbmfP6sxh8En4StEa5fH+w/0WnDObvJ53bYeejj04l/rur3mZZxR6r29oyrgJSjDWm9gZplw+3UAp8gbvGns7NQ8oIKY0ILKvey/2rloOYICa0VlYpG9gJaKXxg+g8EAI7g7cBmDH8dsYcxvcpwQuKMh00+88Rb8cqnty6nvlbN/LIWTMZ36cf/7R+BUsrD5Dwk2hj3Upxfh6vXHTdf7mK+P+LTiX+jhULWVdjtdNae/fj3SWlF2YIijGpSNwKQI+8XGb1LWVl1X7KW5pRYoMF8TSFXpi7Rk3k2lNHs6vhMN9es5T9TXX2mKnjOkkClFbcN2oycwePcpF6cDl/mmiA1mSSiBdKHbY22spli58jbpIsumQeRZE8kkB1cxPXLn+JRCKJEo3BZ9nlN1HYwZ0cbXTqdK7JT6RUToxgjG+1LrDEzhfaAW4eDE5j7deNsQQv7d1OhSPdKDvvVr7Pb86azdzBo4hJklO6F7Jg5uVWgAKicYGd8/N9IwVcN2TMl7QvGN9RR0Qg5ieZ/8UWfr1tk7tqiBmfO959i7gYPFHEJIlSihDQr6CQvxo5wf1Gmxyqbm1ud9xjgU7V+D2N9SSNj8HNd8HevA4FmWCTdhUvZ3RT72xpNP1nCFoUg3v04jfbP+H32zZSlJfHa+fPZUNtNd94b6EdrRS4ahoIr866hpMLbf7+SCY9KfbYSgxbG+v4yZYPqWts5aHJMxjfsxiUIu4n+dqK1znUGmNO35N4bfd2/mby2VwxsC2ASxjh2jcWcLC1BRB+N/NyRvU6tqXbTiU+YXyXAbPRlYilsw1BhG/f20sNtD3I01uIBKkzwCV7UD4/WPcBb1XsIld7rLj0Bmqizcx+Y4Ez9y6WEKFffh4LZ89LyY9SiuZEnMpoCx/XHmTdoUoONjfSmvCpSDTTPy/CXaOmMKF3EREvDCI8u3sr/7xxDUkV5qeTpjKteAAXvvEcZ598Cv942nSUti7KB37y0XLe2L0blOH/zryS0b36BD/0mKDTiBcRvvb2C+xtbrBmnJTVBx2URJ2/dpomYnPs6UiZ4eCz2IlyxAvz1qzrKI828db+3YzvVcyUkpO5c82brKuqTBVvlKsFjC8q5nfnXO503x53U2015S1NINa6aAX5IcWYXn3pmROx00olvLznc17Zs4PPDlXSPTfC49MuYHj3IkTBA+tWsKmuhlfPv4qw5yHWs/DhwT3cu3IZCsNT51/J8J4ZQjzALcteZVNtlZ24uVJq+4uxGm7NgSNXBVk9i4jnkfB9kk5uxFkB8TTT+/bnh2Vn0TM3DyMw/4tNPL75IwLZEZFUbn/ukBE8UDYtFUeoI7kbEYwRDrQ2sbRiN/saG1hWuY+YbygI5XDrkDFcM3hEW8OFCMsq93L/qhXcM24CNw0bn4oTmhJxLln4DL4vvHjJtZyUX5h2tqOPTiX+zhWLWFV1wJZf08gMLICIzYQFDATmWQSK8/J4eOJ5jC0qxhifBTu38rNP17l0aGAsBK0VJ0fyORRvJaYM+AqwnTSkZeAePH0aVwwcgRjh9g9e52BzM8WRQnJDHnHxaYi2UhVtJub7YGy7RUgrzigZwDn9BnBV6XA8Z6XaxQXGcMPbL1HT2sKrl15HnsvS+QizXvk9cSMsufxG8kMZFNWP6lNEyAsR9kKElSKkNWHtEdKakLKNi9rT9rMXxtPajkfx66kXMqxXL5ZX7GFDbSXXDh7JvaMmgjPfGvCcoJTHWokZAd+2YWlx0iOCElv0KY7k2rSrEmqao/hGkTSG+mgrrYkE3cIRxvQo4YzeJ3HpwKH8dsYlvH/lLTx21vnMPdVquUpL9QbwlOKBiVNpSMT4xnuvp2r1GkUOmgEF3cjzMjRlazXFIih9ug9t3jtQZVG2fCqKhza/x0u7d+Apj4Wz5tKSTHD1shfB2MxN+8CvLQ5oi+SDEYpHppzPjH6DEPE5+7Vn+fHp05g5YKCt2IlKWSTrSmwkYEvBwUGPDMEGkP/n07U8/cXnPDFtFmW9+5KUJBe//AznnTKEv500reNuRx2dqvEAMb+R5kQDzYl6mpP1tCQbaIzX0xivpyFRT0O8wf7F6mmINtIQb6AxXgMmQUkkghYhB01+KAQqSYmqpiRUS4lXQ7E6RJGuoTh0mCKvlhJdSx99iGKvjqJQLUVeDd11I0rBjoYalIK3Du7Fx9CvMNImGlpcg6cVHcFNOf8c6c6qoITbhk0g7Cn+xwdLaEkmSQj4nmJC8bEN6gJ0usav3ruAD/Y9iSiDbxKIMRjPQ7m+dYVGRCHapFqd/aTmhgmPMbBbGdWxVsJa0yMc4qnNP2dHzackjWDEVtdFeYh4mKCqJgbfHROt8SWH9U2nM6VfPx49cxYzXnuWpPi8e9kN5GqFUh6C4UBzI1/UHWZEr96UFBS2ZRnTIEAskWRTfSUFOsKQHj0Ia88KkMDK6n3c9+7b/GLGbEry87nx7Zd587IbKDjG/p2uQHzcj/LE2muI+s2ICZorbU5dWcvuNMfgK2tmfVGEVJgLht7N+OLZJEycFz7/EXtrPnaLHGxQhVZoQogxiNJobUAEX4wVBK2oSAxjddNkQKOx+fsfTTyLSwYMAxG2HT7E/Ws/oLqlmXytaUwKswcO4gcTp37Jnzcm4lz66nMktZCnPNAeN44ay81DR6NRxHyfi195mrgXxhgfLYrrR47m7jFntDvOsUCnEw+wct8zvLf7SasZKm2ubkvviPExaRUVpTyUskRpPIwYfHyMS79ql7/pVzCUs0+5mV55g6hp3sWinT+nNd6UKvgkRLP48PUU5BRyz+jT2dvQwPydW1g2++v0dG3QXzTU0phIUta7GF/itCQMWntfKtUG2NfYQL+CQjygLh7lk7oqzu03EE9pDMLjm9ew/EA5Nw8by8qqfbxfUcFtY8r4xrCyjoc6qugSxCf8KH/ceA+N8Ro87aWyd0bEro0TH+Pm+ArQOoxGp1pnjbLr54wBUYJGUxjpxvUjf4n2PMqbNjOo+0Si8UYeWz0XlE3GfNJ8NjtahvLbGRcxrlc/FLCzoYYh3XuneuqNvUkcirYy/7ON3D56LD1z8/FQNPkJ8o+wPu+pbRvpE4lwycBhqeloMMI3QhJDGI0o4Y7336Q+2srzF1x9BOdx9NAliMcFQoJBiXZ3qe2yAsJNegY3Ha5zRyk7TRMlKKNB+Sz47G/YX7eBk7oP5/rRv+TfttzLnoZNoAxrWs6hIjqElXNuwFPtp1TSIU//fkU531mznIlFfXj87NkoIzz5+XrOKhlIWe+S1DgjwoxFzxKPJ3nn8uvJ80KpbangUNlZCQj/uvUT5m/dyJIrb/rKFT5HA8fuTH8GSimiiUY2Vy5ic+UbbKxczMaqRWyqWsSWqkVsrlrMp5Vv8GnVG2ypeoPNlYvYVLmIzZWL3d8iNlS8xoaDr7H+wEtUt+5BEaK+ZR8GIZ6Ig9Z0y+2LKIWg0XGbp1di6+7pOpBOuiCU5BfQKy+Pm4aOSWlxZXMLW+tr2+2HUvTPK2RkcV/CR0gvK6VsLOH6SOtiUVcvaDf0qKPLaDyAEZ/frP4LGuJV+CrhGi9x3a+e7U1XQe+avVkKD0874tKmXPk5PfnmxD/Qkmxk5f6nOa/0TkLAz1ZegXLtWNuax/BZ/Ay+N34ScweOTMUQXwVp657CiOHKxc/z4KQZnFbUF9KERYyk5v1/6ogxP8nlb77IyeEC5l8wp+Pmo4ouo/EAWnncdsYTqR41SYZAFJ7ybH5exE7tfBCjQDwbponQN28YY/rOxlMa8RUNiVoWbX+Y7jlFXDT4rwmRw1ObvpUK7EQUwwq34CWT/GLDGmLGkBQf4xvbIHkEpPJKRvi8sY5ak2R0n95uWxvFSn/V2h7w8UmKwRfDI5+tpz6puXr4iI7Djjq6lMYH2H5oFc9teQCNpm0VlQLjtBoQ7KIGpTy+OfEpuuX2Q6MxJFn6xZN8dPAFRDQ5oQieziXht5LE5glA3PxcOBwvYlnDHMI5YU7OyaEoUsCvp86y9YMOsLfK0vm9dcsZkFvAPePOwBpvu0mM75Zhtd9PuRVAh6Ix7l35JnWxBDVxn/NPGcSPT59yRCE5muiSxAO8s2M+Vc3bUzcUIEkSsL1zoPFUiHF9ZzG8aBqvbP8xzbEqZp36LUoKB/PEutupjx5M3XCcVgYkiEvoKBFidGN9w2nsjZ6CCnssuegaeufmpV9OCr4vNPpxHvr4Q3a01DNnQCk5Xpg5pwyhWyjMmtpKpvTplxqffnuNwO0rXuPzQ7WM7FPCPWWTGNenyNYUjjG6LPFHQuDb7X1q08j6aAVPrL0ZpRQ5OT24e9Jz/OvGe6ho+KwtAdTBHFsB0E5NBd8IMb8nC5uu4LEzZzCtZGD7BI3AzqZ6bntrIa/P+RooeLNiD1Hfp0dODhedVIon8PCna6iOJfjR+DPJC+ekpnoiQpNJMuflZ+idF+GFi69pV6M41ujyxH9c/gpf1K3DAB4G5dlG6yCfM7LoXIb2msJL2/+BvY2bufiUuxjZdya//fhWDrWWt4vIvqxX1hOLsQWdhNIsrJ5HOOyx7JIbyEktyRK21Bzi22vf4VdTzmNEjz7otDKyiFvcCcRUlH/6aD37mxp5dOp5FIZzUgK0urqc76xYwk+nzuCck0tT+3cGujzxrYkmnlr3TepiFXi2Jzl1I30FYS/CrWW/ondefwTrtzdUvslbO3+JMjb6Nk7blVXctDy7+8YaEpRoNraOYVviNP5lyvlMLu4Pjth5S17hvolTqY82s72pgXmDR5PvhVw93x5xQ101P/xoBX+YfikPrl/NhQNKmT2gFKUUUT/J7LdeJJr0WTp7LgVfkfk7Vug8W/MfRF64kK9PeJiCcE88FQqWVdjmWCNE41GeWP+XrNq/gC9qVvOHjffwxrZfYHzr2e0aelBiCy72AUZW03GkClagjBLGFW4iouC7H62gJZlwV6HID4cp61HE6SUn88Lubcxe/v+Yv2Mj66r3s6JiN3esWsL/XLmcktzuFIQj3D5yLC3xVpQSjBjerthDLAl/P2Fip5PO8aDxAQ617OPpT+4i5re4b+zUzsKkgjjlVmHZFUua4vwB9M4fzKHGL2iIH8QYQbTTclfjt/137hFlCsrjpayqncJNw8fxrXGTQaA82szJkXxEwMfwDxtXsrqinETSrporyO/G35VNZGLvk/C0ImEMCZMkPxTm04Zqbl36JiXdC3j1/Ku/lOLtDBw3xAPUtR7gX9beaJnVtjVaa9sGBdj5fzB1EuGGsQ9T2us0lPIw+FQ0bmP+hnvwgkecpAVeqcWVohHj807dhRxMFnFX2encMey09oEe1jUYEXwDCc+QYxdyO2fShqpEC1cufgmNZumca4mkpXA7E8cV8QC1reW8uOWHYJKEQhFbqQPsow18fPdrxvY5hzMHXsvqA8/z6cFljCiewdT+N/DomquIJVvclK59pB9AjMEX+KD2AqqlL3NHjOT7o6Z8qbXKuom0x6y4xI9yBaUdTXXc+cE7tMSS/OHcCxjao1dq387GcUc8WFNru2ODcA0Ev60zRlx7tsCv1lxPNF5Pcd6p3DLxcV7f9hBbqpalFmO28ZgmAGKDwqRoPm45j/3JUk7t3oMfjZ/EyB693epeK3CpXYwgCEkRQgiPbtvAS3t3oSWHx8+cyrjex3bBxJ/DcUk8zi8v3fkbDrfuQ5TgG4Pts9N4SlNcOIxzBt7Ce7vns/rA80wfdAuTT57LY2u+RjRhn0Rhg790+hRijC2gOKFSSrEjXsbmpsn4JkpZryLOKjmJuUNG0zMcaTcx2NVcxws7trLwwF5iCWFiSX/uL5vAQPd0ra6E45Z4gOZ4HQs2/y1VzdttLT6V3AHRwryxP2NgjzLE2DauLTXLefWzn7ZT7lQSB+ycP/WULFdBE9uZ2+xH2NZQxt7YENAeKhSiMKQ5Kb87PsKB1mZicfCTSYb3KeLqQUO5snRolwjkjoTjmniApInzwpb/xe669akeebBCADCu5HwGdS9j5+G1bKl+t91ijBRc+haxU0CdluZNHwPgqRwqE6XEQtMJ0YdWkyQcyqUwN5c+kRzmDR5J/4Lu7dxAV8RxTzyuRLp4+y/YdPANS5xYJbZ+PCjqBDn69j/XxgNBoOceipTeio1Nz4ixjZ9aK0YWT+eyEd9Hq64Rof9ncEIQH2BT5Vss3vYIvvjtyAsI/ZIatvsqvdafFqm7WACscEwfNI9zBt3WPhg8DnFCEY+b7j257rZ2TRkoG3F3hCLFatucHuvr2+b4rn9ewzUj/5EhfTrnKVX/3TjhiAeoj1byu4/upNWvt40wSjtBsBk+cUUV0giHIJETfLZsKxQ5OsINEx6hpGBoauzxjhOSeICWeD0vfvpDKpo+s2beNWTax+n4dr7vxgaEtxFvSxgKj775pVw15kF6RNpq7CcCTljiAXzxWbrj16w/+IolXuxyJggSN+1/ugT1cRFAGFk0jYuHfY9I6NguYT4WOKGJtxA2VCxh0fafu/ZtG9Gl5vsuwkt/Zi0KJva9jAuG3t3270hOMGQA8RaVTTt5+dMHqWk9aLt2g4K0i/6VsYkcT4eYM+K7jCyeccT1cScKMoZ4AN8keW7z/ew/vAXR7glbrgVL4VFcWMqNZY+Q43X+PxI42sgo4gNsP7SahdseoiXZahM4HowtmcGcEQ90HHrCIiOJB4j7Lfxx431UNe3iL057jL6FJ85U7T+CjCUet3In4UfJDbX/x0SZgIwmPpPR5Zstszg6yBKfocgSn6HIEp+hyBKfocgSn6HIEp+hyBKfocgSn6HIEp+hyBKfocgSn6HIEp+hyBKfocgSn6HIEp+hyBKfocgSn6HIEp+hyBKfocgSn6HIEp+hyBKfocgSn6H4d1S06cSEkhItAAAAAElFTkSuQmCC";
+  document.getElementById('logoImg').src = "data:image/png;base64," + LOGO_BASE64;
+
+  // ---------- Data/hora ----------
+  function formatarDataHora(){
+    try{
+      var agora = new Date();
+      var dias = ["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
+      var meses = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+      var hh = String(agora.getHours()).padStart(2,'0');
+      var mm = String(agora.getMinutes()).padStart(2,'0');
+      var texto = hh + ":" + mm + " - " + dias[agora.getDay()] + ", " + agora.getDate() + " de " + meses[agora.getMonth()] + " de " + agora.getFullYear();
+      document.getElementById('dataHora').textContent = texto;
+    }catch(e){}
+  }
+  formatarDataHora();
+  setInterval(formatarDataHora, 30000);
+
+  var root = document.documentElement;
+
+  // ---------- Tamanho de fonte (segmentado A / A+ / A++) ----------
+  var ESCALAS = [1, 1.15, 1.3];
+  var nivel = 0;
+  try{
+    var saved = localStorage.getItem('techsaude_font_nivel');
+    if(saved !== null) nivel = parseInt(saved, 10) || 0;
+  }catch(e){}
+  var segButtons = document.querySelectorAll('.segmented button');
+  function aplicarEscala(){
+    root.style.setProperty('--font-scale', ESCALAS[nivel]);
+    segButtons.forEach(function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-scale') == nivel ? 'true' : 'false');
+    });
+    try{ localStorage.setItem('techsaude_font_nivel', nivel); }catch(e){}
+  }
+  segButtons.forEach(function(b){
+    b.addEventListener('click', function(){
+      nivel = parseInt(b.getAttribute('data-scale'), 10);
+      aplicarEscala();
+    });
+  });
+  aplicarEscala();
+
+  // ---------- Conteúdo dos termos ----------
+  var TERMOS = {
+    privacidade: {
+      titulo: "Política de Privacidade",
+      meta: "Aplicativo TechSaúde · Setembro de 2026",
+      html: [
+        "<h3>1. Introdução</h3>",
+        "<p>Esta Política de Privacidade descreve como o aplicativo TechSaúde coleta, usa, armazena e protege os dados dos usuários. Ao utilizar o aplicativo, você concorda com os termos desta política.</p>",
+        "<p>O aplicativo TechSaúde é voltado para a inclusão digital e o suporte à rotina de saúde de pessoas da terceira idade. O escopo de uso envolve também a interação com familiares, cuidadores e profissionais de saúde.</p>",
+
+        "<h3>2. Dados coletados</h3>",
+        "<p>Para o funcionamento adequado e seguro do aplicativo, coletamos as seguintes informações:</p>",
+        "<h4>Dados pessoais e de contato</h4>",
+        "<ul><li>Nome completo</li><li>CPF</li><li>Data de nascimento</li><li>E-mail</li><li>Número de telefone</li></ul>",
+        "<h4>Documentos e biometria</h4>",
+        "<ul><li>Foto de documento de identidade (RG ou CNH, frente e verso)</li><li>Selfie para reconhecimento facial</li></ul>",
+        "<h4>Dados de saúde e rotina (dados sensíveis)</h4>",
+        "<ul><li>Histórico de consultas</li><li>Receitas médicas e medicamentos em uso</li></ul>",
+        "<h4>Coleta diária</h4>",
+        "<ul><li>Pressão arterial, glicemia e peso</li><li>Hidratação, horas de sono e atividade física</li><li>Registro de humor</li></ul>",
+        "<h4>Contatos de emergência</h4>",
+        "<ul><li>Nome e telefone de pessoas de confiança ou cuidadores indicados pelo usuário</li></ul>",
+        "<h4>Localização</h4>",
+        "<ul><li>Dados de geolocalização do dispositivo (GPS), para indicar serviços próximos</li></ul>",
+        "<h4>Dados técnicos</h4>",
+        "<ul><li>Endereço IP e modelo do dispositivo</li><li>Sistema operacional</li><li>Data e hora do sistema</li><li>Configurações de uso do aplicativo</li></ul>",
+
+        "<h3>3. Finalidade da coleta</h3>",
+        "<p>A coleta de dados visa garantir o bem-estar, a autonomia e a segurança dos nossos usuários. As informações são utilizadas para:</p>",
+        "<h4>Segurança e identificação</h4>",
+        "<p>Verificar a identidade do usuário, confirmar a maioridade (em conformidade com a Lei Felca), prevenir fraudes e garantir a segurança geral do aplicativo.</p>",
+        "<h4>Gestão de saúde</h4>",
+        "<p>Configurar e disparar alarmes de medicamentos de forma precisa e emitir lembretes automáticos de consultas médicas.</p>",
+        "<h4>Geração de relatórios</h4>",
+        "<p>Gerar relatórios de saúde periódicos (a cada 30 dias) e prévios (um dia antes de consultas médicas), com base nas métricas da coleta diária.</p>",
+        "<h4>Geolocalização</h4>",
+        "<p>Apresentar a localização dos hospitais e unidades de saúde mais próximos ao usuário.</p>",
+        "<h4>Suporte e emergência</h4>",
+        "<p>Permitir o acionamento rápido do botão de emergência, notificando cuidadores, familiares cadastrados ou nossa equipe de suporte técnico.</p>",
+
+        "<h3>4. Compartilhamento de dados</h3>",
+        "<p>Os dados estritamente necessários podem ser compartilhados com serviços de verificação de identidade e autoridades, quando exigido por lei.</p>",
+        "<p>Os dados de localização e informações vitais poderão ser compartilhados com os contatos de confiança e cuidadores previamente cadastrados no aplicativo, especialmente quando houver o acionamento do botão de emergência.</p>",
+
+        "<h3>5. Armazenamento e segurança</h3>",
+        "<h4>Proteção técnica</h4>",
+        "<p>Utilizamos criptografia de ponta a ponta, controle rigoroso de acesso e monitoramento contínuo para proteger todos os seus dados.</p>",
+        "<h4>Conformidade legal</h4>",
+        "<p>O sistema opera em total conformidade com a Lei Geral de Proteção de Dados (LGPD), possuindo mecanismos rigorosos para evitar o vazamento de informações durante a autenticação.</p>",
+        "<h4>Preservação de histórico</h4>",
+        "<p>Realizamos backups seguros (diários, semanais e mensais) para preservar o histórico de saúde, consultas e as configurações do usuário.</p>",
+
+        "<h3>6. Retenção e exclusão de dados</h3>",
+        "<p>Em caso de exclusão voluntária da conta ou desinstalação permanente do aplicativo, os dados de saúde e cadastrais — incluindo histórico de consultas e relatórios gerados — serão retidos de forma segura e inativa por um período mínimo de 6 meses, para fins de auditoria, resguardo legal e possibilidade de recuperação em caso de exclusão acidental.</p>",
+        "<p>Após esse prazo mínimo, todas as informações pessoais identificáveis serão excluídas de forma permanente dos nossos servidores.</p>",
+
+        "<h3>7. Direitos do usuário</h3>",
+        "<ul><li>Solicitar o acesso, a revisão e a correção de quaisquer dados pessoais mantidos pelo aplicativo</li><li>Solicitar a exclusão de seus dados a qualquer momento, observadas as regras de retenção legal do item 6</li><li>Revogar o consentimento para usos específicos a qualquer instante, através das configurações do aplicativo</li></ul>",
+
+        "<h3>8. Alterações e atualizações</h3>",
+        "<p>Ao utilizar o aplicativo, você manifesta ciência e concordância com os termos desta política. Esta política pode ser atualizada a qualquer momento, para refletir melhorias no sistema ou mudanças na legislação aplicável. Os usuários serão devidamente notificados sobre alterações significativas.</p>",
+
+        "<h3>Precisa de ajuda ou tem dúvidas?</h3>",
+        "<p>Nossa equipe está disponível para responder às suas solicitações de privacidade. Entre em contato com o Encarregado de Proteção de Dados (DPO) através do nosso e-mail oficial de suporte: techsaude07@gmail.com</p>"
+      ].join("")
+    },
+    uso: {
+      titulo: "Termos de Uso",
+      meta: "TechSaúde — conteúdo em preparação",
+      html: [
+        "<h3>Conteúdo em preparação</h3>",
+        "<p>Os Termos de Uso ainda estão sendo redigidos pela equipe TechSaúde e serão disponibilizados aqui em breve, com a mesma estrutura de leitura e aceite da Política de Privacidade.</p>"
+      ].join("")
+    }
+  };
+
+  var STATUS_KEY_PREFIX = 'techsaude_termo_status_';
+  function lerStatus(chave){
+    try{ return localStorage.getItem(STATUS_KEY_PREFIX + chave) || 'pendente'; }catch(e){ return 'pendente'; }
+  }
+  function salvarStatus(chave, valor){
+    try{ localStorage.setItem(STATUS_KEY_PREFIX + chave, valor); }catch(e){}
+  }
+  function atualizarPillPrivacidade(){
+    var pill = document.getElementById('statusPrivacidade');
+    var item = document.querySelector('[data-term="privacidade"]');
+    var status = lerStatus('privacidade');
+    if(status === 'aceito'){
+      pill.textContent = 'Aceito';
+      pill.classList.remove('pendente');
+      item.classList.add('is-done');
+    } else if(status === 'recusado'){
+      pill.textContent = 'Não aceito';
+      pill.classList.add('pendente');
+      item.classList.remove('is-done');
+    } else {
+      pill.textContent = 'Aguardando leitura';
+      pill.classList.add('pendente');
+      item.classList.remove('is-done');
+    }
+  }
+  atualizarPillPrivacidade();
+
+  // ---------- Painel de leitura ----------
+  var overlay = document.getElementById('overlay');
+  var sheetBody = document.getElementById('sheetBody');
+  var sheetTitle = document.getElementById('sheetTitle');
+  var progressFill = document.getElementById('progressFill');
+  var btnAccept = document.getElementById('btnAccept');
+  var btnDecline = document.getElementById('btnDecline');
+  var footerHint = document.getElementById('footerHint');
+  var listenBtn = document.getElementById('sheetListen');
+  var liveRegion = document.getElementById('liveRegion');
+  var termoAtual = null;
+  var ultimoFoco = null;
+
+  function abrirTermo(chave){
+    var termo = TERMOS[chave];
+    if(!termo) return;
+    termoAtual = chave;
+    sheetTitle.textContent = termo.titulo;
+    sheetBody.innerHTML = '<p class="meta-line">' + termo.meta + '</p>' + termo.html;
+    sheetBody.scrollTop = 0;
+    progressFill.style.width = '0%';
+
+    var podeAceitar = chave === 'privacidade';
+    btnAccept.style.display = podeAceitar ? 'block' : 'none';
+    btnDecline.textContent = podeAceitar ? 'Não aceito' : 'Fechar';
+    footerHint.textContent = podeAceitar ? 'Role o texto até o final para poder decidir.' : 'Este conteúdo ainda está sendo preparado.';
+    btnAccept.disabled = true;
+
+    ultimoFoco = document.activeElement;
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    sheetBody.focus();
+    liveRegion.textContent = 'Abrindo ' + termo.titulo;
+  }
+
+  function fecharTermo(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    pararLeitura();
+    if(ultimoFoco) ultimoFoco.focus();
+  }
+
+  document.querySelectorAll('.list-item').forEach(function(item){
+    item.addEventListener('click', function(){
+      abrirTermo(item.getAttribute('data-term'));
+    });
+  });
+  document.getElementById('sheetClose').addEventListener('click', fecharTermo);
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) fecharTermo(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && overlay.classList.contains('open')) fecharTermo();
+  });
+
+  sheetBody.addEventListener('scroll', function(){
+    var max = sheetBody.scrollHeight - sheetBody.clientHeight;
+    var pct = max > 0 ? Math.min(100, (sheetBody.scrollTop / max) * 100) : 100;
+    progressFill.style.width = pct + '%';
+    if(pct >= 96 && termoAtual === 'privacidade'){
+      btnAccept.disabled = false;
+      footerHint.textContent = 'Você já pode escolher uma opção abaixo.';
+    }
+  });
+
+  btnAccept.addEventListener('click', function(){
+    if(termoAtual){
+      salvarStatus(termoAtual, 'aceito');
+      atualizarPillPrivacidade();
+      liveRegion.textContent = 'Política de privacidade aceita.';
+    }
+    fecharTermo();
+  });
+  btnDecline.addEventListener('click', function(){
+    if(termoAtual === 'privacidade'){
+      salvarStatus(termoAtual, 'recusado');
+      atualizarPillPrivacidade();
+      liveRegion.textContent = 'Você optou por não aceitar a política de privacidade.';
+    }
+    fecharTermo();
+  });
+
+  // ---------- Leitura em voz alta (TTS) ----------
+  var temTTS = ('speechSynthesis' in window);
+  if(!temTTS){ listenBtn.style.display = 'none'; }
+
+  function pararLeitura(){
+    if(temTTS){
+      try{ window.speechSynthesis.cancel(); }catch(e){}
+    }
+    listenBtn.setAttribute('aria-pressed','false');
+  }
+
+  listenBtn.addEventListener('click', function(){
+    if(!temTTS) return;
+    var lendo = listenBtn.getAttribute('aria-pressed') === 'true';
+    if(lendo){
+      pararLeitura();
+      return;
+    }
+    try{
+      window.speechSynthesis.cancel();
+      var texto = sheetBody.textContent;
+      var utter = new SpeechSynthesisUtterance(texto);
+      utter.lang = 'pt-BR';
+      utter.rate = 0.95;
+      utter.onend = function(){ listenBtn.setAttribute('aria-pressed','false'); };
+      utter.onerror = function(){ listenBtn.setAttribute('aria-pressed','false'); };
+      window.speechSynthesis.speak(utter);
+      listenBtn.setAttribute('aria-pressed','true');
+    }catch(e){
+      listenBtn.setAttribute('aria-pressed','false');
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
