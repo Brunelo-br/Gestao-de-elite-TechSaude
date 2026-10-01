@@ -56,12 +56,16 @@ body{
 }
 .header-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
 .header-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:2px;min-width:56px;color:var(--cream);font-family:inherit;}
+.header-btn[hidden]{display:none;}
 .header-btn:hover{transform:scale(1.05);}
 .header-btn.emergencia .icon,.header-btn.inicio .icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;}
 .header-btn.emergencia .icon{background:#c0392b;}
 .header-btn.emergencia .icon svg{width:20px;height:20px;display:block;}
 .header-btn.inicio .icon{width:40px;height:40px;background:rgba(255,255,255,.18);border:none;}
 .header-btn.inicio .icon svg{width:18px;height:18px;display:block;}
+.header-btn.voltar .icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);}
+.header-btn.voltar .icon svg{width:18px;height:18px;display:block;}
+.header-nav{display:flex;align-items:flex-start;gap:8px;flex-shrink:0;}
 .header-btn label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--cream);}
 .header-center{text-align:center;flex:1;min-width:0;}
 .logo-section{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px;}
@@ -546,6 +550,12 @@ body{
   .primary-row{flex-direction:column;}
   .btn-clear{justify-content:center;}
 }
+@media (max-width:440px){
+  .header.tem-voltar{padding-left:8px;padding-right:8px;}
+  .header.tem-voltar .logo-icon{width:120px;max-width:100%;}
+  .header.tem-voltar .header-btn{min-width:48px;}
+  .header-nav{gap:2px;}
+}
 
 /* ===== TECHSAUDE VISUAL SYSTEM ===== */
 :root{
@@ -626,6 +636,13 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
         </div>
         <div class="datetime" id="datetime"></div>
       </div>
+      <div class="header-nav">
+      <button type="button" class="header-btn voltar" id="btnVoltarTela" onclick="voltarTela()" aria-label="Voltar para a tela anterior" hidden>
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        </div>
+        <label>Voltar</label>
+      </button>
       <button type="button" class="header-btn inicio" onclick="window.location.href='home.html'" aria-label="Início">
         <div class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -636,6 +653,7 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
         </div>
         <label>Início</label>
       </button>
+      </div>
     </div>
   </header>
 
@@ -869,7 +887,28 @@ async function carregarConsultasSupabase(){
   renderLembretes();
 }
 
-function goTo(name){
+let telaHistorico = ['incluir'];
+
+function atualizarBotaoVoltar(telaAtual){
+  const temTelaAnterior = telaAtual === 'consultas' && telaHistorico.length > 1;
+  document.getElementById('btnVoltarTela').hidden = !temTelaAnterior;
+  document.querySelector('.header').classList.toggle('tem-voltar', temTelaAnterior);
+}
+
+function voltarTela(){
+  if(telaHistorico.length > 1){
+    telaHistorico.pop();
+    goTo(telaHistorico[telaHistorico.length - 1], true);
+  }
+}
+
+function goTo(name, viaVoltar){
+  if(!viaVoltar){
+    const posicaoExistente = telaHistorico.indexOf(name);
+    if(posicaoExistente >= 0) telaHistorico = telaHistorico.slice(0, posicaoExistente + 1);
+    else telaHistorico.push(name);
+  }
+  atualizarBotaoVoltar(name);
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById('screen-' + name);
   if(el) el.classList.add('active');

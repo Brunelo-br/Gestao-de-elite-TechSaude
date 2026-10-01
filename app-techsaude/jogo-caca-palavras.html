@@ -87,13 +87,20 @@
   }
   .nav-btn .icon-circle{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:2px; }
   .nav-btn.emergencia .icon-circle{ background:#c0392b; }
-  .nav-btn.inicio .icon-circle{ background:rgba(255,255,255,0.18); }
+  .nav-btn.inicio .icon-circle,
+  .nav-btn.voltar .icon-circle{ background:rgba(255,255,255,0.18); }
+  .nav-right{ display:flex; align-items:flex-start; gap:10px; flex-shrink:0; }
   .nav-btn .icon-circle svg{ width:20px; height:20px; color:#fff; }
   .nav-btn:hover{ transform:scale(1.05); }
   .nav-btn:focus-visible{ outline:3px solid var(--cream); outline-offset:3px; border-radius:8px; }
   .brand-top{ display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; }
   .brand-top img{ width:200px; height:200px; object-fit:contain; }
   .brand-top .app-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:19px; color:var(--cream); letter-spacing:.3px; }
+  @media (max-width:440px){
+    .topbar{ padding-left:12px; padding-right:12px; }
+    .brand-top img{ width:120px; height:120px; }
+    .nav-right{ gap:4px; }
+  }
 
   /* ===== CONTEÚDO ===== */
   .app{ padding:24px 24px 40px; }
@@ -257,12 +264,20 @@
       <span class="app-title">Caça-Palavras</span>
     </div>
 
-    <a class="nav-btn inicio" href="home.html">
-      <span class="icon-circle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>
-      </span>
-      Início
-    </a>
+    <div class="nav-right">
+      <button type="button" class="nav-btn voltar" id="btnVoltar" aria-label="Voltar para a tela anterior">
+        <span class="icon-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        </span>
+        Voltar
+      </button>
+      <a class="nav-btn inicio" href="home.html">
+        <span class="icon-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>
+        </span>
+        Início
+      </a>
+    </div>
   </header>
 
   <div class="app">
@@ -920,9 +935,18 @@
   function voltarParaSelecao(){
     stopTimer();
     clearHintTimeouts();
+    el.modalVitoria.classList.add("hidden");
     el.telaJogo.classList.add("hidden");
     el.telaOpcoes.classList.add("hidden");
     el.telaSelecao.classList.remove("hidden");
+  }
+
+  function voltarTela(){
+    if(!el.telaJogo.classList.contains("hidden") || !el.telaOpcoes.classList.contains("hidden")){
+      voltarParaSelecao();
+      return;
+    }
+    window.location.href = "minijogos.html";
   }
 
   function announce(msg){
@@ -996,6 +1020,8 @@
     el.btnSom.textContent = soundOn ? "🔊 Som" : "🔇 Som";
     el.btnSom.setAttribute("aria-pressed", String(soundOn));
   });
+
+  document.getElementById("btnVoltar").addEventListener("click", voltarTela);
 
 })();
 </script>
