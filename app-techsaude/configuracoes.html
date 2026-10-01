@@ -370,6 +370,67 @@
       .header { padding: 10px 8px; gap: 8px; }
       .page-header h1 { font-size: 17px; }
     }
+
+    :root {
+      --cream: #f3efdc;
+      --cream-deep: #ece5c9;
+      --green-deep: #1b3a26;
+      --green-mid: #2f6b46;
+      --green-soft: #dcefdf;
+      --teal: #2f9e8f;
+      --line: #cdbf95;
+      --text: #26332a;
+      --text-soft: #55604f;
+    }
+
+    body { background: var(--cream); }
+    .app-shell { background: var(--cream); }
+    .header { background: linear-gradient(160deg, #1d5b3a, #123a26); }
+    .header-datetime { color: rgba(244, 238, 219, 0.9); }
+    .page-header h1, .section-title { color: var(--green-deep); }
+    .page-header p, .profile-info .label, .profile-info .edit-hint,
+    .field-icon, .field-label, .field-edit, .pref-sub, .pref-chevron,
+    .strength-hint { color: var(--text-soft); }
+    .section { background: #faf7ec; border-color: var(--line); }
+    .profile-hero { background: var(--green-soft); border-color: #a5d6a7; }
+    .avatar-circle { background: var(--green-soft); border-color: var(--green-mid); }
+    .avatar-circle i, .pref-icon { color: var(--green-mid); }
+    .avatar-cam { background: var(--green-deep); border-color: var(--green-mid); }
+    .avatar-cam:hover { background: var(--green-mid); }
+    .avatar-cam i { color: var(--cream); }
+    .profile-info .value, .field-value, .pref-title-text { color: var(--text); }
+    .field-row, .pref-row { border-color: var(--line); }
+    .field-row:hover, .pref-row:hover { background: var(--green-soft); }
+    .btn-primary, .mbtn-ok {
+      background: var(--green-deep);
+      color: var(--cream);
+      border-color: var(--green-deep);
+    }
+    .btn-primary:hover, .mbtn-ok:hover { background: var(--green-mid); }
+    .footer { color: var(--text-soft); border-color: var(--line); }
+    .modal { border-color: var(--line); }
+    .modal-head { background: linear-gradient(160deg, #1d5b3a, #123a26); }
+    .modal-head-title, .modal-x { color: var(--cream); }
+    .mfield label { color: var(--green-deep); }
+    .mfield input, .mfield textarea, .mfield select {
+      background: #fff;
+      border-color: var(--line);
+      color: var(--text);
+    }
+    .mfield input:focus, .mfield textarea:focus, .mfield select:focus {
+      border-color: var(--teal);
+      background: #fff;
+    }
+    .mbtn-cancel { color: var(--green-deep); border-color: var(--line); }
+    .mbtn-cancel:hover { background: var(--green-soft); }
+    .seg.strong { background: var(--green-mid); }
+    .toast { background: var(--green-deep); color: var(--cream); border-color: var(--teal); }
+
+    @media (min-width: 900px) {
+      body {
+        background: radial-gradient(circle at 50% 0%, #0f5132 0%, #0b3e28 45%, #082a1c 100%);
+      }
+    }
   </style>
 </head>
 <body>
@@ -625,10 +686,10 @@
       <div style="text-align:center;padding:12px 0 8px;">
         <img src="img/logo.png" alt="Logo" style="width:60px;height:60px;object-fit:contain;margin-bottom:8px;"
           onerror="this.style.display='none'" />
-        <div style="font-size:22px;font-weight:900;color:#1a3a0a;">TechSaúde</div>
-        <div style="font-size:13px;color:#4a6e3a;margin-top:4px;">Versão 1.0.0 · Acadêmica 2026</div>
-        <hr style="margin:14px 0;border:none;border-top:1px solid #d4e8b8;" />
-        <div style="font-size:13px;color:#2d2d2d;line-height:1.7;text-align:left;">
+        <div style="font-size:22px;font-weight:900;color:var(--green-deep);">TechSaúde</div>
+        <div style="font-size:13px;color:var(--text-soft);margin-top:4px;">Versão 1.0.0 · Acadêmica 2026</div>
+        <hr style="margin:14px 0;border:none;border-top:1px solid var(--line);" />
+        <div style="font-size:13px;color:var(--text);line-height:1.7;text-align:left;">
           Um acompanhante digital simples para a rotina de quem tem mais idade — e de quem ajuda no celular.<br><br>
           Projeto acadêmico da equipe TechSaúde, do curso de Gestão da Tecnologia da Informação da FATEC Barueri (4º semestre, 2026).
         </div>
