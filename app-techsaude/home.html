@@ -346,6 +346,7 @@
   };
 
   function openFeature(key){
+    if (key === 'voz') { window.AssistenteVoz.abrir(); return; }
     const f = FEATURES[key];
     if(!f) return;
     if(f.url){
@@ -385,6 +386,6 @@
     window.location.href = 'index.html';
   }
 </script>
-
+   <script src="assistente-voz.js"></script>
 </body>
 </html>
