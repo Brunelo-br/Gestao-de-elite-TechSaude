@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde — Emergência</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{--cream:#f3efdc;--ink:#16301f;--ink-soft:#2e4a37;--error:#a3402c;--cream-deep:#ece5c9;--green-deep:#1b3a26;--green-mid:#2f6b46;--teal:#2f9e8f;--line:#cdbf95;--text:#26332a;--text-soft:#55604f;--danger:#c0392b;}
+  *{box-sizing:border-box;}
+  input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;}
+  body{margin:0;min-height:100vh;background:var(--cream);font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;color:var(--text);}
+  .wrap{min-height:100vh;display:flex;flex-direction:column;}
+  /* TOPO — igual à Home */
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;position:relative;padding:18px 14px 14px;background:linear-gradient(160deg,#1d5b3a,#123a26);}
+  .home-logo-center{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:2px;}
+  .home-logo-center .logo-mark{width:200px;height:200px;object-fit:contain;}
+  .topbar-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:var(--cream);text-decoration:none;font-size:.64rem;font-weight:800;letter-spacing:.3px;text-transform:uppercase;padding:2px;width:60px;font-family:inherit;}
+  .topbar-btn .icon-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  .topbar-btn.emergencia .icon-circle{background:#c0392b;}
+  .topbar-btn.inicio .icon-circle{background:rgba(255,255,255,.16);}
+  .topbar-btn svg{width:20px;height:20px;}
+  .topbar-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .datetime{padding:9px 18px;font-size:.85rem;color:var(--text-soft);background:var(--cream);border-bottom:1px solid var(--line);}
+  .body{padding:18px 18px 32px;}
+  h1{margin:0 0 12px;color:var(--green-deep);font-size:1.6rem;line-height:1.15;font-weight:900;letter-spacing:-.5px;text-transform:uppercase;}
+  .lead{margin:0 0 22px;font-size:.98rem;line-height:1.5;color:var(--text);}
+  .card{background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:20px 18px 22px;margin-bottom:14px;}
+  .card h2{margin:0 0 6px;font-size:1.05rem;font-weight:900;color:var(--green-deep);text-transform:uppercase;}
+  .card p{margin:0 0 8px;line-height:1.45;}
+  .numero{margin:0 0 12px;font-size:1.6rem;font-weight:800;color:var(--green-deep);letter-spacing:.4px;}
+  .call{
+    display:block;text-align:center;text-decoration:none;color:#fff;
+    background:linear-gradient(180deg,#c9503f,#c0392b);
+    border-radius:999px;padding:15px 18px;font-weight:800;font-size:1rem;text-transform:uppercase;letter-spacing:.4px;
+    box-shadow:0 6px 0 #6e2617,0 10px 18px rgba(0,0,0,.25);transition:transform .08s ease;
+  }
+  .call:active{transform:translateY(3px);box-shadow:0 3px 0 #6e2617;}
+  .call:focus-visible{outline:3px solid var(--teal);outline-offset:3px;}
+  .call.green{background:linear-gradient(180deg,#234a34,var(--green-deep));box-shadow:0 6px 0 #0e2416,0 10px 18px rgba(0,0,0,.25);}
+  .call.green:active{box-shadow:0 3px 0 #0e2416;}
+  .status{font-size:.9rem;color:var(--text-soft);margin-top:8px;}
+  button.call{width:100%;border:none;cursor:pointer;font-family:inherit;}
+  .call.sec{margin-top:14px;background:linear-gradient(180deg,#234a34,var(--green-deep));box-shadow:0 6px 0 #0e2416,0 10px 18px rgba(0,0,0,.25);}
+  .call.sec:active{box-shadow:0 3px 0 #0e2416;}
+  .extras{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;}
+  .extras a{display:flex;justify-content:space-between;gap:10px;text-decoration:none;color:var(--green-deep);font-weight:700;background:var(--cream);border:2px solid var(--line);border-radius:14px;padding:10px 14px;}
+  .extras a:focus-visible{outline:3px solid var(--teal);outline-offset:2px;}
+  .modal-bg{position:fixed;inset:0;background:rgba(8,42,28,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:50;}
+  .modal-bg.open{display:flex;}
+  .modal{width:100%;max-width:420px;background:var(--cream);border:2px solid var(--line);border-radius:20px;padding:22px 20px;box-shadow:0 20px 50px rgba(0,0,0,.45);}
+  .modal h3{margin:0 0 14px;color:var(--green-deep);font-size:1.15rem;font-weight:900;text-transform:uppercase;}
+  .modal label{display:block;margin:0 0 4px;font-size:.85rem;font-weight:800;color:var(--ink-soft);}
+  .modal input{width:100%;padding:13px 14px;margin-bottom:14px;font-size:1rem;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--text);}
+  .modal select{width:100%;padding:13px 14px;margin-bottom:14px;font-size:1rem;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--text);}
+  .modal input:focus,.modal select:focus{outline:3px solid var(--teal);outline-offset:1px;}
+  [hidden]{display:none !important;}
+  .modal .actions{display:flex;gap:10px;}
+  .modal .actions button{flex:1;padding:13px 10px;border-radius:999px;font-weight:800;font-size:.95rem;text-transform:uppercase;cursor:pointer;border:2px solid var(--green-deep);}
+  .modal .btn-save{background:var(--green-deep);color:#fff;}
+  .modal .btn-cancel{background:transparent;color:var(--green-deep);}
+  .modal .btn-save:disabled{opacity:.6;cursor:wait;}
+  .modal .msg{min-height:1.2em;margin:0 0 10px;font-size:.9rem;color:var(--error);}
+  .modal .msg.ok{color:var(--green-mid);}
+  @media (min-width:900px){
+    body{background:radial-gradient(circle at 50% 0%,#0f5132 0%,#0b3e28 45%,#082a1c 100%);display:flex;align-items:center;justify-content:center;padding:40px 24px;}
+    .wrap{width:100%;max-width:1080px;min-height:660px;border-radius:32px;overflow:hidden;background:var(--cream);box-shadow:0 30px 70px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.06);}
+    .topbar{padding:26px 32px 18px;}
+    .datetime{padding:10px 32px;}
+    .body{padding:22px 32px 40px;}
+    h1{font-size:1.75rem;}
+    .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .cards .card{margin-bottom:0;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <span style="width:60px"></span>
+    <div class="home-logo-center">
+      <img src="img/logo.png" alt="Logo TechSaúde" class="logo-mark" style="width:200px; height:200px; object-fit:contain;">
+    </div>
+
+    <a class="topbar-btn inicio" href="home.html">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11.5 12 4l9 7.5"/>
+          <path d="M5 10v10h14V10"/>
+          <path d="M10 20v-6h4v6"/>
+        </svg>
+      </span>
+      Início
+    </a>
+  </div>
+  <div class="datetime" id="datetime"></div>
+  <div class="body">
+    <h1>Emergência</h1>
+    <p class="lead">Toque para ligar. Número de confiança, SAMU (192), Polícia (190) e Bombeiros (193).</p>
+    <div class="cards">
+    <article class="card">
+      <h2>Número de confiança</h2>
+      <p id="contato">Procurando o contato de confiança…</p>
+      <p class="numero" id="numero-confianca">—</p>
+      <a class="call" id="ligar-contato" href="tel:192" hidden>Ligar para o contato de confiança</a>
+      <ul class="extras" id="extras"></ul>
+      <button type="button" class="call" id="btn-cadastrar">Cadastrar contato</button>
+    </article>
+    <article class="card">
+      <h2>SAMU</h2>
+      <p>Atendimento de urgência médica.</p>
+      <p class="numero">192</p>
+      <a class="call" href="tel:192">Ligar 192</a>
+    </article>
+    <article class="card">
+      <h2>Polícia</h2>
+      <p>Polícia Militar. Roubo, ameaça ou violência.</p>
+      <p class="numero">190</p>
+      <a class="call" href="tel:190">Ligar 190</a>
+    </article>
+    <article class="card">
+      <h2>Bombeiros</h2>
+      <p>Incêndio, resgate e acidente.</p>
+      <p class="numero">193</p>
+      <a class="call green" href="tel:193">Ligar 193</a>
+    </article>
+    </div>
+    <p class="status" id="status"></p>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+  <form class="modal" id="form-contato" novalidate>
+    <h3 id="modal-titulo">Novo contato de confiança</h3>
+    <label for="f-nome">Nome</label>
+    <input type="text" id="f-nome" maxlength="80" placeholder="Ex.: Maria (filha)" autocomplete="name" required>
+    <label for="f-tel">Telefone com DDD</label>
+    <input type="tel" id="f-tel" maxlength="16" placeholder="(11) 91234-5678" inputmode="tel" autocomplete="tel" required>
+    <label for="f-par">Parentesco</label>
+    <select id="f-par" required>
+      <option value="">Selecione…</option>
+      <option>Filho(a)</option>
+      <option>Neto(a)</option>
+      <option>Cônjuge</option>
+      <option>Irmão(ã)</option>
+      <option>Pai / Mãe</option>
+      <option>Sobrinho(a)</option>
+      <option>Amigo(a)</option>
+      <option>Vizinho(a)</option>
+      <option>Cuidador(a)</option>
+      <option value="__outro">Outro…</option>
+    </select>
+    <input type="text" id="f-par-outro" maxlength="40" placeholder="Qual o parentesco?" hidden>
+    <p class="msg" id="f-msg" role="alert"></p>
+    <div class="actions">
+      <button type="button" class="btn-cancel" id="f-cancelar">Cancelar</button>
+      <button type="submit" class="btn-save" id="f-salvar">Salvar</button>
+    </div>
+  </form>
+</div>
+<script>
+const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+function clock(){
+  const n = new Date();
+  const dias = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('datetime').textContent = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' - '+dias[n.getDay()]+', '+n.getDate()+' de '+meses[n.getMonth()]+' de '+n.getFullYear();
+}
+clock();
+function getUsuario(){
+  try { return JSON.parse(localStorage.getItem('usuario_logado') || 'null'); } catch(e) { return null; }
+}
+const SEM_CONTATO = 'Nenhum número de confiança cadastrado. Use 192, 190 ou 193.';
+async function carregar(){
+  const el = document.getElementById('contato');
+  const link = document.getElementById('ligar-contato');
+  const num = document.getElementById('numero-confianca');
+  const extras = document.getElementById('extras');
+  const btnCad = document.getElementById('btn-cadastrar');
+  const usuario = getUsuario();
+  extras.innerHTML = '';
+  link.hidden = true;
+  btnCad.textContent = 'Cadastrar contato';
+  btnCad.classList.remove('sec');
+  if(!usuario || !usuario.id_usuario || !supabaseClient){
+    el.textContent = SEM_CONTATO;
+    num.textContent = 'Não cadastrado';
+    return;
+  }
+  const { data, error } = await supabaseClient.from('contato_emergencia').select('*').eq('id_usuario', usuario.id_usuario);
+  if(error || !data || !data.length){
+    el.textContent = SEM_CONTATO;
+    num.textContent = 'Não cadastrado';
+    return;
+  }
+  const c = data[0];
+  const tel = String(c.telefone || '').replace(/\D/g,'');
+  el.textContent = (c.nome_contato || 'Contato de confiança') + (c.parentesco ? ' — ' + c.parentesco : '');
+  num.textContent = c.telefone || 'Sem telefone';
+  if(tel){ link.href = 'tel:'+tel; link.textContent = 'Ligar para ' + (c.nome_contato || 'o contato'); link.hidden = false; }
+  data.slice(1).forEach(function(x){
+    const t = String(x.telefone || '').replace(/\D/g,'');
+    if(!t) return;
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = 'tel:' + t;
+    const n = document.createElement('span'); n.textContent = (x.nome_contato || 'Contato') + (x.parentesco ? ' (' + x.parentesco + ')' : '');
+    const p = document.createElement('span'); p.textContent = x.telefone;
+    a.appendChild(n); a.appendChild(p); li.appendChild(a); extras.appendChild(li);
+  });
+  btnCad.textContent = 'Cadastrar novo contato';
+  btnCad.classList.add('sec');
+  document.getElementById('status').textContent = 'Chamado aberto a partir de qualquer tela do aplicativo.';
+}
+
+/* ---- Cadastro de contato de confiança ---- */
+const modal = document.getElementById('modal');
+const form = document.getElementById('form-contato');
+const fNome = document.getElementById('f-nome');
+const fTel = document.getElementById('f-tel');
+const fMsg = document.getElementById('f-msg');
+const fSalvar = document.getElementById('f-salvar');
+const fPar = document.getElementById('f-par');
+const fParOutro = document.getElementById('f-par-outro');
+fPar.addEventListener('change', function(){
+  fParOutro.hidden = fPar.value !== '__outro';
+  if(!fParOutro.hidden) fParOutro.focus();
+});
+function abrirModal(){
+  fMsg.textContent = ''; fMsg.className = 'msg';
+  form.reset();
+  fParOutro.hidden = true;
+  modal.classList.add('open');
+  setTimeout(function(){ fNome.focus(); }, 50);
+}
+function fecharModal(){
+  modal.classList.remove('open');
+  document.getElementById('btn-cadastrar').focus();
+}
+document.getElementById('btn-cadastrar').addEventListener('click', abrirModal);
+document.getElementById('f-cancelar').addEventListener('click', fecharModal);
+modal.addEventListener('click', function(e){ if(e.target === modal) fecharModal(); });
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && modal.classList.contains('open')) fecharModal(); });
+fTel.addEventListener('input', function(){
+  let d = fTel.value.replace(/\D/g,'').slice(0,11);
+  if(d.length > 10) fTel.value = '(' + d.slice(0,2) + ') ' + d.slice(2,7) + '-' + d.slice(7);
+  else if(d.length > 6) fTel.value = '(' + d.slice(0,2) + ') ' + d.slice(2,6) + '-' + d.slice(6);
+  else if(d.length > 2) fTel.value = '(' + d.slice(0,2) + ') ' + d.slice(2);
+  else fTel.value = d;
+});
+form.addEventListener('submit', async function(e){
+  e.preventDefault();
+  fMsg.className = 'msg';
+  const nome = fNome.value.trim();
+  const telefone = fTel.value.trim();
+  const digitos = telefone.replace(/\D/g,'');
+  const usuario = getUsuario();
+  if(!usuario || !usuario.id_usuario){ fMsg.textContent = 'Faça login para cadastrar um contato.'; return; }
+  if(!supabaseClient){ fMsg.textContent = 'Sem conexão com o servidor. Tente novamente.'; return; }
+  if(nome.length < 2){ fMsg.textContent = 'Informe o nome do contato.'; fNome.focus(); return; }
+  if(digitos.length < 10){ fMsg.textContent = 'Informe o telefone com DDD.'; fTel.focus(); return; }
+  const parentesco = (fPar.value === '__outro' ? fParOutro.value : fPar.value).trim();
+  if(!parentesco){
+    fMsg.textContent = 'Informe o parentesco.';
+    (fPar.value === '__outro' ? fParOutro : fPar).focus();
+    return;
+  }
+  fSalvar.disabled = true; fSalvar.textContent = 'Salvando…';
+  const { error } = await supabaseClient.from('contato_emergencia').insert({
+    id_usuario: usuario.id_usuario,
+    nome_contato: nome,
+    telefone: telefone,
+    parentesco: parentesco
+  });
+  fSalvar.disabled = false; fSalvar.textContent = 'Salvar';
+  if(error){ fMsg.textContent = 'Não foi possível salvar. Tente novamente.'; return; }
+  fMsg.className = 'msg ok'; fMsg.textContent = 'Contato salvo!';
+  await carregar();
+  setTimeout(fecharModal, 600);
+});
+carregar();
+</script>
+</body>
+</html>
