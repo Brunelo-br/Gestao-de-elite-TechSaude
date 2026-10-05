@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TechSaúde — Coleta de Dados Diários</title>
+<meta name="description" content="Formulário pop-up de coleta de dados diários do aplicativo TechSaúde (UC19 / RF019).">
+<meta name="theme-color" content="#14532D">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TechSaúde">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TechSaúde — UC19 Formulário Pop-Up
+   Design system herdado de login.html / tela-inicial
+   ============================================================ */
+:root{
+  --verde-900:#14532D;
+  --verde-800:#1B5E3A;
+  --verde-600:#2E7D46;
+  --verde-claro:#A9D98A;
+  --creme:#F4EFDC;
+  --campo:#ECECEC;
+  --campo-borda:#C9C9C9;
+  --cinza-btn:#9E9E9E;
+  --vermelho:#C62828;
+  --vermelho-escuro:#8E1B1B;
+  --texto:#17201B;
+  --texto-suave:#4A5751;
+  --sombra:0 14px 34px rgba(0,0,0,.30);
+  --raio:26px;
+  --raio-campo:14px;
+  --alvo:56px;
+  --fs-base:18px;
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-size:var(--fs-base);
+  color:var(--texto);
+  background:radial-gradient(120% 90% at 50% 0%, #2B7A4B 0%, #14532D 55%, #0D3A20 100%);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+}
+h1{ font-family:'Baloo 2','Nunito',sans-serif; margin:0; }
+button{ font:inherit; cursor:pointer; }
+:focus-visible{ outline:4px solid #FFD54F; outline-offset:3px; border-radius:8px; }
+
+/* ---------- Moldura do aplicativo ---------- */
+.app{
+  width:100%; max-width:460px; min-height:100vh; min-height:100dvh; margin:0 auto;
+  background:var(--verde-800);
+  box-shadow:0 0 60px rgba(0,0,0,.45);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.topbar{
+  background:var(--verde-900);
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 10px;
+  display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px;
+}
+.icone-topo{
+  background:none; border:0; padding:4px;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  color:#EAF3EA; min-width:var(--alvo); min-height:var(--alvo); border-radius:16px;
+}
+.icone-topo span{ font-size:.62em; font-weight:800; letter-spacing:.04em; }
+.icone-topo:active{ transform:scale(.95); }
+.bolha-emergencia{
+  width:44px; height:44px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #E53935, #8E1B1B);
+  display:grid; place-items:center; box-shadow:0 3px 0 rgba(0,0,0,.35);
+}
+.marca{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+.marca-nome{
+  font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.5em;
+  color:var(--verde-claro); line-height:1; text-shadow:0 2px 3px rgba(0,0,0,.35);
+}
+.faixa-data{
+  background:var(--verde-900); border-top:2px solid rgba(255,255,255,.14);
+  padding:8px 12px; text-align:center; color:#F2F7F1;
+  font-weight:800; font-size:.86em;
+}
+
+/* ---------- Área de fundo ---------- */
+.palco{
+  flex:1; display:flex; align-items:center; justify-content:center;
+  padding:18px 14px calc(env(safe-area-inset-bottom,0px) + 18px);
+}
+.reabrir{
+  display:flex; align-items:center; gap:10px; width:100%;
+  background:var(--creme); border:3px solid var(--vermelho);
+  border-radius:18px; padding:14px; text-align:left; min-height:var(--alvo);
+}
+.reabrir[hidden]{ display:none; }
+.reabrir .selo{
+  background:var(--vermelho); color:#fff; font-weight:800; font-size:.66em;
+  letter-spacing:.05em; padding:6px 10px; border-radius:999px;
+  display:flex; align-items:center; gap:6px; white-space:nowrap;
+}
+.reabrir .txt{ font-weight:700; font-size:.86em; line-height:1.3; }
+
+/* ---------- Pop-up ---------- */
+.backdrop{
+  position:fixed; inset:0; z-index:50;
+  background:rgba(8,26,15,.62); backdrop-filter:blur(2px);
+  display:grid; place-items:center; padding:28px 14px 20px;
+}
+.backdrop[hidden]{ display:none; }
+.popup{
+  width:100%; max-width:430px; background:var(--creme);
+  border-radius:var(--raio); box-shadow:var(--sombra);
+  padding:18px 16px 16px; position:relative;
+  display:flex; flex-direction:column;
+  max-height:calc(100vh - 48px); max-height:calc(100dvh - 48px);
+  animation:surgir .28s ease-out;
+}
+.popup:focus{ outline:none; }
+@keyframes surgir{
+  from{ opacity:0; transform:translateY(16px) scale(.97); }
+  to{ opacity:1; transform:none; }
+}
+@media (prefers-reduced-motion:reduce){
+  .popup{ animation:none; } *{ transition:none !important; }
+}
+.selo-pendente{
+  position:absolute; top:-15px; left:50%; transform:translateX(-50%);
+  background:var(--vermelho); color:#fff; font-weight:800; font-size:.68em;
+  letter-spacing:.06em; padding:7px 14px; border-radius:999px;
+  display:flex; align-items:center; gap:6px;
+  box-shadow:0 4px 10px rgba(0,0,0,.3); white-space:nowrap;
+}
+.fechar{
+  position:absolute; top:10px; right:10px; width:44px; height:44px;
+  border-radius:50%; border:0; background:transparent; color:var(--texto-suave);
+  display:grid; place-items:center; font-size:1.4em; font-weight:800;
+}
+.fechar:active{ background:rgba(0,0,0,.08); }
+.popup h1{ text-align:center; font-size:1.5em; font-weight:800; margin:14px 30px 2px; line-height:1.15; }
+.subtitulo{
+  text-align:center; margin:0 0 10px;
+  font-family:'Baloo 2',sans-serif; font-weight:700; font-size:1em; color:var(--verde-800);
+}
+
+.status-form{
+  margin:0 0 10px; padding:10px 13px; border-radius:14px;
+  background:#FBE9E7; border:2px solid var(--vermelho);
+  color:var(--vermelho-escuro); font-weight:800; font-size:.8em; line-height:1.3;
+}
+.status-form[hidden]{ display:none; }
+
+/* Corpo rolável: título e botões ficam sempre visíveis */
+.popup form{ display:flex; flex-direction:column; min-height:0; flex:1; }
+.corpo{
+  overflow-y:auto; min-height:0; flex:1;
+  padding:4px 6px 8px 2px; margin-right:-6px;
+  overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+}
+
+/* ---------- Perguntas ---------- */
+.campo{ margin-bottom:20px; }
+.pergunta{
+  display:flex; align-items:flex-start; gap:9px;
+  font-size:.98em; font-weight:800; line-height:1.3; margin-bottom:9px; color:var(--texto);
+}
+.num{
+  flex:none; width:28px; height:28px; border-radius:50%;
+  background:var(--verde-900); color:#fff;
+  display:grid; place-items:center;
+  font-family:'Baloo 2',sans-serif; font-size:.82em; font-weight:700;
+}
+.dica{ font-size:.74em; font-weight:700; color:var(--texto-suave); margin:-4px 0 9px 37px; }
+
+.lista-opcoes{ display:flex; flex-direction:column; gap:8px; border-radius:var(--raio-campo); }
+.opcao{
+  position:relative; display:flex; align-items:center; gap:12px;
+  min-height:54px; padding:10px 14px;
+  background:var(--campo); border:2px solid var(--campo-borda);
+  border-radius:var(--raio-campo); cursor:pointer; user-select:none;
+  font-weight:700; font-size:.92em; line-height:1.25; color:var(--texto);
+}
+.opcao input{
+  position:absolute; inset:0; width:100%; height:100%; margin:0;
+  opacity:0; cursor:pointer;
+}
+.opcao:has(input:focus-visible){ outline:4px solid #FFD54F; outline-offset:2px; }
+.caixa{
+  flex:none; width:26px; height:26px; border:3px solid #7A7A7A;
+  border-radius:7px; background:#fff; display:grid; place-items:center;
+}
+.caixa.redonda{ border-radius:50%; }
+.caixa::after{
+  content:""; width:12px; height:12px; border-radius:50%; background:#fff;
+  transform:scale(0); transition:transform .12s;
+}
+.caixa:not(.redonda)::after{
+  width:7px; height:13px; border-radius:0; background:transparent;
+  border:solid #fff; border-width:0 3px 3px 0; margin-top:-2px;
+  transform:rotate(45deg) scale(0);
+}
+.opcao.marcada{ background:var(--verde-600); border-color:var(--verde-900); color:#fff; }
+.opcao.marcada .caixa{ background:var(--verde-900); border-color:#fff; }
+.opcao.marcada .caixa::after{ transform:scale(1); }
+.opcao.marcada .caixa:not(.redonda)::after{ transform:rotate(45deg) scale(1); }
+
+.sub-campo{ margin-top:10px; }
+.sub-campo[hidden]{ display:none; }
+.sub-campo label{ display:block; font-size:.86em; font-weight:800; margin-bottom:6px; color:var(--texto); }
+textarea{
+  width:100%; min-height:76px; resize:vertical;
+  background:var(--campo); border:2px solid var(--campo-borda);
+  border-radius:var(--raio-campo); padding:11px 12px;
+  font:inherit; font-size:.92em; color:var(--texto);
+}
+textarea::placeholder{ color:#8C8C8C; }
+textarea:focus{ border-color:var(--verde-600); background:#fff; outline:none; }
+.linha-apoio{ display:flex; justify-content:flex-end; margin-top:4px; }
+.contador{ font-size:.7em; color:var(--texto-suave); font-weight:700; }
+
+.erro{
+  display:none; align-items:center; gap:6px; margin-top:7px;
+  color:var(--vermelho-escuro); font-size:.78em; font-weight:800; line-height:1.25;
+}
+.erro svg{ flex:none; }
+.campo.invalido .erro{ display:flex; }
+.campo.sem-escolha .lista-opcoes{ outline:3px solid var(--vermelho); outline-offset:3px; }
+.campo.sem-texto textarea{ border-color:var(--vermelho); background:#FDEFEF; }
+
+/* ---------- Botões ---------- */
+.acoes{ display:flex; gap:10px; padding-top:12px; }
+.btn{
+  flex:1; min-height:62px; border:0; border-radius:999px;
+  font-family:'Baloo 2',sans-serif; font-weight:800; line-height:1.05;
+  display:grid; place-items:center; text-align:center; padding:8px 10px;
+  transition:transform .12s ease;
+}
+.btn:active{ transform:scale(.97); }
+.btn-primario{ background:var(--verde-600); color:#fff; font-size:1.02em; box-shadow:0 4px 0 #1B5E3A; }
+.btn-secundario{ background:var(--cinza-btn); color:#fff; font-size:.82em; box-shadow:0 4px 0 #6E6E6E; }
+
+/* ---------- Confirmação ---------- */
+.confirmacao{ text-align:center; padding:18px 14px 16px; }
+.confirmacao .selo-ok{
+  width:88px; height:88px; margin:6px auto 14px; border-radius:50%;
+  background:var(--verde-600); display:grid; place-items:center;
+  box-shadow:0 8px 0 rgba(27,94,58,.35);
+}
+.confirmacao h1{ margin:0 0 8px; }
+.confirmacao p{ font-size:.88em; color:var(--texto-suave); line-height:1.4; margin:0 8px 14px; }
+
+/* ---------- Toast ---------- */
+.toast{
+  position:fixed; left:50%; bottom:26px; transform:translate(-50%,20px); z-index:80;
+  max-width:min(92vw,420px); background:var(--verde-900); color:#fff;
+  border:2px solid var(--verde-claro); padding:13px 18px; border-radius:16px;
+  font-weight:700; font-size:.85em; text-align:center;
+  opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+}
+.toast.visivel{ opacity:1; transform:translate(-50%,0); }
+
+@media (min-width:900px){
+  body{ padding:24px 0; }
+  .app{ min-height:calc(100dvh - 48px); border-radius:34px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===== Cabeçalho padrão do TechSaúde ===== -->
+  <header class="topbar">
+    <button class="icone-topo" type="button" id="btnEmergencia" aria-label="Acionar emergência">
+      <span class="bolha-emergencia" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 3a5 5 0 0 0-5 5v4.5L5.5 16h13L17 12.5V8a5 5 0 0 0-5-5Z" fill="#FFF3B0" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M9.6 18.5a2.5 2.5 0 0 0 4.8 0" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span>EMERGÊNCIA</span>
+    </button>
+
+    <div class="marca">
+      <svg width="58" height="50" viewBox="0 0 72 62" role="img" aria-label="Logomarca TechSaúde">
+        <defs>
+          <linearGradient id="gradCoracao" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#7FD1B9"/><stop offset="1" stop-color="#A9D98A"/>
+          </linearGradient>
+        </defs>
+        <path d="M36 58S6 40 6 22C6 12 13 5 21.5 5 28 5 33 9 36 14c3-5 8-9 14.5-9C59 5 66 12 66 22 66 40 36 58 36 58Z" fill="url(#gradCoracao)" stroke="#0F3D24" stroke-width="2.5" stroke-linejoin="round"/>
+        <g stroke="#0F3D24" stroke-width="1.8" stroke-linecap="round" fill="none" opacity=".75">
+          <path d="M13 22h7l3-4 3 4h4"/><path d="M16 30h6l3 4"/><path d="M14 15h5"/>
+        </g>
+        <g><circle cx="12.5" cy="22" r="2" fill="#0F3D24"/><circle cx="30" cy="34" r="2" fill="#0F3D24"/><circle cx="20" cy="15" r="2" fill="#0F3D24"/></g>
+        <circle cx="47" cy="24" r="13" fill="#F6E7D2" stroke="#0F3D24" stroke-width="2"/>
+        <path d="M34.6 20c2-7 8-10.5 12.4-10.5S57.6 13 59.4 20c-3.5 1.6-8 2.4-12.4 2.4S38 21.6 34.6 20Z" fill="#E8EFE6" stroke="#0F3D24" stroke-width="2" stroke-linejoin="round"/>
+        <g fill="#0F3D24"><circle cx="42.5" cy="25" r="1.7"/><circle cx="51.5" cy="25" r="1.7"/></g>
+        <path d="M43 31c2.2 1.8 5.8 1.8 8 0" stroke="#0F3D24" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <span class="marca-nome">TechSaúde</span>
+    </div>
+
+    <button class="icone-topo" type="button" id="btnInicio" aria-label="Ir para a tela inicial" style="justify-self:end">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M3 11.2 12 4l9 7.2" stroke="#EAF3EA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5.5 10.5V20h13v-9.5" stroke="#EAF3EA" stroke-width="2" stroke-linejoin="round" fill="#5C6B60"/>
+        <rect x="10" y="14" width="4" height="6" fill="#EAF3EA"/>
+      </svg>
+      <span>INÍCIO</span>
+    </button>
+  </header>
+
+  <div class="faixa-data" id="faixaData">—</div>
+
+  <!-- ===== Palco: só o acesso de retorno ao formulário ===== -->
+  <div class="palco">
+    <button class="reabrir" type="button" id="btnReabrir" hidden>
+      <span class="selo">
+        <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#fff"/><rect x="11" y="6" width="2" height="8" rx="1" fill="#C62828"/><rect x="11" y="16" width="2" height="2.4" rx="1" fill="#C62828"/></svg>
+        AÇÃO PENDENTE
+      </span>
+      <span class="txt">Toque aqui para responder a Coleta de Dados Diários de hoje.</span>
+    </button>
+  </div>
+</div>
+
+<!-- ===== POP-UP: formulário ===== -->
+<div class="backdrop" id="backdropForm" hidden>
+  <div class="popup" id="popupForm" role="dialog" aria-modal="true" aria-labelledby="tituloForm" tabindex="-1">
+    <span class="selo-pendente">
+      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#fff"/><rect x="11" y="6" width="2" height="8" rx="1" fill="#C62828"/><rect x="11" y="16" width="2" height="2.4" rx="1" fill="#C62828"/></svg>
+      AÇÃO PENDENTE
+    </span>
+    <button class="fechar" type="button" id="btnFechar" aria-label="Fechar formulário e responder mais tarde">✕</button>
+
+    <h1 id="tituloForm">Coleta de Dados Diários</h1>
+    <p class="subtitulo">Informações diárias</p>
+
+    <div class="status-form" id="statusForm" role="alert" hidden></div>
+
+    <form id="formDiario" novalidate>
+      <div class="corpo" id="listaPerguntas"><!-- perguntas montadas por JavaScript --></div>
+      <div class="acoes">
+        <button class="btn btn-primario" type="submit" id="btnEnviar">ENVIAR RESPOSTAS</button>
+        <button class="btn btn-secundario" type="button" id="btnSalvar">SALVAR E CONTINUAR DEPOIS</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== POP-UP: confirmação ===== -->
+<div class="backdrop" id="backdropOk" hidden>
+  <div class="popup confirmacao" role="alertdialog" aria-modal="true" aria-labelledby="tituloOk" aria-describedby="textoOk">
+    <span class="selo-ok" aria-hidden="true">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none"><path d="M5 12.5 10 17.5 19 7" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+    <h1 id="tituloOk">Respostas enviadas</h1>
+    <p id="textoOk">Obrigado por contar como você está hoje. Amanhã o TechSaúde pergunta de novo.</p>
+    <div class="acoes">
+      <button class="btn btn-primario" type="button" id="btnContinuar">CONTINUAR NO APLICATIVO</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     1. Perguntas do formulário (RF019)
+        tipo "unica"    → uma escolha (botão redondo)
+        tipo "multipla" → várias escolhas (caixa de marcar)
+        texto:true      → a opção abre o campo dissertativo
+        exclusivo:true  → desmarca as demais opções
+     ============================================================ */
+  var PERGUNTAS = [
+    { id:"q1", tipo:"unica",
+      titulo:"Ingeriu medicamentos esporádicos?",
+      opcoes:[
+        { v:"nao", r:"Não" },
+        { v:"sim", r:"Sim, qual?", texto:true }
+      ],
+      textoRotulo:"Qual medicamento?",
+      placeholder:"Ex.: tomei um analgésico à tarde.",
+      erroEscolha:"Escolha \"Não\" ou \"Sim\" para poder enviar.",
+      erroTexto:"Escreva qual medicamento você tomou." },
+
+    { id:"q2", tipo:"multipla",
+      titulo:"Teve algum desses sintomas durante o dia?",
+      dica:"Marque quantos precisar.",
+      opcoes:[
+        { v:"tontura",   r:"Tontura" },
+        { v:"articular", r:"Dores articulares" },
+        { v:"ar",        r:"Falta de ar" },
+        { v:"fraqueza",  r:"Fraqueza" },
+        { v:"outro",     r:"Outro...", texto:true },
+        { v:"nenhum",    r:"Nenhum desses", exclusivo:true }
+      ],
+      textoRotulo:"Qual outro sintoma?",
+      placeholder:"Ex.: dor de cabeça no fim da tarde.",
+      erroEscolha:"Marque pelo menos uma opção para poder enviar.",
+      erroTexto:"Descreva o outro sintoma." },
+
+    { id:"q3", tipo:"unica",
+      titulo:"Como você dormiu na última noite?",
+      opcoes:[
+        { v:"bem",     r:"Dormi bem" },
+        { v:"insonia", r:"Tive insônia" },
+        { v:"varias",  r:"Acordei diversas vezes" },
+        { v:"outro",   r:"Outro...", texto:true }
+      ],
+      textoRotulo:"Conte como foi a sua noite.",
+      placeholder:"Ex.: dormi tarde por causa do calor.",
+      erroEscolha:"Escolha uma opção para poder enviar.",
+      erroTexto:"Conte como foi a sua noite." },
+
+    { id:"q4", tipo:"unica",
+      titulo:"Como você está se sentindo?",
+      opcoes:[
+        { v:"bem",        r:"Bem" },
+        { v:"indisposto", r:"Indisposto" },
+        { v:"normal",     r:"Nada fora do comum" },
+        { v:"outro",      r:"Outro...", texto:true }
+      ],
+      textoRotulo:"Conte como você está.",
+      placeholder:"Ex.: estou animada, mas com sono.",
+      erroEscolha:"Escolha uma opção para poder enviar.",
+      erroTexto:"Conte como você está se sentindo." },
+
+    { id:"q5", tipo:"unica",
+      titulo:"Você realizou alguma atividade física hoje?",
+      opcoes:[
+        { v:"nao", r:"Não" },
+        { v:"sim", r:"Sim, qual?", texto:true }
+      ],
+      textoRotulo:"Qual atividade?",
+      placeholder:"Ex.: caminhada de 30 minutos.",
+      erroEscolha:"Escolha \"Não\" ou \"Sim\" para poder enviar.",
+      erroTexto:"Escreva qual atividade você fez." }
+  ];
+
+  var LIMITE = 280;
+  var ICONE_ERRO = '<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#C62828"/><rect x="11" y="6" width="2" height="8" rx="1" fill="#fff"/><rect x="11" y="16" width="2" height="2.4" rx="1" fill="#fff"/></svg>';
+
+  /* ============================================================
+     2. Armazenamento local (tolerante a falha)
+     ============================================================ */
+  var CHAVES = {
+    envios:   "techsaude:v2:respostas",
+    rascunho: "techsaude:v2:rascunho",
+    ultimo:   "techsaude:v2:ultimoEnvio",
+    adiado:   "techsaude:v2:adiado"
+  };
+  var memoria = {};
+
+  function ler(chave, padrao){
+    try{
+      var v = window.localStorage.getItem(chave);
+      if(v === null) return (chave in memoria) ? memoria[chave] : padrao;
+      return JSON.parse(v);
+    }catch(e){ return (chave in memoria) ? memoria[chave] : padrao; }
+  }
+  function gravar(chave, valor){
+    memoria[chave] = valor;
+    try{ window.localStorage.setItem(chave, JSON.stringify(valor)); }catch(e){}
+  }
+
+  /* ============================================================
+     3. Data e hora
+     ============================================================ */
+  var DIAS = ["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
+  var MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+  function chaveDia(d){
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  function dataPorExtenso(d){
+    return DIAS[d.getDay()] + ", " + d.getDate() + " de " + MESES[d.getMonth()] + " de " + d.getFullYear();
+  }
+  function horaCurta(d){
+    return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+  }
+  function atualizarFaixaData(){
+    var d = new Date();
+    $("faixaData").textContent = horaCurta(d) + " - " + dataPorExtenso(d);
+  }
+
+  /* ============================================================
+     4. Utilidades
+     ============================================================ */
+  function $(id){ return document.getElementById(id); }
+  function el(tag, cls){ var e = document.createElement(tag); if(cls) e.className = cls; return e; }
+  function cada(lista, fn){ Array.prototype.forEach.call(lista, fn); }
+
+  var temporizadorToast = null;
+  function aviso(msg){
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("visivel");
+    clearTimeout(temporizadorToast);
+    temporizadorToast = setTimeout(function(){ t.classList.remove("visivel"); }, 3600);
+  }
+
+  var modalAberto = null, focoAnterior = null;
+  function elementosFocaveis(raiz){
+    return Array.prototype.filter.call(
+      raiz.querySelectorAll('button, textarea, input, [tabindex]:not([tabindex="-1"])'),
+      function(e){ return e.offsetParent !== null && !e.disabled; }
+    );
+  }
+  function abrirModal(idBackdrop, idFocoInicial){
+    if(modalAberto) fecharModal(true);
+    focoAnterior = document.activeElement;
+    var bd = $(idBackdrop);
+    bd.hidden = false;
+    modalAberto = bd;
+    document.body.style.overflow = "hidden";
+    var alvo = idFocoInicial ? $(idFocoInicial) : elementosFocaveis(bd)[0];
+    if(alvo) setTimeout(function(){ alvo.focus(); }, 60);
+  }
+  function fecharModal(silencioso){
+    if(!modalAberto) return;
+    modalAberto.hidden = true;
+    modalAberto = null;
+    document.body.style.overflow = "";
+    if(!silencioso && focoAnterior && focoAnterior.focus) focoAnterior.focus();
+  }
+  document.addEventListener("keydown", function(e){
+    if(!modalAberto) return;
+    if(e.key === "Escape"){
+      e.preventDefault();
+      if(modalAberto.id === "backdropForm") adiarFormulario("fechado"); else fecharModal();
+      return;
+    }
+    if(e.key === "Tab"){
+      var f = elementosFocaveis(modalAberto);
+      if(!f.length) return;
+      var primeiro = f[0], ultimo = f[f.length-1];
+      if(e.shiftKey && document.activeElement === primeiro){ e.preventDefault(); ultimo.focus(); }
+      else if(!e.shiftKey && document.activeElement === ultimo){ e.preventDefault(); primeiro.focus(); }
+    }
+  });
+
+  /* ============================================================
+     5. Montagem das perguntas
+     ============================================================ */
+  function opcaoDe(p, v){
+    for(var i = 0; i < p.opcoes.length; i++) if(p.opcoes[i].v === v) return p.opcoes[i];
+    return {};
+  }
+
+  function montar(){
+    var cont = $("listaPerguntas");
+    PERGUNTAS.forEach(function(p, i){
+      var campo = el("div", "campo");
+      campo.id = "campo-" + p.id;
+
+      var rotulo = el("div", "pergunta");
+      rotulo.id = "rot-" + p.id;
+      var num = el("span", "num"); num.textContent = String(i + 1);
+      var txt = el("span"); txt.textContent = p.titulo;
+      rotulo.appendChild(num); rotulo.appendChild(txt);
+      campo.appendChild(rotulo);
+
+      if(p.dica){
+        var dica = el("div", "dica"); dica.id = "dica-" + p.id; dica.textContent = p.dica;
+        campo.appendChild(dica);
+      }
+
+      var lista = el("div", "lista-opcoes");
+      lista.setAttribute("role", p.tipo === "unica" ? "radiogroup" : "group");
+      lista.setAttribute("aria-labelledby", "rot-" + p.id);
+      lista.setAttribute("aria-describedby", "erro-" + p.id);
+
+      p.opcoes.forEach(function(o){
+        var lab = el("label", "opcao");
+        var inp = document.createElement("input");
+        inp.type = p.tipo === "unica" ? "radio" : "checkbox";
+        inp.name = p.id;
+        inp.value = o.v;
+        inp.id = p.id + "-" + o.v;
+        var caixa = el("span", "caixa" + (p.tipo === "unica" ? " redonda" : ""));
+        caixa.setAttribute("aria-hidden", "true");
+        var rot = el("span", "rot"); rot.textContent = o.r;
+        lab.appendChild(inp); lab.appendChild(caixa); lab.appendChild(rot);
+        lista.appendChild(lab);
+      });
+      campo.appendChild(lista);
+
+      /* Campo dissertativo ("Outro..." / "Sim, qual?") */
+      var sub = el("div", "sub-campo");
+      sub.id = p.id + "-sub";
+      sub.hidden = true;
+      var lbl = document.createElement("label");
+      lbl.setAttribute("for", p.id + "-texto");
+      lbl.textContent = p.textoRotulo;
+      var ta = document.createElement("textarea");
+      ta.id = p.id + "-texto";
+      ta.name = p.id + "-texto";
+      ta.rows = 2;
+      ta.maxLength = LIMITE;
+      ta.placeholder = p.placeholder;
+      ta.setAttribute("aria-describedby", "erro-" + p.id + " cont-" + p.id);
+      var apoio = el("div", "linha-apoio");
+      var cont2 = el("span", "contador");
+      cont2.id = "cont-" + p.id;
+      cont2.textContent = "0/" + LIMITE;
+      apoio.appendChild(cont2);
+      sub.appendChild(lbl); sub.appendChild(ta); sub.appendChild(apoio);
+      campo.appendChild(sub);
+
+      var erro = el("div", "erro");
+      erro.id = "erro-" + p.id;
+      erro.setAttribute("aria-live", "polite");
+      erro.innerHTML = ICONE_ERRO;
+      var msg = el("span"); msg.id = "msg-" + p.id;
+      erro.appendChild(msg);
+      campo.appendChild(erro);
+
+      cont.appendChild(campo);
+
+      lista.addEventListener("change", function(e){ aoMudar(p, e.target); });
+      ta.addEventListener("input", function(){
+        contar(p);
+        if(ta.value.trim().length >= 2) campo.classList.remove("sem-texto");
+        atualizarInvalido(campo);
+      });
+    });
+  }
+
+  function contar(p){
+    $("cont-" + p.id).textContent = $(p.id + "-texto").value.length + "/" + LIMITE;
+  }
+  function atualizarInvalido(campo){
+    campo.classList.toggle("invalido",
+      campo.classList.contains("sem-escolha") || campo.classList.contains("sem-texto"));
+  }
+
+  /* Atualiza visual, mostra/oculta o campo dissertativo */
+  function sincronizar(p){
+    var campo = $("campo-" + p.id);
+    var marcadas = [];
+    cada(campo.querySelectorAll("input"), function(inp){
+      inp.parentNode.classList.toggle("marcada", inp.checked);
+      if(inp.checked) marcadas.push(inp.value);
+    });
+    var pedeTexto = marcadas.some(function(v){ return opcaoDe(p, v).texto; });
+    $(p.id + "-sub").hidden = !pedeTexto;
+    if(!pedeTexto){
+      $(p.id + "-texto").value = "";
+      campo.classList.remove("sem-texto");
+    }
+    if(marcadas.length) campo.classList.remove("sem-escolha");
+    contar(p);
+    atualizarInvalido(campo);
+  }
+
+  function aoMudar(p, alvo){
+    var campo = $("campo-" + p.id);
+    var subOculto = $(p.id + "-sub").hidden;
+
+    /* "Nenhum desses" é exclusivo: marcar um desmarca o outro */
+    if(p.tipo === "multipla" && alvo.checked){
+      var o = opcaoDe(p, alvo.value);
+      cada(campo.querySelectorAll("input"), function(inp){
+        if(inp === alvo) return;
+        if(o.exclusivo || opcaoDe(p, inp.value).exclusivo) inp.checked = false;
+      });
+    }
+    sincronizar(p);
+    if(subOculto && !$(p.id + "-sub").hidden){
+      setTimeout(function(){ $(p.id + "-texto").focus(); }, 80);
+    }
+  }
+
+  /* ============================================================
+     6. Leitura / preenchimento do formulário
+     ============================================================ */
+  function lerResposta(p){
+    var valores = [];
+    cada(document.querySelectorAll('input[name="' + p.id + '"]:checked'), function(inp){
+      valores.push(inp.value);
+    });
+    var pedeTexto = valores.some(function(v){ return opcaoDe(p, v).texto; });
+    return { valores: valores, pedeTexto: pedeTexto,
+             texto: pedeTexto ? $(p.id + "-texto").value.trim() : "" };
+  }
+  function algumaRespondida(){
+    return PERGUNTAS.some(function(p){ return lerResposta(p).valores.length > 0; });
+  }
+  function coletar(){
+    var dados = {};
+    PERGUNTAS.forEach(function(p){
+      var r = lerResposta(p);
+      dados[p.id] = { valores: r.valores, texto: r.texto };
+    });
+    return dados;
+  }
+  function preencher(dados){
+    PERGUNTAS.forEach(function(p){
+      var d = dados && dados[p.id];
+      cada(document.querySelectorAll('input[name="' + p.id + '"]'), function(inp){
+        inp.checked = !!d && d.valores.indexOf(inp.value) > -1;
+      });
+      sincronizar(p);
+      if(d && d.texto && !$(p.id + "-sub").hidden){
+        $(p.id + "-texto").value = d.texto;
+        contar(p);
+      }
+    });
+  }
+  function limparFormulario(){
+    $("formDiario").reset();
+    PERGUNTAS.forEach(function(p){
+      var campo = $("campo-" + p.id);
+      campo.classList.remove("sem-escolha", "sem-texto", "invalido");
+      $(p.id + "-texto").setAttribute("aria-invalid", "false");
+      sincronizar(p);
+    });
+    $("statusForm").hidden = true;
+  }
+
+  /* ---- Cenário Alternativo I: formulário não respondido ---- */
+  function listaPt(a){
+    return a.length === 1 ? a[0] : a.slice(0, -1).join(", ") + " e " + a[a.length - 1];
+  }
+  function validar(){
+    var faltas = [];
+    PERGUNTAS.forEach(function(p, i){
+      var r = lerResposta(p), campo = $("campo-" + p.id);
+      var semEscolha = r.valores.length === 0;
+      var semTexto = !semEscolha && r.pedeTexto && r.texto.length < 2;
+      campo.classList.toggle("sem-escolha", semEscolha);
+      campo.classList.toggle("sem-texto", semTexto);
+      campo.classList.toggle("invalido", semEscolha || semTexto);
+      $(p.id + "-texto").setAttribute("aria-invalid", semTexto ? "true" : "false");
+      if(semEscolha) $("msg-" + p.id).textContent = p.erroEscolha;
+      else if(semTexto) $("msg-" + p.id).textContent = p.erroTexto;
+      if(semEscolha || semTexto) faltas.push(String(i + 1));
+    });
+
+    var status = $("statusForm");
+    if(faltas.length){
+      status.textContent = faltas.length === 1
+        ? "Falta responder a pergunta " + faltas[0] + "."
+        : "Faltam responder as perguntas " + listaPt(faltas) + ".";
+      status.hidden = false;
+      var c = document.querySelector(".campo.invalido");
+      var alvo = c.classList.contains("sem-escolha") ? c.querySelector("input") : c.querySelector("textarea");
+      if(alvo) alvo.focus();
+      return false;
+    }
+    status.hidden = true;
+    return true;
+  }
+
+  /* ============================================================
+     7. Fluxo do UC19
+     ============================================================ */
+  function precisaResponderHoje(){
+    return ler(CHAVES.ultimo, null) !== chaveDia(new Date());
+  }
+  function abrirFormulario(){
+    atualizarFaixaData();
+    var rascunho = ler(CHAVES.rascunho, null);
+    if(rascunho && rascunho.dia === chaveDia(new Date()) && rascunho.dados){
+      try{ preencher(rascunho.dados); }catch(e){}
+    }
+    abrirModal("backdropForm", "popupForm");
+  }
+
+  /* Cenário Alternativo II — fechar o pop-up */
+  function adiarFormulario(origem){
+    if(algumaRespondida()){
+      gravar(CHAVES.rascunho, { dia: chaveDia(new Date()), dados: coletar(), salvoEm: new Date().toISOString() });
+    }
+    gravar(CHAVES.adiado, chaveDia(new Date()));
+    fecharModal();
+    atualizarPendencia();
+    aviso(origem === "salvo"
+      ? "Respostas guardadas. Você pode terminar mais tarde."
+      : "Sem problema. O formulário fica marcado como pendente.");
+  }
+
+  /* Cenário Alternativo III — confirmar resposta */
+  function enviarFormulario(){
+    if(!validar()) return;
+    var d = new Date();
+    var respostas = {};
+    PERGUNTAS.forEach(function(p){
+      var r = lerResposta(p);
+      respostas[p.id] = {
+        pergunta: p.titulo,
+        valores:  r.valores,
+        rotulos:  r.valores.map(function(v){ return opcaoDe(p, v).r; }),
+        texto:    r.texto
+      };
+    });
+    var registro = {
+      dia: chaveDia(d), diaExtenso: dataPorExtenso(d),
+      enviadoEm: horaCurta(d), carimbo: d.toISOString(),
+      respostas: respostas
+    };
+
+    var lista = ler(CHAVES.envios, []);
+    lista.unshift(registro);
+    if(lista.length > 120) lista = lista.slice(0, 120);
+
+    gravar(CHAVES.envios, lista);
+    gravar(CHAVES.ultimo, registro.dia);
+    gravar(CHAVES.rascunho, null);
+    gravar(CHAVES.adiado, null);
+
+    fecharModal();
+    atualizarPendencia();
+    abrirModal("backdropOk", "btnContinuar");
+  }
+
+  function atualizarPendencia(){
+    $("btnReabrir").hidden = !precisaResponderHoje();
+  }
+
+  /* ============================================================
+     8. Eventos
+     ============================================================ */
+  $("formDiario").addEventListener("submit", function(e){ e.preventDefault(); enviarFormulario(); });
+  $("btnSalvar").addEventListener("click", function(){ adiarFormulario("salvo"); });
+  $("btnFechar").addEventListener("click", function(){ adiarFormulario("fechado"); });
+  $("btnContinuar").addEventListener("click", function(){ fecharModal(); limparFormulario(); });
+  $("btnReabrir").addEventListener("click", abrirFormulario);
+  $("backdropForm").addEventListener("mousedown", function(e){
+    if(e.target === this) adiarFormulario("fechado");
+  });
+  $("btnInicio").addEventListener("click", function(){
+    if(precisaResponderHoje()) abrirFormulario(); else aviso("Coleta de hoje já respondida.");
+  });
+  $("btnEmergencia").addEventListener("click", function(){
+    aviso("Acionamento de emergência: função da tela de Emergência.");
+  });
+
+  /* ============================================================
+     9. PWA — manifesto de reserva e service worker
+     ============================================================ */
+  (function pwa(){
+    try{
+      var link = document.querySelector('link[rel="manifest"]');
+      var icone = "data:image/svg+xml;base64," + btoa(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">' +
+        '<rect width="512" height="512" rx="96" fill="#14532D"/>' +
+        '<path d="M256 424S96 296 96 194c0-56 40-98 90-98 36 0 62 22 70 46 8-24 34-46 70-46 50 0 90 42 90 98 0 102-160 230-160 230Z" fill="#A9D98A"/></svg>'
+      );
+      var manifesto = {
+        name:"TechSaúde — Coleta de Dados Diários",
+        short_name:"TechSaúde",
+        start_url: location.href.split("#")[0],
+        scope: new URL(".", location.href).href,
+        display:"standalone", orientation:"portrait",
+        background_color:"#14532D", theme_color:"#14532D", lang:"pt-BR",
+        icons:[
+          { src:icone, sizes:"192x192", type:"image/svg+xml", purpose:"any" },
+          { src:icone, sizes:"512x512", type:"image/svg+xml", purpose:"maskable" }
+        ]
+      };
+      var url = URL.createObjectURL(new Blob([JSON.stringify(manifesto)], {type:"application/manifest+json"}));
+      fetch("manifest.json", {method:"HEAD"}).catch(function(){}).then(function(r){
+        if(!r || !r.ok) link.setAttribute("href", url);
+      });
+    }catch(e){}
+
+    if("serviceWorker" in navigator && location.protocol.indexOf("http") === 0){
+      window.addEventListener("load", function(){
+        navigator.serviceWorker.register("sw.js").catch(function(){});
+      });
+    }
+  })();
+
+  /* ============================================================
+     10. Inicialização — pré-condição do UC19
+     ============================================================ */
+  montar();
+  atualizarFaixaData();
+  setInterval(atualizarFaixaData, 30000);
+  atualizarPendencia();
+
+  if(precisaResponderHoje() && ler(CHAVES.adiado, null) !== chaveDia(new Date())){
+    setTimeout(abrirFormulario, 650);
+  }
+
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState !== "visible") return;
+    atualizarFaixaData();
+    atualizarPendencia();
+    if(precisaResponderHoje() && ler(CHAVES.adiado, null) !== chaveDia(new Date()) && !modalAberto){
+      abrirFormulario();
+    }
+  });
+})();
+</script>
+</body>
+</html>
