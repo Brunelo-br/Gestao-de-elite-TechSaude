@@ -372,6 +372,9 @@
     var atual = parseFloat(document.documentElement.style.fontSize) || 100;
     var novo = Math.max(85, Math.min(150, atual + delta));
     document.documentElement.style.fontSize = novo + '%';
+    // Padrão TechSaúde: salva a escolha para todas as telas e atualiza os botões A / A+ / A++
+    try { localStorage.setItem('techsaude_fonte', String(novo)); } catch (e) {}
+    try { window.dispatchEvent(new Event('techsaude:fonte')); } catch (e) {}
     falar(delta > 0 ? 'Aumentei o tamanho das letras.' : 'Diminuí o tamanho das letras.');
   }
 

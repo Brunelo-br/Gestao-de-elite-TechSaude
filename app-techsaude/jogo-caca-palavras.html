@@ -82,7 +82,7 @@
   .nav-btn{
     background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:4px;
     cursor:pointer; color:var(--cream); font-family:'Baloo 2', sans-serif; font-weight:700;
-    font-size:11.5px; letter-spacing:0.4px; text-transform:uppercase; text-decoration:none;
+    font-size:.7188rem; letter-spacing:0.4px; text-transform:uppercase; text-decoration:none;
     padding:2px; flex-shrink:0;
   }
   .nav-btn .icon-circle{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:2px; }
@@ -95,7 +95,7 @@
   .nav-btn:focus-visible{ outline:3px solid var(--cream); outline-offset:3px; border-radius:8px; }
   .brand-top{ display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; }
   .brand-top img{ width:200px; height:200px; object-fit:contain; }
-  .brand-top .app-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:19px; color:var(--cream); letter-spacing:.3px; }
+  .brand-top .app-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.1875rem; color:var(--cream); letter-spacing:.3px; }
   @media (max-width:440px){
     .topbar{ padding-left:12px; padding-right:12px; }
     .brand-top img{ width:120px; height:120px; }
@@ -107,20 +107,10 @@
   @media (min-width:901px){ .app{ padding:32px 40px 48px; } .topbar{ padding:26px 36px 22px; } }
 
   .datetime{
-    text-align:center; font-weight:700; font-size:13.5px; color:var(--forest);
+    text-align:center; font-weight:700; font-size:.8438rem; color:var(--forest);
     border-bottom:2px solid var(--border-soft); padding-bottom:14px; margin-bottom:18px;
   }
 
-  .toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:22px; }
-  .font-group{ display:inline-flex; border:2px solid var(--line); border-radius:999px; overflow:hidden; }
-  .font-group button{ border:none; background:#fff; color:var(--green-deep); font-weight:800; padding:9px 13px; cursor:pointer; font-size:12px; }
-  .font-group button.active{ background:var(--green-deep); color:var(--cream); }
-  .chip-btn{
-    background:#fff; border:2px solid var(--line); border-radius:999px; padding:9px 15px; font-size:12px;
-    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--green-deep); cursor:pointer;
-    display:inline-flex; align-items:center; gap:6px;
-  }
-  .chip-btn:hover{ border-color:var(--teal); }
 
   h2{ font-size:1.4rem; }
   .subtitle{ color:var(--text-soft); margin:0 0 1rem; font-weight:600; font-size:.95rem; }
@@ -231,8 +221,6 @@
   .modal-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:50; }
   .modal{ background:var(--cream); border:2px solid var(--line); border-radius:22px; padding:2rem 1.6rem; max-width:440px; width:100%; position:relative; box-shadow:var(--shadow-outer); max-height:90vh; overflow-y:auto; }
   .modal-close{ position:absolute; top:.75rem; right:.75rem; background:var(--cream-deep); border:none; width:2.6rem; height:2.6rem; border-radius:50%; font-size:1.1rem; cursor:pointer; color:var(--forest); }
-  .ajuda-lista{ padding-left:1.2rem; display:flex; flex-direction:column; gap:.5rem; font-size:1rem; font-weight:600; color:var(--text); }
-  .ajuda-extra{ margin-top:1rem; font-size:.95rem; font-weight:600; color:var(--text-soft); }
   .modal-vitoria{ text-align:center; }
   .icon-pop{ width:64px; height:64px; margin:0 auto 12px; background:var(--success-bg); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; }
   .vitoria-tempo{ color:var(--text-soft); font-weight:600; }
@@ -240,12 +228,77 @@
 
   .toast{
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(16px);
-    background:var(--green-deep); color:#fff; padding:12px 18px; border-radius:999px; font-weight:700; font-size:13px;
+    background:var(--green-deep); color:#fff; padding:12px 18px; border-radius:999px; font-weight:700; font-size:.8125rem;
     opacity:0; transition:all .3s; z-index:200; pointer-events:none; max-width:90%; text-align:center;
     box-shadow:0 6px 18px rgba(0,0,0,.25);
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
+<!-- ===== PADRÃO TECHSAÚDE: ACESSIBILIDADE (tamanho da letra + Ajuda) ===== -->
+<script>
+  /* Aplica o tamanho de letra salvo ANTES da tela aparecer (evita "piscar") */
+  (function(){
+    try{
+      var f = parseFloat(localStorage.getItem('techsaude_fonte'));
+      if(f >= 85 && f <= 150){ document.documentElement.style.fontSize = f + '%'; }
+    }catch(e){}
+  })();
+</script>
+<style>
+  /* Barra de acessibilidade (mesmo visual da tela Mini Jogos) */
+  .toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin:0 0 22px; }
+  .toolbar-acessibilidade .font-group{ display:inline-flex; border:2px solid #cdbf95; border-radius:999px; overflow:hidden; background:#fff; }
+  .toolbar-acessibilidade .font-btn{
+    border:none; background:#fff; color:#1b3a26; font-weight:800; padding:9px 13px; cursor:pointer;
+    font-size:.75rem; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; min-width:44px; min-height:40px; margin:0;
+  }
+  .toolbar-acessibilidade .font-btn + .font-btn{ border-left:1px solid #e4dbbd; }
+  .toolbar-acessibilidade .font-btn.active{ background:#1b3a26; color:#f3efdc; }
+  .toolbar-acessibilidade .font-btn:focus-visible,
+  .toolbar-acessibilidade .chip-btn:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+  .toolbar-acessibilidade .chip-btn{
+    background:#fff; border:2px solid #cdbf95; border-radius:999px; padding:9px 15px; font-size:.75rem; min-height:40px; margin:0;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:#1b3a26; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+  }
+  .toolbar-acessibilidade .chip-btn:hover{ border-color:#2f9e8f; }
+
+  /* Pop-up de Ajuda */
+  .ajuda-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:10000; }
+  .ajuda-overlay[hidden]{ display:none !important; }
+  .ajuda-modal{
+    background:#f3efdc; border:2px solid #cdbf95; border-radius:22px; padding:2rem 1.6rem 1.5rem; max-width:460px; width:100%;
+    position:relative; box-shadow:0 30px 60px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto; text-align:left;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; color:#26332a; animation:ajudaPop .2s ease;
+  }
+  @keyframes ajudaPop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .ajuda-modal .ajuda-fechar{
+    position:absolute; top:.75rem; right:.75rem; background:#ece5c9; border:none; width:2.6rem; height:2.6rem;
+    border-radius:50%; font-size:1.1rem; cursor:pointer; color:#1b3a26; margin:0; padding:0;
+  }
+  .ajuda-modal .ajuda-tag{ margin:0 0 .3rem; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#2f6b46; }
+  .ajuda-modal h2{ margin:0 2.6rem .5rem 0; padding:0; font-size:1.3rem; line-height:1.2; color:#1b3a26; font-weight:900; text-transform:uppercase; text-align:left; font-family:inherit; }
+  .ajuda-modal .ajuda-intro{ margin:0 0 1rem; font-size:.98rem; font-weight:600; color:#55604f; line-height:1.45; }
+  .ajuda-modal .ajuda-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.7rem; counter-reset:passo; }
+  .ajuda-modal .ajuda-lista li{
+    counter-increment:passo; position:relative; padding:0 0 0 2.5rem; margin:0; min-height:1.9rem;
+    font-size:1rem; font-weight:600; line-height:1.45; color:#26332a;
+  }
+  .ajuda-modal .ajuda-lista li::before{
+    content:counter(passo); position:absolute; left:0; top:-.05rem; width:1.9rem; height:1.9rem; border-radius:50%;
+    background:#1b3a26; color:#f3efdc; font-weight:800; font-size:.95rem; display:flex; align-items:center; justify-content:center;
+  }
+  .ajuda-modal .ajuda-lista b{ color:#1b3a26; }
+  .ajuda-modal .ajuda-extra{ margin:1.1rem 0 0; padding:.8rem 1rem; background:#dcefdf; border:1.5px solid #a5d6a7; border-radius:14px; font-size:.95rem; font-weight:600; color:#1b4332; line-height:1.4; }
+  .ajuda-modal .ajuda-ok{
+    display:block; width:100%; margin:1.2rem 0 0; padding:.9rem; border:none; border-radius:999px; cursor:pointer;
+    background:linear-gradient(180deg,#234a34,#1b3a26); color:#f3efdc; font-weight:800; font-size:1rem; text-transform:uppercase;
+    letter-spacing:.4px; font-family:inherit; box-shadow:0 5px 0 #0e2416;
+  }
+  .ajuda-modal .ajuda-ok:active{ transform:translateY(3px); box-shadow:0 2px 0 #0e2416; }
+  .ajuda-modal button:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+</style>
+<!-- ===== FIM DO PADRÃO TECHSAÚDE (head) ===== -->
 </head>
 <body>
 <div class="site">
@@ -283,14 +336,15 @@
   <div class="app">
     <div class="datetime" id="datetime" aria-live="off">--:-- - carregando data...</div>
 
+    <!-- PADRÃO TECHSAÚDE: barra de acessibilidade -->
     <div class="toolbar-acessibilidade">
-      <div class="font-group" role="group" aria-label="Tamanho do texto">
-        <button class="font-btn" data-scale="100" aria-label="Texto tamanho normal">A</button>
-        <button class="font-btn" data-scale="115" aria-label="Texto grande">A+</button>
-        <button class="font-btn" data-scale="130" aria-label="Texto extra grande">A++</button>
+      <div class="font-group" role="group" aria-label="Tamanho da letra">
+        <button type="button" class="font-btn" data-scale="100" aria-label="Letra tamanho normal">A</button>
+        <button type="button" class="font-btn" data-scale="115" aria-label="Letra grande">A+</button>
+        <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
       </div>
-      <button id="btnSom" class="chip-btn" aria-pressed="true">🔊 Som</button>
-      <button id="btnAjuda" class="chip-btn">❔ Ajuda</button>
+      <button type="button" id="btnSom" class="chip-btn" aria-pressed="true">🔊 Som</button>
+      <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
     </div>
 
     <main id="telaSelecao" class="screen">
@@ -354,24 +408,6 @@
         </section>
       </div>
     </main>
-  </div>
-</div>
-
-<div id="modalAjuda" class="modal-overlay hidden">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
-    <button class="modal-close" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
-    <h2 id="ajudaTitulo">Como jogar</h2>
-    <ol class="ajuda-lista">
-      <li>Escolha um dos três níveis.</li>
-      <li>Escolha em quais direções as palavras podem aparecer (ou toque em "Aleatório" pra começar logo).</li>
-      <li>Encontre as palavras da lista escondidas na grade de letras.</li>
-      <li>Toque na primeira letra da palavra.</li>
-      <li>Depois toque na última letra dela (a palavra fica em linha reta).</li>
-      <li>Acertou? A palavra fica pintada e riscada na lista.</li>
-      <li>Errou? Sem problema, é só tentar de novo.</li>
-      <li>Ficou em dúvida? Toque em "Dica" quantas vezes quiser.</li>
-    </ol>
-    <p class="ajuda-extra">Não existe tempo limite nem pontuação. Jogue com calma, no seu ritmo. 💚</p>
   </div>
 </div>
 
@@ -1004,17 +1040,6 @@
     el.modalVitoria.classList.add("hidden");
     voltarParaSelecao();
   });
-  document.getElementById("btnAjuda").addEventListener("click", () => el.modalAjuda.classList.remove("hidden"));
-  document.getElementById("fecharAjuda").addEventListener("click", () => el.modalAjuda.classList.add("hidden"));
-  el.modalAjuda.addEventListener("click", (e) => { if(e.target === el.modalAjuda) el.modalAjuda.classList.add("hidden"); });
-  document.querySelectorAll(".font-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".font-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      document.documentElement.style.fontSize = btn.dataset.scale + "%";
-    });
-  });
-  document.querySelector('.font-btn[data-scale="100"]').classList.add("active");
   el.btnSom.addEventListener("click", () => {
     soundOn = !soundOn;
     el.btnSom.textContent = soundOn ? "🔊 Som" : "🔇 Som";
@@ -1025,5 +1050,117 @@
 
 })();
 </script>
+<!-- ===== PADRÃO TECHSAÚDE: pop-up de Ajuda (o conteúdo vem de AJUDA_TELA, no script abaixo) ===== -->
+<div id="modalAjuda" class="ajuda-overlay" hidden>
+  <div class="ajuda-modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button type="button" class="ajuda-fechar" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <p class="ajuda-tag">❔ Ajuda</p>
+    <h2 id="ajudaTitulo">Como usar esta tela</h2>
+    <p class="ajuda-intro" id="ajudaIntro"></p>
+    <ol class="ajuda-lista" id="ajudaLista"></ol>
+    <p class="ajuda-extra" id="ajudaExtra"></p>
+    <button type="button" class="ajuda-ok" id="ajudaOk">Entendi</button>
+  </div>
+</div>
+
+<script>
+/* ===== PADRÃO TECHSAÚDE: tamanho da letra + Ajuda =====
+   Para mudar o texto da Ajuda desta tela, edite apenas AJUDA_TELA.
+   - "quando": seletor CSS que indica em qual parte da tela o usuário está
+     (o primeiro item que existir na tela é o usado; o último, sem "quando", é o padrão).
+   - "passos": lista curta, em ordem, do que fazer.                                  */
+(function(){
+  "use strict";
+
+  var AJUDA_TELA = [
+    {
+      titulo: 'Como jogar Caça-Palavras',
+      passos: [
+        'Escolha um dos três níveis.',
+        'Escolha em quais direções as palavras podem aparecer (ou toque em <b>Aleatório</b> para começar logo).',
+        'Encontre as palavras da lista escondidas na grade de letras.',
+        'Toque na <b>primeira letra</b> da palavra e depois na <b>última letra</b> (a palavra fica em linha reta).',
+        'Acertou? A palavra fica pintada e riscada na lista. Errou? Sem problema, é só tentar de novo.',
+        'Ficou em dúvida? Toque em <b>Dica</b> quantas vezes quiser. O botão <b>Som</b> liga e desliga os sons.'
+      ],
+      dica: 'Não existe tempo limite nem pontuação. Jogue com calma, no seu ritmo. 💚'
+    }
+  ];
+
+  // Passo comum a todas as telas (acessibilidade)
+  var PASSO_LETRA = 'Letra pequena? Toque em <b>A+</b> ou <b>A++</b>, logo acima, para aumentar. Sua escolha fica salva para todas as telas.';
+
+  // ---------- TAMANHO DA LETRA (salvo para todas as telas) ----------
+  var CHAVE_FONTE = 'techsaude_fonte';
+  var botoesFonte = document.querySelectorAll('.toolbar-acessibilidade .font-btn');
+
+  function escalaAtual(){ return parseFloat(document.documentElement.style.fontSize) || 100; }
+
+  function marcarBotaoFonte(){
+    var atual = escalaAtual();
+    botoesFonte.forEach(function(b){
+      var ativo = Number(b.dataset.scale) === atual;
+      b.classList.toggle('active', ativo);
+      b.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+    });
+  }
+
+  function aplicarFonte(escala, salvar){
+    document.documentElement.style.fontSize = escala + '%';
+    if(salvar){ try{ localStorage.setItem(CHAVE_FONTE, String(escala)); }catch(e){} }
+    marcarBotaoFonte();
+  }
+
+  botoesFonte.forEach(function(btn){
+    btn.addEventListener('click', function(){ aplicarFonte(Number(btn.dataset.scale), true); });
+  });
+  // Comando de voz ("aumentar letra") e outras abas também atualizam os botões
+  window.addEventListener('techsaude:fonte', marcarBotaoFonte);
+  window.addEventListener('storage', function(e){
+    if(e.key === CHAVE_FONTE && e.newValue){ aplicarFonte(parseFloat(e.newValue) || 100, false); }
+  });
+  marcarBotaoFonte();
+
+  // ---------- AJUDA ----------
+  var modal = document.getElementById('modalAjuda');
+  var focoAnterior = null;
+
+  function conteudoAtual(){
+    for(var i = 0; i < AJUDA_TELA.length; i++){
+      var item = AJUDA_TELA[i];
+      if(!item.quando || document.querySelector(item.quando)) return item;
+    }
+    return AJUDA_TELA[AJUDA_TELA.length - 1];
+  }
+
+  function abrirAjuda(){
+    var c = conteudoAtual();
+    document.getElementById('ajudaTitulo').textContent = c.titulo;
+    var intro = document.getElementById('ajudaIntro');
+    intro.innerHTML = c.intro || '';
+    intro.hidden = !c.intro;
+    document.getElementById('ajudaLista').innerHTML = c.passos.concat([PASSO_LETRA]).map(function(p){ return '<li>' + p + '</li>'; }).join('');
+    var extra = document.getElementById('ajudaExtra');
+    extra.innerHTML = c.dica || '';
+    extra.hidden = !c.dica;
+    focoAnterior = document.activeElement;
+    modal.hidden = false;
+    document.getElementById('ajudaOk').focus({ preventScroll: true });
+    modal.querySelector('.ajuda-modal').scrollTop = 0;
+  }
+
+  function fecharAjuda(){
+    modal.hidden = true;
+    if(focoAnterior && focoAnterior.focus){ focoAnterior.focus(); }
+  }
+
+  document.getElementById('btnAjuda').addEventListener('click', abrirAjuda);
+  document.getElementById('fecharAjuda').addEventListener('click', fecharAjuda);
+  document.getElementById('ajudaOk').addEventListener('click', fecharAjuda);
+  modal.addEventListener('click', function(e){ if(e.target === modal) fecharAjuda(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.hidden) fecharAjuda(); });
+})();
+</script>
+<!-- ===== FIM DO PADRÃO TECHSAÚDE ===== -->
 </body>
 </html>

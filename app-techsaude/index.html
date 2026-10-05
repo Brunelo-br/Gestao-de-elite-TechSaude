@@ -417,7 +417,141 @@
   .photo-hint{ font-size:0.8rem; color:var(--text-soft); text-align:center; }
   .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
   .field-grid.wide-left{ grid-template-columns:2fr 1fr; }
+
+  /* ============ CADASTRO EM 3 ETAPAS ============ */
+  .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  .cad-etapa{ border:none; margin:0; padding:0; min-width:0; }
+  .cad-etapa[hidden]{ display:none; }
+
+  .cad-stepper{ list-style:none; margin:4px 0 10px; padding:0; display:flex; justify-content:space-between; position:relative; }
+  .cad-stepper::before{ content:""; position:absolute; top:19px; left:16%; right:16%; height:3px; background:var(--line); z-index:0; }
+  .cad-passo{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; position:relative; z-index:1; text-align:center; }
+  .cad-num{
+    width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:#fff; border:3px solid var(--line); color:var(--text-soft); font-weight:900; font-size:1.05rem;
+  }
+  .cad-nome{ font-size:0.75rem; font-weight:800; color:var(--text-soft); text-transform:uppercase; line-height:1.2; }
+  .cad-passo.atual .cad-num{ background:var(--green-deep); border-color:var(--green-deep); color:var(--cream); box-shadow:0 0 0 4px rgba(47,158,143,0.25); }
+  .cad-passo.atual .cad-nome{ color:var(--green-deep); }
+  .cad-passo.feito .cad-num{ background:var(--green-mid); border-color:var(--green-mid); color:#fff; font-size:0; }
+  .cad-passo.feito .cad-num::after{ content:"✓"; font-size:1.1rem; }
+  .cad-passo.feito .cad-nome{ color:var(--green-mid); }
+  .cad-etapa-label{ text-align:center; font-weight:800; color:var(--green-deep); font-size:0.95rem; margin:0 0 18px; }
+
+  .cad-aviso{
+    display:flex; gap:12px; align-items:flex-start; background:#dcefdf; border:1.5px solid #a5d6a7; border-radius:16px;
+    padding:14px 16px; margin:0 0 24px; color:#1b4332;
+  }
+  .cad-aviso p{ margin:0; font-size:0.95rem; line-height:1.5; }
+  .cad-aviso-icone{ font-size:1.5rem; line-height:1; }
+
+  .field input.campo-calculado{
+    background:#ece5c9 !important; border-style:dashed !important; font-weight:800; text-align:center; cursor:default;
+  }
+  .field select{
+    width:100%; appearance:none; -webkit-appearance:none; cursor:pointer;
+    background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231c3829' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 18px center;
+    border:2px solid #1c3829; border-radius:999px; color:#1c3829; padding:14px 44px 14px 20px;
+    font-size:0.98rem; font-family:inherit;
+  }
+  .field select:focus{ outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(47,158,143,0.25); }
+  .field input.input-invalid, .field select.input-invalid{ border-color:var(--error) !important; box-shadow:0 0 0 3px rgba(163,64,44,0.18); }
+
+  .req-list{ list-style:none; margin:8px 0 0 6px; padding:0; display:flex; flex-direction:column; gap:4px; font-size:0.85rem; font-weight:700; color:var(--text-soft); }
+  .req-list li{ display:flex; align-items:center; gap:8px; }
+  .req-list li::before{ content:""; width:14px; height:14px; border-radius:50%; border:2px solid var(--line); background:#fff; flex-shrink:0; }
+  .req-list li.ok{ color:var(--green-mid); }
+  .req-list li.ok::before{ background:var(--green-mid); border-color:var(--green-mid); }
+
+  .contato-bloco{ border:2px solid var(--line); border-radius:18px; padding:16px 16px 4px; margin:0 0 18px; background:#fff8; }
+  .contato-titulo{ margin:0 0 18px; font-size:0.9rem; font-weight:900; color:var(--green-deep); text-transform:uppercase; letter-spacing:0.04em; }
+  .contato-titulo span{ font-weight:700; color:var(--text-soft); text-transform:none; letter-spacing:0; }
+
+  /* Botões lado a lado; se faltar espaço (letra grande / celular), o principal fica em cima */
+  .cad-botoes{ display:flex; flex-wrap:wrap-reverse; gap:12px; margin-top:18px; }
+  .cad-botoes .btn{ flex:1 1 8rem; width:auto; padding-left:10px; padding-right:10px; }
+  .cad-botoes .btn:not(.secondary){ flex:1.4 1 10rem; }
+
+  /* Linhas com 2 campos: ficam lado a lado e quebram para baixo quando não cabem */
+  #form-cadastro .field-grid{ display:flex; flex-wrap:wrap; gap:0 12px; }
+  #form-cadastro .field-grid > .field{ flex:1 1 9rem; min-width:0; }
+  #form-cadastro .field-grid > .field.campo-largo{ flex:2 1 13rem; }
+  #form-cadastro .field-grid > .field.campo-curto{ flex:1 1 6rem; }
+  #form-cadastro .field label{ white-space:nowrap; }
+  .btn:disabled{ opacity:0.6; cursor:wait; }
+  .btn-pular{
+    display:block; width:100%; margin:16px 0 0; padding:13px 16px; border-radius:999px; cursor:pointer;
+    background:transparent; border:2px dashed var(--text-soft); color:var(--text-soft);
+    font-weight:800; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.3px; font-family:inherit;
+  }
+  .btn-pular:hover{ border-color:var(--green-deep); color:var(--green-deep); }
+  .btn-pular:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; }
 </style>
+<!-- ===== PADRÃO TECHSAÚDE: ACESSIBILIDADE (tamanho da letra + Ajuda) ===== -->
+<script>
+  /* Aplica o tamanho de letra salvo ANTES da tela aparecer (evita "piscar") */
+  (function(){
+    try{
+      var f = parseFloat(localStorage.getItem('techsaude_fonte'));
+      if(f >= 85 && f <= 150){ document.documentElement.style.fontSize = f + '%'; }
+    }catch(e){}
+  })();
+</script>
+<style>
+  /* Barra de acessibilidade (mesmo visual da tela Mini Jogos) */
+  .toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin:0 0 22px; }
+  .toolbar-acessibilidade .font-group{ display:inline-flex; border:2px solid #cdbf95; border-radius:999px; overflow:hidden; background:#fff; }
+  .toolbar-acessibilidade .font-btn{
+    border:none; background:#fff; color:#1b3a26; font-weight:800; padding:9px 13px; cursor:pointer;
+    font-size:.75rem; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; min-width:44px; min-height:40px; margin:0;
+  }
+  .toolbar-acessibilidade .font-btn + .font-btn{ border-left:1px solid #e4dbbd; }
+  .toolbar-acessibilidade .font-btn.active{ background:#1b3a26; color:#f3efdc; }
+  .toolbar-acessibilidade .font-btn:focus-visible,
+  .toolbar-acessibilidade .chip-btn:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+  .toolbar-acessibilidade .chip-btn{
+    background:#fff; border:2px solid #cdbf95; border-radius:999px; padding:9px 15px; font-size:.75rem; min-height:40px; margin:0;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:#1b3a26; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+  }
+  .toolbar-acessibilidade .chip-btn:hover{ border-color:#2f9e8f; }
+
+  /* Pop-up de Ajuda */
+  .ajuda-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:10000; }
+  .ajuda-overlay[hidden]{ display:none !important; }
+  .ajuda-modal{
+    background:#f3efdc; border:2px solid #cdbf95; border-radius:22px; padding:2rem 1.6rem 1.5rem; max-width:460px; width:100%;
+    position:relative; box-shadow:0 30px 60px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto; text-align:left;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; color:#26332a; animation:ajudaPop .2s ease;
+  }
+  @keyframes ajudaPop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .ajuda-modal .ajuda-fechar{
+    position:absolute; top:.75rem; right:.75rem; background:#ece5c9; border:none; width:2.6rem; height:2.6rem;
+    border-radius:50%; font-size:1.1rem; cursor:pointer; color:#1b3a26; margin:0; padding:0;
+  }
+  .ajuda-modal .ajuda-tag{ margin:0 0 .3rem; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#2f6b46; }
+  .ajuda-modal h2{ margin:0 2.6rem .5rem 0; padding:0; font-size:1.3rem; line-height:1.2; color:#1b3a26; font-weight:900; text-transform:uppercase; text-align:left; font-family:inherit; }
+  .ajuda-modal .ajuda-intro{ margin:0 0 1rem; font-size:.98rem; font-weight:600; color:#55604f; line-height:1.45; }
+  .ajuda-modal .ajuda-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.7rem; counter-reset:passo; }
+  .ajuda-modal .ajuda-lista li{
+    counter-increment:passo; position:relative; padding:0 0 0 2.5rem; margin:0; min-height:1.9rem;
+    font-size:1rem; font-weight:600; line-height:1.45; color:#26332a;
+  }
+  .ajuda-modal .ajuda-lista li::before{
+    content:counter(passo); position:absolute; left:0; top:-.05rem; width:1.9rem; height:1.9rem; border-radius:50%;
+    background:#1b3a26; color:#f3efdc; font-weight:800; font-size:.95rem; display:flex; align-items:center; justify-content:center;
+  }
+  .ajuda-modal .ajuda-lista b{ color:#1b3a26; }
+  .ajuda-modal .ajuda-extra{ margin:1.1rem 0 0; padding:.8rem 1rem; background:#dcefdf; border:1.5px solid #a5d6a7; border-radius:14px; font-size:.95rem; font-weight:600; color:#1b4332; line-height:1.4; }
+  .ajuda-modal .ajuda-ok{
+    display:block; width:100%; margin:1.2rem 0 0; padding:.9rem; border:none; border-radius:999px; cursor:pointer;
+    background:linear-gradient(180deg,#234a34,#1b3a26); color:#f3efdc; font-weight:800; font-size:1rem; text-transform:uppercase;
+    letter-spacing:.4px; font-family:inherit; box-shadow:0 5px 0 #0e2416;
+  }
+  .ajuda-modal .ajuda-ok:active{ transform:translateY(3px); box-shadow:0 2px 0 #0e2416; }
+  .ajuda-modal button:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+</style>
+<!-- ===== FIM DO PADRÃO TECHSAÚDE (head) ===== -->
 </head>
 <body>
 
@@ -459,6 +593,16 @@
       </header>
 
       <div class="datetime" id="datetime">--:-- - --, -- de -- de ----</div>
+    <!-- PADRÃO TECHSAÚDE: barra de acessibilidade -->
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho da letra">
+        <button type="button" class="font-btn" data-scale="100" aria-label="Letra tamanho normal">A</button>
+        <button type="button" class="font-btn" data-scale="115" aria-label="Letra grande">A+</button>
+        <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
+      </div>
+      <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
+    </div>
+
 
       <div class="screen-wrap">
 
@@ -517,96 +661,156 @@
           </div>
         </section>
 
-        <!-- CADASTRO SCREEN -->
+        <!-- CADASTRO SCREEN (3 etapas: 1 Dados pessoais · 2 Endereço · 3 Contatos de emergência) -->
         <section class="screen" id="screen-cadastro">
           <div class="card">
             <h1 class="title" style="text-align:center;">Criar Conta</h1>
-            <p class="lead" style="text-align:center;">Bem-vindo ao TechSaúde. Preencha seus dados abaixo para se cadastrar.</p>
 
-            <div class="msg-banner" id="cadastro-msg"></div>
+            <ol class="cad-stepper" aria-label="Etapas do cadastro">
+              <li class="cad-passo" data-passo="1"><span class="cad-num" aria-hidden="true">1</span><span class="cad-nome">Dados<br>pessoais</span></li>
+              <li class="cad-passo" data-passo="2"><span class="cad-num" aria-hidden="true">2</span><span class="cad-nome">Endereço</span></li>
+              <li class="cad-passo" data-passo="3"><span class="cad-num" aria-hidden="true">3</span><span class="cad-nome">Contatos de<br>emergência</span></li>
+            </ol>
+            <p class="cad-etapa-label" id="cad-etapa-label" aria-live="polite">Etapa 1 de 3 — Informações Pessoais</p>
+
+            <div class="msg-banner" id="cadastro-msg" role="alert"></div>
 
             <form id="form-cadastro" novalidate>
-              <div class="photo-picker">
-                <div class="photo-preview" id="foto-preview" onclick="document.getElementById('c-foto').click()" title="Escolher foto">👤</div>
-                <button type="button" class="btn-photo" onclick="document.getElementById('c-foto').click()">Escolher foto</button>
-                <input type="file" id="c-foto" accept="image/*" hidden>
-                <span class="photo-hint">Foto do seu rosto, para identificar sua conta.</span>
-              </div>
-              <div class="field">
-                <label for="c-nome">Nome</label>
-                <input type="text" id="c-nome" placeholder="Seu nome completo" autocomplete="name">
-              </div>
-              <div class="field">
-                <label for="c-cpf">CPF</label>
-                <input type="text" id="c-cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
-                <small id="c-cpf-feedback" class="input-feedback" aria-live="polite"></small>
-              </div>
-              <div class="field">
-                <label for="c-rg">RG</label>
-                <input type="text" id="c-rg" placeholder="00.000.000-0" inputmode="numeric" maxlength="12">
-              </div>
-              <div class="field">
-                <label for="c-idade">Idade</label>
-                <input type="number" id="c-idade" placeholder="Ex: 25" min="1" max="120">
-              </div>
-              <div class="field">
-                <label for="c-telefone">Telefone</label>
-                <input type="text" id="c-telefone" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15">
-              </div>
-              <div class="field">
-                <label for="c-email">E-mail</label>
-                <input type="email" id="c-email" placeholder="seu.email@exemplo.com" autocomplete="email">
-              </div>
-              <h2 class="form-section-title">Endereço</h2>
-              <div class="field">
-                <label for="c-cep">CEP</label>
-                <input type="text" id="c-cep" placeholder="00000-000" inputmode="numeric" maxlength="9" autocomplete="postal-code">
-                <small id="c-cep-feedback" class="input-feedback" aria-live="polite"></small>
-              </div>
-              <div class="field">
-                <label for="c-logradouro">Rua / Avenida</label>
-                <input type="text" id="c-logradouro" placeholder="Nome da rua" autocomplete="address-line1">
-              </div>
-              <div class="field-grid">
-                <div class="field">
-                  <label for="c-numero">Número</label>
-                  <input type="text" id="c-numero" placeholder="Ex: 123" maxlength="10">
-                </div>
-                <div class="field">
-                  <label for="c-bairro">Bairro</label>
-                  <input type="text" id="c-bairro" placeholder="Seu bairro">
-                </div>
-              </div>
-              <div class="field-grid wide-left">
-                <div class="field">
-                  <label for="c-cidade">Cidade</label>
-                  <input type="text" id="c-cidade" placeholder="Sua cidade" autocomplete="address-level2">
-                </div>
-                <div class="field">
-                  <label for="c-estado">UF</label>
-                  <input type="text" id="c-estado" placeholder="SP" maxlength="2" autocomplete="address-level1">
-                </div>
-              </div>
 
-              <h2 class="form-section-title">Acesso</h2>
-              <div class="field">
-                <label for="c-senha">Senha</label>
-                <div class="field-input-wrap">
-                  <input type="password" id="c-senha" placeholder="Crie uma senha forte" autocomplete="new-password">
-                  <button type="button" class="toggle-eye" onclick="toggleEye('c-senha', this)" aria-label="Mostrar senha">👁</button>
-                </div>
-              </div>
-              <div class="field">
-                <label for="c-senha2">Confirmar senha</label>
-                <div class="field-input-wrap">
-                  <input type="password" id="c-senha2" placeholder="Repita sua senha" autocomplete="new-password">
-                  <button type="button" class="toggle-eye" onclick="toggleEye('c-senha2', this)" aria-label="Mostrar senha">👁</button>
-                </div>
-              </div>
+              <!-- ===== ETAPA 1: INFORMAÇÕES PESSOAIS ===== -->
+              <fieldset class="cad-etapa" id="cad-etapa-1">
+                <legend class="sr-only">Etapa 1 de 3: Informações pessoais</legend>
+                <p class="lead" style="text-align:center;">Bem-vindo ao TechSaúde. Preencha seus dados abaixo para se cadastrar.</p>
 
-              <div class="form-actions">
-                <button type="submit" class="btn">Finalizar Cadastro</button>
-              </div>
+                <div class="photo-picker">
+                  <div class="photo-preview" id="foto-preview" onclick="document.getElementById('c-foto').click()" title="Escolher foto">👤</div>
+                  <button type="button" class="btn-photo" onclick="document.getElementById('c-foto').click()">Escolher foto</button>
+                  <input type="file" id="c-foto" accept="image/*" hidden>
+                  <span class="photo-hint">Foto do seu rosto, para identificar sua conta (opcional).</span>
+                </div>
+                <div class="field">
+                  <label for="c-nome">Nome</label>
+                  <input type="text" id="c-nome" placeholder="Seu nome completo" autocomplete="name">
+                </div>
+                <div class="field">
+                  <label for="c-cpf">CPF</label>
+                  <input type="text" id="c-cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+                  <small id="c-cpf-feedback" class="input-feedback" aria-live="polite"></small>
+                </div>
+                <div class="field">
+                  <label for="c-rg">RG</label>
+                  <input type="text" id="c-rg" placeholder="00.000.000-0" inputmode="numeric" maxlength="12">
+                </div>
+                <div class="field-grid">
+                  <div class="field campo-largo">
+                    <label for="c-nascimento">Data de nascimento</label>
+                    <input type="text" id="c-nascimento" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="bday" aria-describedby="c-nascimento-feedback">
+                    <small id="c-nascimento-feedback" class="input-feedback" aria-live="polite"></small>
+                  </div>
+                  <div class="field campo-curto">
+                    <label for="c-idade">Idade</label>
+                    <input type="text" id="c-idade" class="campo-calculado" placeholder="—" readonly tabindex="-1" aria-live="polite">
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="c-telefone">Telefone</label>
+                  <input type="text" id="c-telefone" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15" autocomplete="tel">
+                </div>
+                <div class="field">
+                  <label for="c-email">E-mail</label>
+                  <input type="email" id="c-email" placeholder="seu.email@exemplo.com" autocomplete="email">
+                </div>
+                <div class="field">
+                  <label for="c-senha">Senha</label>
+                  <div class="field-input-wrap">
+                    <input type="password" id="c-senha" placeholder="Crie uma senha forte" autocomplete="new-password" aria-describedby="c-senha-regras">
+                    <button type="button" class="toggle-eye" onclick="toggleEye('c-senha', this)" aria-label="Mostrar senha">👁</button>
+                  </div>
+                  <ul class="req-list" id="c-senha-regras" aria-label="Regras da senha">
+                    <li data-regra="tamanho">Pelo menos 8 caracteres</li>
+                    <li data-regra="letra">Pelo menos 1 letra</li>
+                    <li data-regra="numero">Pelo menos 1 número</li>
+                  </ul>
+                </div>
+                <div class="field">
+                  <label for="c-senha2">Confirmar senha</label>
+                  <div class="field-input-wrap">
+                    <input type="password" id="c-senha2" placeholder="Repita sua senha" autocomplete="new-password">
+                    <button type="button" class="toggle-eye" onclick="toggleEye('c-senha2', this)" aria-label="Mostrar senha">👁</button>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" class="btn" id="cad-proximo-1">Próximo ›</button>
+                </div>
+              </fieldset>
+
+              <!-- ===== ETAPA 2: ENDEREÇO ===== -->
+              <fieldset class="cad-etapa" id="cad-etapa-2" hidden>
+                <legend class="sr-only">Etapa 2 de 3: Endereço</legend>
+                <div class="cad-aviso">
+                  <span class="cad-aviso-icone" aria-hidden="true">📍</span>
+                  <p><b>Por que pedimos seu endereço?</b> Algumas funções do TechSaúde, como encontrar hospitais e postos de saúde perto da sua casa, precisam do seu endereço. Os campos com <b>*</b> são obrigatórios.</p>
+                </div>
+
+                <div class="field">
+                  <label for="c-cep">CEP *</label>
+                  <input type="text" id="c-cep" placeholder="00000-000" inputmode="numeric" maxlength="9" autocomplete="postal-code" required>
+                  <small>Digite o CEP e a rua, o bairro e a cidade são preenchidos sozinhos.</small>
+                  <small id="c-cep-feedback" class="input-feedback" aria-live="polite"></small>
+                </div>
+                <div class="field">
+                  <label for="c-logradouro">Rua / Avenida *</label>
+                  <input type="text" id="c-logradouro" placeholder="Nome da rua" autocomplete="address-line1" required>
+                </div>
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="c-numero">Número *</label>
+                    <input type="text" id="c-numero" placeholder="Ex: 123" maxlength="10" required>
+                  </div>
+                  <div class="field">
+                    <label for="c-complemento">Complemento</label>
+                    <input type="text" id="c-complemento" placeholder="Ex: Apto 12" maxlength="60" autocomplete="address-line2">
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="c-bairro">Bairro *</label>
+                  <input type="text" id="c-bairro" placeholder="Seu bairro" required>
+                </div>
+                <div class="field-grid">
+                  <div class="field campo-largo">
+                    <label for="c-cidade">Cidade *</label>
+                    <input type="text" id="c-cidade" placeholder="Sua cidade" autocomplete="address-level2" required>
+                  </div>
+                  <div class="field campo-curto">
+                    <label for="c-estado">UF *</label>
+                    <input type="text" id="c-estado" placeholder="SP" maxlength="2" autocomplete="address-level1" required>
+                  </div>
+                </div>
+
+                <div class="cad-botoes">
+                  <button type="button" class="btn secondary" id="cad-voltar-2">‹ Voltar</button>
+                  <button type="button" class="btn" id="cad-proximo-2">Próximo ›</button>
+                </div>
+              </fieldset>
+
+              <!-- ===== ETAPA 3: CONTATOS DE EMERGÊNCIA ===== -->
+              <fieldset class="cad-etapa" id="cad-etapa-3" hidden>
+                <legend class="sr-only">Etapa 3 de 3: Contatos de emergência</legend>
+                <div class="cad-aviso">
+                  <span class="cad-aviso-icone" aria-hidden="true">📞</span>
+                  <p><b>Contatos de emergência.</b> Algumas funções do TechSaúde, como o botão <b>Emergência</b>, podem avisar pessoas de sua confiança. Informe até 3 contatos. Se preferir, você pode pular esta etapa.</p>
+                </div>
+
+                <div id="cad-contatos"><!-- 3 blocos criados pelo script --></div>
+
+                <div class="cad-botoes">
+                  <button type="button" class="btn secondary" id="cad-voltar-3">‹ Voltar</button>
+                  <button type="submit" class="btn" id="cad-concluir">Concluir cadastro</button>
+                </div>
+                <button type="button" class="btn-pular" id="cad-pular">Pular, prefiro não informar</button>
+              </fieldset>
+
             </form>
 
             <div class="back-row">Já tem uma conta? <a href="#" class="link" onclick="goTo('login'); return false;">Voltar para Login</a></div>
@@ -644,6 +848,7 @@
   function goTo(name){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + name).classList.add('active');
+    if(name === 'cadastro') irEtapaCadastro(1);
     hideMsg('login-msg');
     hideMsg('cadastro-msg');
     document.querySelector('.screen-wrap').scrollTop = 0;
@@ -769,11 +974,6 @@
     v = v.replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)$/,'$1-$2');
     e.target.value = v;
   });
-  document.getElementById('c-telefone').addEventListener('input', function(e){
-    let v = e.target.value.replace(/\D/g,'').slice(0,11);
-    v = v.replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d{1,4})$/,'$1-$2');
-    e.target.value = v;
-  });
 
   // ---------- 6. FOTO E ENDEREÇO DO CADASTRO ----------
   const FOTO_OBRIGATORIA = false; // troque para true se quiser exigir a foto no cadastro
@@ -879,62 +1079,310 @@
     e.target.value = e.target.value.replace(/[^a-zA-Z]/g,'').toUpperCase().slice(0,2);
   });
 
-  // ---------- 6.1 CADASTRO REAL NO SUPABASE ----------
-  document.getElementById('form-cadastro').addEventListener('submit', async function(e){
+  // ---------- 6.1 REGRA DE SENHA (padrão TechSaúde: 8+ caracteres, com letra e número) ----------
+  function regrasSenha(senha){
+    return {
+      tamanho: senha.length >= 8,
+      letra: /[A-Za-zÀ-ÿ]/.test(senha),
+      numero: /\d/.test(senha)
+    };
+  }
+  function senhaNoPadrao(senha){
+    const r = regrasSenha(senha);
+    return r.tamanho && r.letra && r.numero;
+  }
+  document.getElementById('c-senha').addEventListener('input', function(){
+    const r = regrasSenha(this.value);
+    document.querySelectorAll('#c-senha-regras li').forEach(li => li.classList.toggle('ok', r[li.dataset.regra]));
+  });
+
+  // ---------- 6.2 DATA DE NASCIMENTO → IDADE ----------
+  // Converte "DD/MM/AAAA" em Date. Devolve null se a data não existir (ex.: 31/02/1950).
+  function lerDataBR(texto){
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(texto);
+    if(!m) return null;
+    const dia = Number(m[1]), mes = Number(m[2]), ano = Number(m[3]);
+    const data = new Date(ano, mes - 1, dia);
+    if(data.getFullYear() !== ano || data.getMonth() !== mes - 1 || data.getDate() !== dia) return null;
+    return data;
+  }
+  function calcularIdade(nascimento, hoje = new Date()){
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    const aindaNaoFezAniversario =
+      hoje.getMonth() < nascimento.getMonth() ||
+      (hoje.getMonth() === nascimento.getMonth() && hoje.getDate() < nascimento.getDate());
+    if(aindaNaoFezAniversario) idade--;
+    return idade;
+  }
+  // Valida a data digitada. Devolve { data, idade } ou { erro }.
+  function validarNascimento(texto){
+    if(!texto) return { erro: 'Informe sua data de nascimento.' };
+    if(texto.length < 10) return { erro: 'Digite a data completa: dia, mês e ano (DD/MM/AAAA).' };
+    const data = lerDataBR(texto);
+    if(!data) return { erro: 'Data inválida. Confira o dia e o mês.' };
+    if(data > new Date()) return { erro: 'A data de nascimento não pode ser no futuro.' };
+    const idade = calcularIdade(data);
+    if(idade > 120 || data.getFullYear() < 1900) return { erro: 'Confira o ano de nascimento.' };
+    return { data, idade };
+  }
+  function dataParaISO(data){
+    const mm = String(data.getMonth() + 1).padStart(2, '0');
+    const dd = String(data.getDate()).padStart(2, '0');
+    return `${data.getFullYear()}-${mm}-${dd}`;
+  }
+
+  document.getElementById('c-nascimento').addEventListener('input', function(e){
+    let v = e.target.value.replace(/\D/g,'').slice(0,8);
+    v = v.replace(/(\d{2})(\d)/,'$1/$2').replace(/(\d{2})\/(\d{2})(\d)/,'$1/$2/$3');
+    e.target.value = v;
+
+    const campoIdade = document.getElementById('c-idade');
+    const feedback = document.getElementById('c-nascimento-feedback');
+    e.target.classList.remove('input-invalid', 'input-valid');
+    feedback.className = 'input-feedback';
+    feedback.textContent = '';
+    campoIdade.value = '';
+
+    if(v.length === 10){
+      const r = validarNascimento(v);
+      if(r.erro){
+        e.target.classList.add('input-invalid');
+        feedback.classList.add('show', 'error');
+        feedback.textContent = r.erro;
+      } else {
+        e.target.classList.add('input-valid');
+        campoIdade.value = r.idade + (r.idade === 1 ? ' ano' : ' anos');
+      }
+    }
+  });
+
+  // ---------- 6.3 MÁSCARA DE TELEFONE (usuário e contatos) ----------
+  // Celular (11 números): (11) 98765-4321 · Fixo (10 números): (11) 3333-4444
+  function mascaraTelefone(valor){
+    const d = valor.replace(/\D/g,'').slice(0,11);
+    if(d.length <= 2) return d.length ? '(' + d : '';
+    const ddd = '(' + d.slice(0,2) + ') ';
+    const resto = d.slice(2);
+    if(d.length <= 6) return ddd + resto;
+    const corte = d.length === 11 ? 5 : 4;
+    return ddd + resto.slice(0, corte) + '-' + resto.slice(corte);
+  }
+  function telefoneValido(valor){
+    const d = valor.replace(/\D/g,'');
+    return d.length === 10 || d.length === 11;
+  }
+  function emailValido(valor){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(valor);
+  }
+
+  // ---------- 6.4 CONTATOS DE EMERGÊNCIA (3 blocos iguais) ----------
+  const PARENTESCOS = ['Filho(a)', 'Cônjuge / Companheiro(a)', 'Neto(a)', 'Irmão(ã)', 'Pai / Mãe', 'Sobrinho(a)', 'Genro / Nora', 'Amigo(a)', 'Vizinho(a)', 'Cuidador(a)', 'Outro'];
+  const TOTAL_CONTATOS = 3;
+
+  (function montarContatos(){
+    const opcoes = PARENTESCOS.map(p => `<option value="${p}">${p}</option>`).join('');
+    let html = '';
+    for(let n = 1; n <= TOTAL_CONTATOS; n++){
+      html += `
+                <div class="contato-bloco" data-contato="${n}">
+                  <p class="contato-titulo">Contato ${n} ${n === 1 ? '' : '<span>(opcional)</span>'}</p>
+                  <div class="field">
+                    <label for="ce-nome-${n}">Nome</label>
+                    <input type="text" id="ce-nome-${n}" placeholder="Nome do contato" autocomplete="off">
+                  </div>
+                  <div class="field">
+                    <label for="ce-parentesco-${n}">Grau de parentesco</label>
+                    <select id="ce-parentesco-${n}">
+                      <option value="">Selecione...</option>${opcoes}
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="ce-telefone-${n}">Telefone</label>
+                    <input type="text" id="ce-telefone-${n}" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15" autocomplete="off">
+                  </div>
+                  <div class="field">
+                    <label for="ce-email-${n}">E-mail</label>
+                    <input type="email" id="ce-email-${n}" placeholder="email@exemplo.com" autocomplete="off">
+                  </div>
+                </div>`;
+    }
+    document.getElementById('cad-contatos').innerHTML = html;
+  })();
+
+  document.getElementById('c-telefone').addEventListener('input', e => { e.target.value = mascaraTelefone(e.target.value); });
+  for(let n = 1; n <= TOTAL_CONTATOS; n++){
+    document.getElementById('ce-telefone-' + n).addEventListener('input', e => { e.target.value = mascaraTelefone(e.target.value); });
+  }
+
+  // ---------- 6.5 NAVEGAÇÃO ENTRE AS ETAPAS DO CADASTRO ----------
+  const NOMES_ETAPAS = { 1: 'Informações Pessoais', 2: 'Endereço', 3: 'Contatos de Emergência' };
+  let etapaCadastro = 1;
+
+  function irEtapaCadastro(n){
+    etapaCadastro = n;
+    for(let i = 1; i <= 3; i++){
+      document.getElementById('cad-etapa-' + i).hidden = (i !== n);
+      const passo = document.querySelector(`.cad-passo[data-passo="${i}"]`);
+      passo.classList.toggle('atual', i === n);
+      passo.classList.toggle('feito', i < n);
+      if(i === n) passo.setAttribute('aria-current', 'step'); else passo.removeAttribute('aria-current');
+    }
+    document.getElementById('cad-etapa-label').textContent = `Etapa ${n} de 3 — ${NOMES_ETAPAS[n]}`;
+    hideMsg('cadastro-msg');
+    document.getElementById('screen-cadastro').scrollIntoView({ block: 'start' });
+  }
+
+  // Mostra o erro, marca o campo e leva o foco até ele.
+  function erroCadastro(texto, campoId){
+    showMsg('cadastro-msg', texto, 'error');
+    if(campoId){
+      const campo = document.getElementById(campoId);
+      campo.classList.add('input-invalid');
+      campo.focus();
+      campo.addEventListener('input', () => campo.classList.remove('input-invalid'), { once: true });
+      campo.addEventListener('change', () => campo.classList.remove('input-invalid'), { once: true });
+    } else {
+      document.getElementById('cadastro-msg').scrollIntoView({ block: 'center' });
+    }
+    return false;
+  }
+
+  function valor(id){ return document.getElementById(id).value.trim(); }
+
+  function validarEtapa1(){
+    hideMsg('cadastro-msg');
+    if(!valor('c-nome')) return erroCadastro('Informe seu nome completo.', 'c-nome');
+    const cpf = valor('c-cpf').replace(/\D/g,'');
+    if(!cpf) return erroCadastro('Informe seu CPF.', 'c-cpf');
+    if(!validarCPF(cpf)) return erroCadastro('Informe um CPF válido.', 'c-cpf');
+    if(!/^\d{2}\.\d{3}\.\d{3}-\d$/.test(valor('c-rg'))) return erroCadastro('Informe um RG com 9 dígitos.', 'c-rg');
+    const nasc = validarNascimento(valor('c-nascimento'));
+    if(nasc.erro) return erroCadastro(nasc.erro, 'c-nascimento');
+    if(!telefoneValido(valor('c-telefone'))) return erroCadastro('Informe um telefone com DDD (10 ou 11 números).', 'c-telefone');
+    const email = valor('c-email');
+    if(!email) return erroCadastro('Informe seu e-mail.', 'c-email');
+    if(!emailValido(email)) return erroCadastro('Informe um e-mail válido (ex: nome@email.com).', 'c-email');
+    const senha = document.getElementById('c-senha').value;
+    if(!senha) return erroCadastro('Crie uma senha.', 'c-senha');
+    if(!senhaNoPadrao(senha)) return erroCadastro('A senha precisa ter pelo menos 8 caracteres, com letras e números.', 'c-senha');
+    if(senha !== document.getElementById('c-senha2').value) return erroCadastro('As senhas digitadas não coincidem.', 'c-senha2');
+    if(FOTO_OBRIGATORIA && !fotoSelecionada) return erroCadastro('Escolha uma foto para continuar.');
+    return true;
+  }
+
+  function validarEtapa2(){
+    hideMsg('cadastro-msg');
+    const cep = valor('c-cep');
+    if(!cep) return erroCadastro('Informe o CEP.', 'c-cep');
+    if(cep.replace(/\D/g,'').length !== 8) return erroCadastro('Informe um CEP com 8 números.', 'c-cep');
+    if(!valor('c-logradouro')) return erroCadastro('Informe a rua ou avenida.', 'c-logradouro');
+    if(!valor('c-numero')) return erroCadastro('Informe o número da casa ou prédio. Se não tiver, escreva S/N.', 'c-numero');
+    if(!valor('c-bairro')) return erroCadastro('Informe o bairro.', 'c-bairro');
+    if(!valor('c-cidade')) return erroCadastro('Informe a cidade.', 'c-cidade');
+    if(valor('c-estado').length !== 2) return erroCadastro('Informe a sigla do estado com 2 letras (ex: SP).', 'c-estado');
+    return true;
+  }
+
+  // Lê os contatos preenchidos. Cada contato iniciado precisa estar completo; o 1º é obrigatório para concluir.
+  function lerContatos(){
+    const contatos = [];
+    for(let n = 1; n <= TOTAL_CONTATOS; n++){
+      const c = {
+        nome: valor('ce-nome-' + n),
+        parentesco: valor('ce-parentesco-' + n),
+        telefone: valor('ce-telefone-' + n),
+        email: valor('ce-email-' + n).toLowerCase()
+      };
+      const algumPreenchido = c.nome || c.parentesco || c.telefone || c.email;
+      if(!algumPreenchido){
+        if(n === 1) return { erro: 'Preencha o Contato 1. Se não quiser informar contatos, toque em "Pular, prefiro não informar".', campo: 'ce-nome-1' };
+        continue;
+      }
+      if(!c.nome) return { erro: `Informe o nome do Contato ${n}.`, campo: 'ce-nome-' + n };
+      if(!c.parentesco) return { erro: `Escolha o grau de parentesco do Contato ${n}.`, campo: 'ce-parentesco-' + n };
+      if(!telefoneValido(c.telefone)) return { erro: `Informe o telefone do Contato ${n} com DDD (10 ou 11 números).`, campo: 'ce-telefone-' + n };
+      if(!emailValido(c.email)) return { erro: `Informe um e-mail válido para o Contato ${n}.`, campo: 'ce-email-' + n };
+      contatos.push({ ...c, ordem: n });
+    }
+    return { contatos };
+  }
+
+  // Antes de sair da etapa 1, confere se o CPF ou e-mail já têm conta (evita preencher tudo à toa).
+  async function cpfOuEmailJaCadastrado(cpf, email){
+    try {
+      const { data, error } = await supabaseClient
+        .from('usuario')
+        .select('cpf, email')
+        .or(`email.eq.${email},cpf.eq.${cpf}`)
+        .limit(1);
+      if(error || !data || !data.length) return null;
+      return data[0].cpf === cpf ? 'cpf' : 'email';
+    } catch(error) {
+      return null; // sem conexão: segue e o banco confere no final
+    }
+  }
+
+  document.getElementById('cad-proximo-1').addEventListener('click', async function(){
+    if(!validarEtapa1()) return;
+    const cpf = valor('c-cpf').replace(/\D/g,'');
+    const email = valor('c-email').toLowerCase();
+    this.disabled = true;
+    const repetido = await cpfOuEmailJaCadastrado(cpf, email);
+    this.disabled = false;
+    if(repetido === 'cpf') return erroCadastro('Este CPF já tem uma conta. Use "Voltar para Login" para entrar.', 'c-cpf');
+    if(repetido === 'email') return erroCadastro('Este e-mail já tem uma conta. Use "Voltar para Login" para entrar.', 'c-email');
+    irEtapaCadastro(2);
+    document.getElementById('c-cep').focus();
+  });
+  document.getElementById('cad-voltar-2').addEventListener('click', () => irEtapaCadastro(1));
+  document.getElementById('cad-proximo-2').addEventListener('click', function(){
+    if(!validarEtapa2()) return;
+    irEtapaCadastro(3);
+    document.getElementById('ce-nome-1').focus();
+  });
+  document.getElementById('cad-voltar-3').addEventListener('click', () => irEtapaCadastro(2));
+
+  // Enter dentro de um campo avança a etapa em vez de enviar o formulário inteiro.
+  document.getElementById('form-cadastro').addEventListener('keydown', function(e){
+    if(e.key !== 'Enter' || e.target.tagName === 'BUTTON') return;
+    if(etapaCadastro < 3){
+      e.preventDefault();
+      document.getElementById('cad-proximo-' + etapaCadastro).click();
+    }
+  });
+
+  // ---------- 6.6 GRAVAR NO SUPABASE (só no final: Concluir ou Pular) ----------
+  document.getElementById('form-cadastro').addEventListener('submit', function(e){
     e.preventDefault();
+    if(etapaCadastro !== 3) return;
+    const r = lerContatos();
+    if(r.erro){ erroCadastro(r.erro, r.campo); return; }
+    finalizarCadastro(r.contatos);
+  });
+  document.getElementById('cad-pular').addEventListener('click', () => finalizarCadastro([]));
+
+  async function finalizarCadastro(contatos){
+    // Segurança: confere de novo as etapas 1 e 2 antes de gravar.
+    if(!validarEtapa1()){ irEtapaCadastro(1); validarEtapa1(); return; }
+    if(!validarEtapa2()){ irEtapaCadastro(2); validarEtapa2(); return; }
     hideMsg('cadastro-msg');
 
-    const nome = document.getElementById('c-nome').value.trim();
-    const cpf = document.getElementById('c-cpf').value.replace(/\D/g,''); // salva apenas números
-    const rg = document.getElementById('c-rg').value.trim();
-    const idade = parseInt(document.getElementById('c-idade').value, 10);
-    const telefone = document.getElementById('c-telefone').value.trim();
-    const email = document.getElementById('c-email').value.trim().toLowerCase();
-    const cep = document.getElementById('c-cep').value.trim();
-    const logradouro = document.getElementById('c-logradouro').value.trim();
-    const numero = document.getElementById('c-numero').value.trim();
-    const bairro = document.getElementById('c-bairro').value.trim();
-    const cidade = document.getElementById('c-cidade').value.trim();
-    const estado = document.getElementById('c-estado').value.trim().toUpperCase();
+    const nome = valor('c-nome');
+    const cpf = valor('c-cpf').replace(/\D/g,''); // salva apenas números
+    const rg = valor('c-rg');
+    const nasc = validarNascimento(valor('c-nascimento'));
+    const telefone = valor('c-telefone');
+    const email = valor('c-email').toLowerCase();
     const senha = document.getElementById('c-senha').value;
-    const senha2 = document.getElementById('c-senha2').value;
-
-    if(!nome || !cpf || !rg || !idade || !telefone || !email || !senha || !senha2){
-      showMsg('cadastro-msg', 'Por favor, preencha todos os campos antes de continuar.', 'error');
-      return;
-    }
-    if(!cep || !logradouro || !numero || !bairro || !cidade || !estado){
-      showMsg('cadastro-msg', 'Preencha o endereço completo (CEP, rua, número, bairro, cidade e UF).', 'error');
-      return;
-    }
-    if(FOTO_OBRIGATORIA && !fotoSelecionada){
-      showMsg('cadastro-msg', 'Escolha uma foto para continuar.', 'error');
-      return;
-    }
-    if(!validarCPF(cpf)){
-      showMsg('cadastro-msg', 'Informe um CPF válido.', 'error');
-      document.getElementById('c-cpf').focus();
-      return;
-    }
-    if(!/^\d{2}\.\d{3}\.\d{3}-\d$/.test(document.getElementById('c-rg').value)){
-      showMsg('cadastro-msg', 'Informe um RG com 9 dígitos.', 'error');
-      document.getElementById('c-rg').focus();
-      return;
-    }
-    if(cep.replace(/\D/g,'').length !== 8){
-      showMsg('cadastro-msg', 'Informe um CEP com 8 números.', 'error');
-      document.getElementById('c-cep').focus();
-      return;
-    }
-    if(estado.length !== 2){
-      showMsg('cadastro-msg', 'Informe a sigla do estado com 2 letras (ex: SP).', 'error');
-      document.getElementById('c-estado').focus();
-      return;
-    }
-    if(senha !== senha2){
-      showMsg('cadastro-msg', 'As senhas digitadas não coincidem.', 'error');
-      return;
-    }
+    const endereco = {
+      cep: valor('c-cep'),
+      logradouro: valor('c-logradouro'),
+      numero: valor('c-numero'),
+      complemento: valor('c-complemento') || null,
+      bairro: valor('c-bairro'),
+      cidade: valor('c-cidade'),
+      estado: valor('c-estado').toUpperCase()
+    };
 
     let senhaHash;
     try {
@@ -944,34 +1392,40 @@
       return;
     }
 
-    const botaoCadastrar = this.querySelector('button[type="submit"]');
-    botaoCadastrar.disabled = true;
+    const botoes = document.querySelectorAll('#cad-etapa-3 button');
+    botoes.forEach(b => b.disabled = true);
     showMsg('cadastro-msg', 'Cadastrando no banco de dados...', 'ok');
+    document.getElementById('cadastro-msg').scrollIntoView({ block: 'center' });
 
     // 1) Dados principais na tabela usuario
-    const { data, error } = await supabaseClient
+    const { data: usuarioCriado, error } = await supabaseClient
       .from('usuario')
       .insert([{
         nome_completo: nome,
         cpf: cpf,
         rg: rg,
-        idade: idade,
+        data_nascimento: dataParaISO(nasc.data),
+        idade: nasc.idade,
         telefone: telefone,
         email: email,
         senha_hash: senhaHash
-      }]);
+      }])
+      .select('id_usuario')
+      .single();
 
     if(error){
-      botaoCadastrar.disabled = false;
+      botoes.forEach(b => b.disabled = false);
       if(error.code === '23505'){
         showMsg('cadastro-msg', 'E-mail ou CPF já cadastrado no sistema.', 'error');
+      } else if(/data_nascimento/.test(error.message || '')){
+        showMsg('cadastro-msg', 'O banco ainda não tem o campo de data de nascimento. Rode o arquivo SQL da pasta "banco" no Supabase.', 'error');
       } else {
         showMsg('cadastro-msg', 'Erro ao cadastrar: ' + error.message, 'error');
       }
       return;
     }
 
-    // 2) Foto e endereço. Se algum falhar, a conta já existe e o usuário completa em Configurações.
+    // 2) Foto, endereço e contatos. Se algum falhar, a conta já existe e o usuário completa depois.
     const naoSalvos = [];
 
     if(fotoSelecionada){
@@ -990,25 +1444,51 @@
 
     const { error: erroEndereco } = await supabaseClient
       .from('endereco')
-      .upsert({ cpf_usuario: cpf, logradouro, numero, bairro, cidade, estado, cep }, { onConflict: 'cpf_usuario' });
+      .upsert({ cpf_usuario: cpf, ...endereco }, { onConflict: 'cpf_usuario' });
     if(erroEndereco){
       console.error('Erro ao salvar o endereço:', erroEndereco);
       naoSalvos.push('o endereço');
     }
 
+    if(contatos.length){
+      const idUsuario = usuarioCriado && usuarioCriado.id_usuario;
+      const { error: erroContatos } = idUsuario
+        ? await supabaseClient.from('contato_emergencia').insert(contatos.map(c => ({
+            id_usuario: idUsuario,
+            nome_contato: c.nome,
+            grau_parentesco: c.parentesco,
+            telefone: c.telefone,
+            email: c.email,
+            ordem: c.ordem
+          })))
+        : { error: new Error('id_usuario não retornado') };
+      if(erroContatos){
+        console.error('Erro ao salvar os contatos de emergência:', erroContatos);
+        naoSalvos.push('os contatos de emergência');
+      }
+    }
+
     if(naoSalvos.length){
-      showMsg('cadastro-msg', 'Conta criada, mas não foi possível salvar ' + naoSalvos.join(' e ') + '. Você poderá completar em Configurações. Redirecionando...', 'error');
+      showMsg('cadastro-msg', 'Conta criada, mas não foi possível salvar ' + naoSalvos.join(', ').replace(/, ([^,]*)$/, ' e $1') + '. Redirecionando para o login...', 'error');
     } else {
-      showMsg('cadastro-msg', 'Cadastro realizado com sucesso! Redirecionando...', 'ok');
+      showMsg('cadastro-msg', 'Cadastro realizado com sucesso! Redirecionando para o login...', 'ok');
     }
 
     setTimeout(() => {
-      botaoCadastrar.disabled = false;
+      botoes.forEach(b => b.disabled = false);
+      document.getElementById('form-cadastro').reset();
+      document.getElementById('c-idade').value = '';
+      document.querySelectorAll('#c-senha-regras li').forEach(li => li.classList.remove('ok'));
+      document.querySelectorAll('#form-cadastro .input-valid, #form-cadastro .input-invalid').forEach(el => el.classList.remove('input-valid', 'input-invalid'));
+      document.querySelectorAll('#form-cadastro .input-feedback').forEach(el => { el.className = 'input-feedback'; el.textContent = ''; });
+      fotoSelecionada = null;
+      document.getElementById('foto-preview').textContent = '👤';
+      irEtapaCadastro(1);
       goTo('login');
       document.getElementById('login-user').value = email;
       document.getElementById('login-senha').focus();
     }, naoSalvos.length ? 3500 : 1200);
-  });
+  }
 
   // ---------- 7. LOGIN REAL NO SUPABASE ----------
   document.getElementById('form-login').addEventListener('submit', async function(e){
@@ -1119,5 +1599,171 @@
   }
 </script>
 
+<!-- ===== PADRÃO TECHSAÚDE: pop-up de Ajuda (o conteúdo vem de AJUDA_TELA, no script abaixo) ===== -->
+<div id="modalAjuda" class="ajuda-overlay" hidden>
+  <div class="ajuda-modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button type="button" class="ajuda-fechar" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <p class="ajuda-tag">❔ Ajuda</p>
+    <h2 id="ajudaTitulo">Como usar esta tela</h2>
+    <p class="ajuda-intro" id="ajudaIntro"></p>
+    <ol class="ajuda-lista" id="ajudaLista"></ol>
+    <p class="ajuda-extra" id="ajudaExtra"></p>
+    <button type="button" class="ajuda-ok" id="ajudaOk">Entendi</button>
+  </div>
+</div>
+
+<script>
+/* ===== PADRÃO TECHSAÚDE: tamanho da letra + Ajuda =====
+   Para mudar o texto da Ajuda desta tela, edite apenas AJUDA_TELA.
+   - "quando": seletor CSS que indica em qual parte da tela o usuário está
+     (o primeiro item que existir na tela é o usado; o último, sem "quando", é o padrão).
+   - "passos": lista curta, em ordem, do que fazer.                                  */
+(function(){
+  "use strict";
+
+  var AJUDA_TELA = [
+    {
+      quando: '#screen-login.active',
+      titulo: 'Como entrar na sua conta',
+      intro: 'Use os dados que você cadastrou para entrar no aplicativo.',
+      passos: [
+        'No primeiro campo, digite seu <b>CPF</b> (só os números) ou seu <b>e-mail</b>.',
+        'No segundo campo, digite sua <b>senha</b>. Toque no olho 👁 para ver o que digitou.',
+        'Toque em <b>Entrar na sua conta</b>.',
+        'Esqueceu a senha? Toque em <b>Recuperar a Senha</b> e siga os passos.'
+      ],
+      dica: 'Ainda não tem conta? Toque em Criar conta, no fim da tela.'
+    },
+    {
+      quando: '#screen-cadastro.active #cad-etapa-1:not([hidden])',
+      titulo: 'Criar conta — Etapa 1 de 3',
+      intro: 'O cadastro tem 3 etapas: seus dados, seu endereço e seus contatos de emergência.',
+      passos: [
+        'Se quiser, toque em <b>Escolher foto</b> para colocar uma foto do seu rosto.',
+        'Preencha <b>nome</b>, <b>CPF</b> e <b>RG</b>.',
+        'Digite sua <b>data de nascimento</b> (dia, mês e ano). A <b>idade</b> aparece sozinha ao lado.',
+        'Preencha <b>telefone</b> com DDD e <b>e-mail</b>.',
+        'Crie uma <b>senha</b> com pelo menos <b>8 caracteres, com letras e números</b>. As bolinhas ficam verdes quando a regra é cumprida. Repita a senha em <b>Confirmar senha</b>.',
+        'Toque em <b>Próximo</b>.'
+      ],
+      dica: 'Se algum campo estiver errado, aparece um aviso em vermelho explicando o que corrigir.'
+    },
+    {
+      quando: '#screen-cadastro.active #cad-etapa-2:not([hidden])',
+      titulo: 'Criar conta — Etapa 2 de 3',
+      intro: 'Algumas funções do aplicativo, como achar hospitais perto da sua casa, usam o seu endereço.',
+      passos: [
+        'Digite o <b>CEP</b>: a rua, o bairro, a cidade e a UF são preenchidos sozinhos.',
+        'Confira os dados e preencha o <b>número</b>. Se não tiver número, escreva S/N.',
+        'O <b>complemento</b> (apartamento, bloco, casa dos fundos) é opcional.',
+        'Toque em <b>Próximo</b>. Para corrigir algo da etapa anterior, toque em <b>Voltar</b>.'
+      ],
+      dica: 'Os campos com * são obrigatórios.'
+    },
+    {
+      quando: '#screen-cadastro.active #cad-etapa-3:not([hidden])',
+      titulo: 'Criar conta — Etapa 3 de 3',
+      intro: 'Contatos de emergência são pessoas de confiança que o aplicativo pode avisar se você precisar.',
+      passos: [
+        'Preencha o <b>Contato 1</b>: nome, grau de parentesco, telefone com DDD e e-mail.',
+        'Se quiser, preencha o <b>Contato 2</b> e o <b>Contato 3</b>.',
+        'Toque em <b>Concluir cadastro</b>.',
+        'Não quer informar agora? Toque em <b>Pular, prefiro não informar</b>. Sua conta é criada do mesmo jeito.'
+      ],
+      dica: 'Depois do cadastro, o aplicativo volta para a tela de login com o seu e-mail já preenchido. 💚'
+    },
+    {
+      quando: '#screen-success.active',
+      titulo: 'Tudo certo!',
+      passos: [
+        'Você entrou na sua conta. Aguarde, o aplicativo vai abrir a tela inicial.'
+      ]
+    },
+    {
+      titulo: 'Bem-vindo ao TechSaúde',
+      intro: 'O TechSaúde ajuda você a lembrar consultas e remédios, com letras grandes e poucos passos.',
+      passos: [
+        'Já tem cadastro? Toque em <b>Entrar na sua conta</b>.',
+        'É a primeira vez? Toque em <b>Criar nova conta</b> e preencha seus dados.'
+      ],
+      dica: 'Se precisar, peça para alguém de confiança ajudar no primeiro cadastro. 💚'
+    }
+  ];
+
+  // Passo comum a todas as telas (acessibilidade)
+  var PASSO_LETRA = 'Letra pequena? Toque em <b>A+</b> ou <b>A++</b>, logo acima, para aumentar. Sua escolha fica salva para todas as telas.';
+
+  // ---------- TAMANHO DA LETRA (salvo para todas as telas) ----------
+  var CHAVE_FONTE = 'techsaude_fonte';
+  var botoesFonte = document.querySelectorAll('.toolbar-acessibilidade .font-btn');
+
+  function escalaAtual(){ return parseFloat(document.documentElement.style.fontSize) || 100; }
+
+  function marcarBotaoFonte(){
+    var atual = escalaAtual();
+    botoesFonte.forEach(function(b){
+      var ativo = Number(b.dataset.scale) === atual;
+      b.classList.toggle('active', ativo);
+      b.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+    });
+  }
+
+  function aplicarFonte(escala, salvar){
+    document.documentElement.style.fontSize = escala + '%';
+    if(salvar){ try{ localStorage.setItem(CHAVE_FONTE, String(escala)); }catch(e){} }
+    marcarBotaoFonte();
+  }
+
+  botoesFonte.forEach(function(btn){
+    btn.addEventListener('click', function(){ aplicarFonte(Number(btn.dataset.scale), true); });
+  });
+  // Comando de voz ("aumentar letra") e outras abas também atualizam os botões
+  window.addEventListener('techsaude:fonte', marcarBotaoFonte);
+  window.addEventListener('storage', function(e){
+    if(e.key === CHAVE_FONTE && e.newValue){ aplicarFonte(parseFloat(e.newValue) || 100, false); }
+  });
+  marcarBotaoFonte();
+
+  // ---------- AJUDA ----------
+  var modal = document.getElementById('modalAjuda');
+  var focoAnterior = null;
+
+  function conteudoAtual(){
+    for(var i = 0; i < AJUDA_TELA.length; i++){
+      var item = AJUDA_TELA[i];
+      if(!item.quando || document.querySelector(item.quando)) return item;
+    }
+    return AJUDA_TELA[AJUDA_TELA.length - 1];
+  }
+
+  function abrirAjuda(){
+    var c = conteudoAtual();
+    document.getElementById('ajudaTitulo').textContent = c.titulo;
+    var intro = document.getElementById('ajudaIntro');
+    intro.innerHTML = c.intro || '';
+    intro.hidden = !c.intro;
+    document.getElementById('ajudaLista').innerHTML = c.passos.concat([PASSO_LETRA]).map(function(p){ return '<li>' + p + '</li>'; }).join('');
+    var extra = document.getElementById('ajudaExtra');
+    extra.innerHTML = c.dica || '';
+    extra.hidden = !c.dica;
+    focoAnterior = document.activeElement;
+    modal.hidden = false;
+    document.getElementById('ajudaOk').focus({ preventScroll: true });
+    modal.querySelector('.ajuda-modal').scrollTop = 0;
+  }
+
+  function fecharAjuda(){
+    modal.hidden = true;
+    if(focoAnterior && focoAnterior.focus){ focoAnterior.focus(); }
+  }
+
+  document.getElementById('btnAjuda').addEventListener('click', abrirAjuda);
+  document.getElementById('fecharAjuda').addEventListener('click', fecharAjuda);
+  document.getElementById('ajudaOk').addEventListener('click', fecharAjuda);
+  modal.addEventListener('click', function(e){ if(e.target === modal) fecharAjuda(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.hidden) fecharAjuda(); });
+})();
+</script>
+<!-- ===== FIM DO PADRÃO TECHSAÚDE ===== -->
 </body>
 </html>

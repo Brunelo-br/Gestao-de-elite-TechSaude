@@ -58,7 +58,7 @@ body{
 .header-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:2px;min-width:56px;color:var(--cream);font-family:inherit;}
 .header-btn[hidden]{display:none;}
 .header-btn:hover{transform:scale(1.05);}
-.header-btn.emergencia .icon,.header-btn.inicio .icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.header-btn.emergencia .icon,.header-btn.inicio .icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.375rem;}
 .header-btn.emergencia .icon{background:#c0392b;}
 .header-btn.emergencia .icon svg{width:20px;height:20px;display:block;}
 .header-btn.inicio .icon{width:40px;height:40px;background:rgba(255,255,255,.18);border:none;}
@@ -66,12 +66,12 @@ body{
 .header-btn.voltar .icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);}
 .header-btn.voltar .icon svg{width:18px;height:18px;display:block;}
 .header-nav{display:flex;align-items:flex-start;gap:8px;flex-shrink:0;}
-.header-btn label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--cream);}
+.header-btn label{font-size:.625rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--cream);}
 .header-center{text-align:center;flex:1;min-width:0;}
 .logo-section{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px;}
 .logo-icon{width:200px;height:200px;display:block;flex-shrink:0;object-fit:contain;}
-.app-title{font-size:22px;font-weight:800;letter-spacing:.5px;}
-.datetime{font-size:12px;color:rgba(244,238,219,.9);}
+.app-title{font-size:1.375rem;font-weight:800;letter-spacing:.5px;}
+.datetime{font-size:.75rem;color:rgba(244,238,219,.9);}
 
 /* ===== CONTENT / SCREENS ===== */
 .main-content{flex:1;overflow-y:auto;padding:24px 24px 36px;-webkit-overflow-scrolling:touch;background:var(--cream);}
@@ -79,7 +79,7 @@ body{
 .screen.active{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 .page-title{
-  font-size:18px;
+  font-size:1.125rem;
   color:var(--green-deep);
   font-weight:900;
   margin-bottom:18px;
@@ -89,7 +89,7 @@ body{
 
 .form-group{margin-bottom:14px;}
 .field-label{
-  font-size:11px;
+  font-size:.6875rem;
   color:var(--green-deep);
   font-weight:700;
   text-transform:uppercase;
@@ -113,13 +113,13 @@ body{
 .field-icon{
   width:28px;height:28px;
   display:flex;align-items:center;justify-content:center;
-  font-size:18px;flex-shrink:0;color:var(--green-mid);
+  font-size:1.125rem;flex-shrink:0;color:var(--green-mid);
 }
 .form-field input,.form-field textarea{
   flex:1;
   border:none;
   background:transparent;
-  font-size:15px;
+  font-size:.9375rem;
   font-family:inherit;
   color:var(--text);
   outline:none;
@@ -139,8 +139,8 @@ body{
   gap:12px;
 }
 .alarm-label{display:flex;align-items:center;gap:10px;min-width:0;}
-.alarm-title{font-size:12px;color:var(--green-deep);font-weight:700;text-transform:uppercase;}
-.alarm-subtitle{font-size:11px;color:var(--text-soft);margin-top:2px;}
+.alarm-title{font-size:.75rem;color:var(--green-deep);font-weight:700;text-transform:uppercase;}
+.alarm-subtitle{font-size:.6875rem;color:var(--text-soft);margin-top:2px;}
 .toggle-switch{
   position:relative;
   width:52px;height:28px;
@@ -174,7 +174,7 @@ body{
   border:none;
   padding:14px 16px;
   border-radius:50px;
-  font-size:14px;
+  font-size:.875rem;
   font-weight:700;
   cursor:pointer;
   text-transform:uppercase;
@@ -193,7 +193,7 @@ body{
   border:2px solid var(--danger);
   padding:12px 14px;
   border-radius:12px;
-  font-size:12px;
+  font-size:.75rem;
   font-weight:700;
   cursor:pointer;
   text-transform:uppercase;
@@ -210,7 +210,7 @@ body{
   border:2px solid var(--border);
   padding:12px;
   border-radius:12px;
-  font-size:12px;
+  font-size:.75rem;
   font-weight:700;
   cursor:pointer;
   text-transform:uppercase;
@@ -228,7 +228,7 @@ body{
   border:none;
   padding:14px 18px;
   border-radius:50px;
-  font-size:14px;
+  font-size:.875rem;
   font-weight:700;
   cursor:pointer;
   text-transform:uppercase;
@@ -249,7 +249,7 @@ body{
   color:var(--green-deep);
   border:none;
   padding:12px;
-  font-size:14px;
+  font-size:.875rem;
   font-weight:700;
   cursor:pointer;
   text-align:center;
@@ -268,14 +268,14 @@ body{
 }
 .card:hover{border-color:var(--green-mid);}
 .card-title{
-  font-size:15px;
+  font-size:.9375rem;
   font-weight:700;
   color:var(--green-deep);
   margin-bottom:8px;
   line-height:1.3;
 }
 .card-line{
-  font-size:14px;
+  font-size:.875rem;
   color:var(--text);
   margin:4px 0;
   display:flex;
@@ -285,7 +285,7 @@ body{
 .card-line .lbl{font-weight:700;color:var(--text-soft);min-width:58px;}
 .badge{
   display:inline-block;
-  font-size:11px;
+  font-size:.6875rem;
   font-weight:700;
   padding:4px 10px;
   border-radius:999px;
@@ -307,7 +307,7 @@ body{
   border-radius:50px;
   padding:10px 16px;
   font-weight:700;
-  font-size:12px;
+  font-size:.75rem;
   text-transform:uppercase;
   cursor:pointer;
   letter-spacing:.3px;
@@ -335,7 +335,7 @@ body{
   color:var(--text-soft);
 }
 .empty-state .icon{font-size:2.2rem;margin-bottom:10px;}
-.empty-state p{margin:0 0 16px;font-size:14px;line-height:1.45;}
+.empty-state p{margin:0 0 16px;font-size:.875rem;line-height:1.45;}
 .section-link{
   display:flex;
   align-items:center;
@@ -347,7 +347,7 @@ body{
   text-decoration:none;
   color:var(--text);
   font-weight:700;
-  font-size:14px;
+  font-size:.875rem;
   margin-top:8px;
 }
 .section-link .arrow{margin-left:auto;color:var(--green-mid);font-size:1.25rem;}
@@ -383,13 +383,13 @@ body{
 }
 .sheet h3{
   margin:0 0 4px;
-  font-size:16px;
+  font-size:1rem;
   color:var(--green-deep);
   font-weight:700;
   text-align:center;
   text-transform:uppercase;
 }
-.sheet .sub{text-align:center;font-size:13px;color:var(--text-soft);margin:0 0 16px;}
+.sheet .sub{text-align:center;font-size:.8125rem;color:var(--text-soft);margin:0 0 16px;}
 .opcao{
   display:flex;
   align-items:center;
@@ -417,14 +417,14 @@ body{
   border-radius:50%;
   background:#fff;
 }
-.opcao .texto{font-weight:700;font-size:14px;color:var(--text);}
+.opcao .texto{font-weight:700;font-size:.875rem;color:var(--text);}
 .sheet-actions{margin-top:16px;display:flex;gap:10px;}
 .btn{
   flex:1;
   padding:13px;
   border-radius:50px;
   font-weight:700;
-  font-size:13px;
+  font-size:.8125rem;
   text-transform:uppercase;
   cursor:pointer;
   border:none;
@@ -469,14 +469,14 @@ body{
 }
 .popup-card h2{
   margin:0 0 10px;
-  font-size:16px;
+  font-size:1rem;
   color:var(--green-deep);
   font-weight:700;
   text-transform:uppercase;
 }
 .popup-card p{
   margin:0 0 20px;
-  font-size:14px;
+  font-size:.875rem;
   line-height:1.5;
   color:var(--text);
 }
@@ -492,7 +492,7 @@ body{
   padding:12px 18px;
   border-radius:50px;
   font-weight:700;
-  font-size:13px;
+  font-size:.8125rem;
   opacity:0;
   transition:all .3s;
   z-index:200;
@@ -515,10 +515,10 @@ body{
     border-radius:24px;
   }
   .header{padding:20px 28px 16px;}
-  .app-title{font-size:26px;}
+  .app-title{font-size:1.625rem;}
   .logo-icon{width:200px;}
   .main-content{padding:28px 36px 36px;}
-  .page-title{font-size:22px;margin-bottom:24px;}
+  .page-title{font-size:1.375rem;margin-bottom:24px;}
   .form-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -548,9 +548,9 @@ body{
     box-shadow:none;
   }
   .header{padding:14px 12px 12px;}
-  .app-title{font-size:20px;}
+  .app-title{font-size:1.25rem;}
   .logo-icon{width:200px;}
-  .header-btn .icon{width:38px!important;height:38px!important;font-size:20px!important;}
+  .header-btn .icon{width:38px!important;height:38px!important;font-size:1.25rem!important;}
   .main-content{padding:16px 14px 24px;}
   .secondary-row{grid-template-columns:1fr;}
   .primary-row{flex-direction:column;}
@@ -621,6 +621,71 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
   .main-content{padding:16px 14px 24px;}
 }
 </style>
+<!-- ===== PADRÃO TECHSAÚDE: ACESSIBILIDADE (tamanho da letra + Ajuda) ===== -->
+<script>
+  /* Aplica o tamanho de letra salvo ANTES da tela aparecer (evita "piscar") */
+  (function(){
+    try{
+      var f = parseFloat(localStorage.getItem('techsaude_fonte'));
+      if(f >= 85 && f <= 150){ document.documentElement.style.fontSize = f + '%'; }
+    }catch(e){}
+  })();
+</script>
+<style>
+  /* Barra de acessibilidade (mesmo visual da tela Mini Jogos) */
+  .toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin:0 0 22px; }
+  .toolbar-acessibilidade .font-group{ display:inline-flex; border:2px solid #cdbf95; border-radius:999px; overflow:hidden; background:#fff; }
+  .toolbar-acessibilidade .font-btn{
+    border:none; background:#fff; color:#1b3a26; font-weight:800; padding:9px 13px; cursor:pointer;
+    font-size:.75rem; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; min-width:44px; min-height:40px; margin:0;
+  }
+  .toolbar-acessibilidade .font-btn + .font-btn{ border-left:1px solid #e4dbbd; }
+  .toolbar-acessibilidade .font-btn.active{ background:#1b3a26; color:#f3efdc; }
+  .toolbar-acessibilidade .font-btn:focus-visible,
+  .toolbar-acessibilidade .chip-btn:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+  .toolbar-acessibilidade .chip-btn{
+    background:#fff; border:2px solid #cdbf95; border-radius:999px; padding:9px 15px; font-size:.75rem; min-height:40px; margin:0;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:#1b3a26; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+  }
+  .toolbar-acessibilidade .chip-btn:hover{ border-color:#2f9e8f; }
+
+  /* Pop-up de Ajuda */
+  .ajuda-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:10000; }
+  .ajuda-overlay[hidden]{ display:none !important; }
+  .ajuda-modal{
+    background:#f3efdc; border:2px solid #cdbf95; border-radius:22px; padding:2rem 1.6rem 1.5rem; max-width:460px; width:100%;
+    position:relative; box-shadow:0 30px 60px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto; text-align:left;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; color:#26332a; animation:ajudaPop .2s ease;
+  }
+  @keyframes ajudaPop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .ajuda-modal .ajuda-fechar{
+    position:absolute; top:.75rem; right:.75rem; background:#ece5c9; border:none; width:2.6rem; height:2.6rem;
+    border-radius:50%; font-size:1.1rem; cursor:pointer; color:#1b3a26; margin:0; padding:0;
+  }
+  .ajuda-modal .ajuda-tag{ margin:0 0 .3rem; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#2f6b46; }
+  .ajuda-modal h2{ margin:0 2.6rem .5rem 0; padding:0; font-size:1.3rem; line-height:1.2; color:#1b3a26; font-weight:900; text-transform:uppercase; text-align:left; font-family:inherit; }
+  .ajuda-modal .ajuda-intro{ margin:0 0 1rem; font-size:.98rem; font-weight:600; color:#55604f; line-height:1.45; }
+  .ajuda-modal .ajuda-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.7rem; counter-reset:passo; }
+  .ajuda-modal .ajuda-lista li{
+    counter-increment:passo; position:relative; padding:0 0 0 2.5rem; margin:0; min-height:1.9rem;
+    font-size:1rem; font-weight:600; line-height:1.45; color:#26332a;
+  }
+  .ajuda-modal .ajuda-lista li::before{
+    content:counter(passo); position:absolute; left:0; top:-.05rem; width:1.9rem; height:1.9rem; border-radius:50%;
+    background:#1b3a26; color:#f3efdc; font-weight:800; font-size:.95rem; display:flex; align-items:center; justify-content:center;
+  }
+  .ajuda-modal .ajuda-lista b{ color:#1b3a26; }
+  .ajuda-modal .ajuda-extra{ margin:1.1rem 0 0; padding:.8rem 1rem; background:#dcefdf; border:1.5px solid #a5d6a7; border-radius:14px; font-size:.95rem; font-weight:600; color:#1b4332; line-height:1.4; }
+  .ajuda-modal .ajuda-ok{
+    display:block; width:100%; margin:1.2rem 0 0; padding:.9rem; border:none; border-radius:999px; cursor:pointer;
+    background:linear-gradient(180deg,#234a34,#1b3a26); color:#f3efdc; font-weight:800; font-size:1rem; text-transform:uppercase;
+    letter-spacing:.4px; font-family:inherit; box-shadow:0 5px 0 #0e2416;
+  }
+  .ajuda-modal .ajuda-ok:active{ transform:translateY(3px); box-shadow:0 2px 0 #0e2416; }
+  .ajuda-modal button:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+</style>
+<!-- ===== FIM DO PADRÃO TECHSAÚDE (head) ===== -->
 </head>
 <body>
 <div class="container">
@@ -664,6 +729,16 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
   </header>
 
   <div class="main-content">
+    <!-- PADRÃO TECHSAÚDE: barra de acessibilidade -->
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho da letra">
+        <button type="button" class="font-btn" data-scale="100" aria-label="Letra tamanho normal">A</button>
+        <button type="button" class="font-btn" data-scale="115" aria-label="Letra grande">A+</button>
+        <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
+      </div>
+      <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
+    </div>
+
 
     <!-- ========== TELA 1: INCLUIR CONSULTA ========== -->
     <section class="screen active" id="screen-incluir">
@@ -1193,5 +1268,148 @@ updateClock();
 setInterval(updateClock, 60000);
 carregarConsultasSupabase();
 </script>
+<!-- ===== PADRÃO TECHSAÚDE: pop-up de Ajuda (o conteúdo vem de AJUDA_TELA, no script abaixo) ===== -->
+<div id="modalAjuda" class="ajuda-overlay" hidden>
+  <div class="ajuda-modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button type="button" class="ajuda-fechar" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <p class="ajuda-tag">❔ Ajuda</p>
+    <h2 id="ajudaTitulo">Como usar esta tela</h2>
+    <p class="ajuda-intro" id="ajudaIntro"></p>
+    <ol class="ajuda-lista" id="ajudaLista"></ol>
+    <p class="ajuda-extra" id="ajudaExtra"></p>
+    <button type="button" class="ajuda-ok" id="ajudaOk">Entendi</button>
+  </div>
+</div>
+
+<script>
+/* ===== PADRÃO TECHSAÚDE: tamanho da letra + Ajuda =====
+   Para mudar o texto da Ajuda desta tela, edite apenas AJUDA_TELA.
+   - "quando": seletor CSS que indica em qual parte da tela o usuário está
+     (o primeiro item que existir na tela é o usado; o último, sem "quando", é o padrão).
+   - "passos": lista curta, em ordem, do que fazer.                                  */
+(function(){
+  "use strict";
+
+  var AJUDA_TELA = [
+    {
+      quando: '#screen-incluir.active',
+      titulo: 'Como incluir uma consulta',
+      intro: 'Nesta parte você anota uma nova consulta médica na sua agenda.',
+      passos: [
+        'Escreva o <b>local</b> (clínica ou hospital), a <b>especialidade</b> e o nome do <b>médico</b>.',
+        'Escolha o <b>dia</b> e a <b>hora</b> da consulta.',
+        'Deixe a chave de <b>Alarme</b> ligada (verde) para ser lembrado.',
+        'Se quiser, escreva uma observação, como “levar exames”.',
+        'Toque em <b>Salvar na Agenda</b>. Para ver o que já foi salvo, toque em <b>Minhas Consultas</b>.'
+      ],
+      dica: 'Errou algo? O botão Limpar apaga o que foi digitado para você começar de novo.'
+    },
+    {
+      quando: '#screen-consultas.active',
+      titulo: 'Como ver suas consultas',
+      intro: 'Aqui aparecem todas as consultas que você salvou.',
+      passos: [
+        'Cada cartão mostra o médico, a especialidade, o dia, a hora e o local.',
+        'Toque em <b>Configurar Lembrete</b> para escolher quando quer ser avisado: 1 dia, 2 horas ou 30 minutos antes.',
+        'Toque em <b>Excluir</b> para apagar uma consulta.',
+        'Para anotar outra consulta, toque em <b>Incluir Nova Consulta</b>.'
+      ],
+      dica: 'Use o botão Voltar, no alto, para retornar à tela anterior.'
+    },
+    {
+      quando: '#screen-lembretes.active',
+      titulo: 'Como ver seus lembretes',
+      intro: 'Aqui aparecem as consultas que já têm um lembrete configurado.',
+      passos: [
+        'Cada cartão mostra a consulta e quando você será avisado.',
+        'Toque em <b>Alterar</b> para mudar quando quer ser lembrado.',
+        'Toque em <b>Excluir</b> para apagar a consulta.',
+        'Toque em <b>Voltar para Minhas Consultas</b> para ver a lista completa.'
+      ],
+      dica: 'Use o botão Voltar, no alto, para retornar à tela anterior.'
+    },
+    {
+      titulo: 'Como usar Consultas e Lembretes',
+      passos: [
+        'Use os botões no fim da tela para incluir consultas ou ver as que já salvou.'
+      ]
+    }
+  ];
+
+  // Passo comum a todas as telas (acessibilidade)
+  var PASSO_LETRA = 'Letra pequena? Toque em <b>A+</b> ou <b>A++</b>, logo acima, para aumentar. Sua escolha fica salva para todas as telas.';
+
+  // ---------- TAMANHO DA LETRA (salvo para todas as telas) ----------
+  var CHAVE_FONTE = 'techsaude_fonte';
+  var botoesFonte = document.querySelectorAll('.toolbar-acessibilidade .font-btn');
+
+  function escalaAtual(){ return parseFloat(document.documentElement.style.fontSize) || 100; }
+
+  function marcarBotaoFonte(){
+    var atual = escalaAtual();
+    botoesFonte.forEach(function(b){
+      var ativo = Number(b.dataset.scale) === atual;
+      b.classList.toggle('active', ativo);
+      b.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+    });
+  }
+
+  function aplicarFonte(escala, salvar){
+    document.documentElement.style.fontSize = escala + '%';
+    if(salvar){ try{ localStorage.setItem(CHAVE_FONTE, String(escala)); }catch(e){} }
+    marcarBotaoFonte();
+  }
+
+  botoesFonte.forEach(function(btn){
+    btn.addEventListener('click', function(){ aplicarFonte(Number(btn.dataset.scale), true); });
+  });
+  // Comando de voz ("aumentar letra") e outras abas também atualizam os botões
+  window.addEventListener('techsaude:fonte', marcarBotaoFonte);
+  window.addEventListener('storage', function(e){
+    if(e.key === CHAVE_FONTE && e.newValue){ aplicarFonte(parseFloat(e.newValue) || 100, false); }
+  });
+  marcarBotaoFonte();
+
+  // ---------- AJUDA ----------
+  var modal = document.getElementById('modalAjuda');
+  var focoAnterior = null;
+
+  function conteudoAtual(){
+    for(var i = 0; i < AJUDA_TELA.length; i++){
+      var item = AJUDA_TELA[i];
+      if(!item.quando || document.querySelector(item.quando)) return item;
+    }
+    return AJUDA_TELA[AJUDA_TELA.length - 1];
+  }
+
+  function abrirAjuda(){
+    var c = conteudoAtual();
+    document.getElementById('ajudaTitulo').textContent = c.titulo;
+    var intro = document.getElementById('ajudaIntro');
+    intro.innerHTML = c.intro || '';
+    intro.hidden = !c.intro;
+    document.getElementById('ajudaLista').innerHTML = c.passos.concat([PASSO_LETRA]).map(function(p){ return '<li>' + p + '</li>'; }).join('');
+    var extra = document.getElementById('ajudaExtra');
+    extra.innerHTML = c.dica || '';
+    extra.hidden = !c.dica;
+    focoAnterior = document.activeElement;
+    modal.hidden = false;
+    document.getElementById('ajudaOk').focus({ preventScroll: true });
+    modal.querySelector('.ajuda-modal').scrollTop = 0;
+  }
+
+  function fecharAjuda(){
+    modal.hidden = true;
+    if(focoAnterior && focoAnterior.focus){ focoAnterior.focus(); }
+  }
+
+  document.getElementById('btnAjuda').addEventListener('click', abrirAjuda);
+  document.getElementById('fecharAjuda').addEventListener('click', fecharAjuda);
+  document.getElementById('ajudaOk').addEventListener('click', fecharAjuda);
+  modal.addEventListener('click', function(e){ if(e.target === modal) fecharAjuda(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.hidden) fecharAjuda(); });
+})();
+</script>
+<!-- ===== FIM DO PADRÃO TECHSAÚDE ===== -->
 </body>
 </html>
