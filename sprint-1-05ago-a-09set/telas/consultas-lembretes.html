@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde – Consultas e Lembretes</title>
+<style>
+:root{
+  --green-deep:#1e5631;
+  --green-mid:#2d7a3e;
+  --green-soft:#e8f5e9;
+  --danger:#c41e3a;
+  --bg-field:#f5f5f5;
+  --border:#e0e0e0;
+  --text:#333;
+  --text-soft:#666;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;}
+body{
+  font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  background:linear-gradient(135deg,var(--green-deep) 0%,var(--green-mid) 100%);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:16px;
+}
+.container{
+  width:100%;
+  max-width:480px;
+  background:#fff;
+  border-radius:20px;
+  box-shadow:0 10px 50px rgba(0,0,0,.3);
+  overflow:hidden;
+  min-height:min(720px, calc(100vh - 32px));
+  display:flex;
+  flex-direction:column;
+}
+
+/* ===== HEADER ===== */
+.header{
+  background:linear-gradient(135deg,var(--green-deep) 0%,var(--green-mid) 100%);
+  padding:16px 14px 12px;
+  color:#fff;
+  flex-shrink:0;
+}
+.header-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+.header-btn{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  background:none;
+  border:none;
+  cursor:pointer;
+  padding:0;
+  min-width:56px;
+  transition:transform .15s;
+}
+.header-btn:hover{transform:scale(1.05);}
+.header-btn.emergencia .icon{
+  width:42px;height:42px;
+  background:var(--danger);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  box-shadow:0 4px 12px rgba(196,30,58,.35);
+}
+.header-btn.inicio .icon{
+  width:42px;height:42px;
+  background:rgba(255,255,255,.15);
+  border:2px solid rgba(255,255,255,.3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+}
+.header-btn label{
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+  color:#fff;
+}
+.header-center{text-align:center;flex:1;min-width:0;}
+.logo-section{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:4px;
+}
+.logo-icon{width:42px;height:auto;display:block;flex-shrink:0;}
+.app-title{font-size:22px;font-weight:bold;letter-spacing:.5px;}
+.datetime{font-size:12px;color:rgba(255,255,255,.9);}
+
+/* ===== CONTENT / SCREENS ===== */
+.main-content{
+  flex:1;
+  overflow-y:auto;
+  padding:20px 18px 28px;
+  -webkit-overflow-scrolling:touch;
+}
+.screen{display:none;animation:fadeIn .25s ease;}
+.screen.active{display:block;}
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(8px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.page-title{
+  font-size:18px;
+  color:var(--green-deep);
+  font-weight:700;
+  margin-bottom:18px;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  text-align:center;
+  line-height:1.25;
+}
+
+/* ===== FORM ===== */
+.form-group{margin-bottom:14px;}
+.field-label{
+  font-size:11px;
+  color:var(--green-deep);
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  margin-bottom:6px;
+  display:block;
+}
+.form-field{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--bg-field);
+  padding:12px 14px;
+  border-radius:12px;
+  border:2px solid var(--border);
+  transition:border-color .2s, background .2s;
+}
+.form-field:focus-within{border-color:var(--green-mid);background:#f9fdf9;}
+.form-field.error{border-color:var(--danger);background:rgba(196,30,58,.05);}
+.form-field.success{border-color:#4caf50;background:rgba(76,175,80,.05);}
+.field-icon{
+  width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;color:var(--green-mid);
+}
+.form-field input,.form-field textarea{
+  flex:1;
+  border:none;
+  background:transparent;
+  font-size:15px;
+  font-family:inherit;
+  color:var(--text);
+  outline:none;
+  min-width:0;
+}
+.form-field textarea{resize:vertical;min-height:72px;padding-top:2px;}
+.datetime-inputs{display:flex;gap:8px;}
+.datetime-inputs .form-field{flex:1;}
+.alarm-section{
+  background:var(--bg-field);
+  padding:14px;
+  border-radius:12px;
+  border:2px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.alarm-label{display:flex;align-items:center;gap:10px;min-width:0;}
+.alarm-title{font-size:12px;color:var(--green-deep);font-weight:700;text-transform:uppercase;}
+.alarm-subtitle{font-size:11px;color:var(--text-soft);margin-top:2px;}
+.toggle-switch{
+  position:relative;
+  width:52px;height:28px;
+  background:#ddd;
+  border-radius:14px;
+  cursor:pointer;
+  border:none;
+  flex-shrink:0;
+  transition:background .25s;
+}
+.toggle-switch.active{background:#4caf50;}
+.toggle-switch::after{
+  content:'';
+  position:absolute;
+  width:24px;height:24px;
+  background:#fff;
+  border-radius:50%;
+  top:2px;left:2px;
+  transition:left .25s;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.toggle-switch.active::after{left:26px;}
+
+/* ===== BUTTONS ===== */
+.buttons-section{margin-top:20px;display:grid;gap:12px;}
+.primary-row{display:flex;gap:10px;align-items:stretch;}
+.btn-save{
+  flex:1;
+  background:var(--green-mid);
+  color:#fff;
+  border:none;
+  padding:14px 16px;
+  border-radius:50px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:background .2s, transform .1s;
+}
+.btn-save:hover{background:var(--green-deep);}
+.btn-save:active{transform:scale(.98);}
+.btn-clear{
+  background:var(--bg-field);
+  color:var(--danger);
+  border:2px solid var(--danger);
+  padding:12px 14px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  text-transform:uppercase;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+}
+.btn-clear:hover{background:var(--danger);color:#fff;}
+.secondary-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-secondary{
+  background:var(--bg-field);
+  color:var(--green-deep);
+  border:2px solid var(--border);
+  padding:12px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  text-transform:uppercase;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+.btn-secondary:hover{border-color:var(--green-mid);}
+.btn-block{
+  display:block;
+  width:100%;
+  background:var(--green-mid);
+  color:#fff;
+  border:none;
+  padding:14px 18px;
+  border-radius:50px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+  text-align:center;
+  margin-top:8px;
+}
+.btn-block:hover{background:var(--green-deep);}
+.btn-block.outline{
+  background:#fff;
+  color:var(--green-mid);
+  border:2px solid var(--green-mid);
+}
+.btn-ghost-block{
+  display:block;
+  width:100%;
+  background:transparent;
+  color:var(--green-deep);
+  border:none;
+  padding:12px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  text-align:center;
+  margin-top:6px;
+  text-decoration:underline;
+}
+
+/* ===== CARDS ===== */
+.card{
+  background:var(--bg-field);
+  border:2px solid var(--border);
+  border-radius:14px;
+  padding:14px 16px;
+  margin-bottom:12px;
+  transition:border-color .2s;
+}
+.card:hover{border-color:var(--green-mid);}
+.card-title{
+  font-size:15px;
+  font-weight:700;
+  color:var(--green-deep);
+  margin-bottom:8px;
+  line-height:1.3;
+}
+.card-line{
+  font-size:14px;
+  color:var(--text);
+  margin:4px 0;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.card-line .lbl{font-weight:700;color:var(--text-soft);min-width:58px;}
+.badge{
+  display:inline-block;
+  font-size:11px;
+  font-weight:700;
+  padding:4px 10px;
+  border-radius:999px;
+  margin-top:8px;
+}
+.badge-ok{background:var(--green-soft);color:var(--green-deep);border:1px solid #a5d6a7;}
+.badge-warn{background:#fff3e0;color:#e65100;border:1px solid #ffcc80;}
+.card-actions{
+  margin-top:12px;
+  display:flex;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.btn-sm{
+  background:var(--green-mid);
+  color:#fff;
+  border:none;
+  border-radius:50px;
+  padding:10px 16px;
+  font-weight:700;
+  font-size:12px;
+  text-transform:uppercase;
+  cursor:pointer;
+  letter-spacing:.3px;
+}
+.btn-sm:hover{background:var(--green-deep);}
+.btn-sm.outline{
+  background:#fff;
+  color:var(--green-mid);
+  border:2px solid var(--green-mid);
+}
+.btn-sm.danger{
+  background:#fff;
+  color:var(--danger);
+  border:2px solid var(--danger);
+}
+.btn-sm.danger:hover{
+  background:var(--danger);
+  color:#fff;
+}
+
+/* ===== EMPTY / LINKS ===== */
+.empty-state{
+  text-align:center;
+  padding:32px 16px;
+  background:var(--bg-field);
+  border:2px dashed var(--border);
+  border-radius:14px;
+  color:var(--text-soft);
+}
+.empty-state .icon{font-size:2.2rem;margin-bottom:10px;}
+.empty-state p{margin:0 0 16px;font-size:14px;line-height:1.45;}
+.section-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 16px;
+  background:var(--bg-field);
+  border:2px solid var(--border);
+  border-radius:12px;
+  text-decoration:none;
+  color:var(--text);
+  font-weight:700;
+  font-size:14px;
+  margin-top:8px;
+}
+.section-link .arrow{margin-left:auto;color:var(--green-mid);font-size:1.25rem;}
+.footer-nav{
+  margin-top:20px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+/* ===== OVERLAYS ===== */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:100;
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+}
+.overlay.show{display:flex;}
+.sheet{
+  background:#fff;
+  border-radius:20px 20px 0 0;
+  width:100%;
+  max-width:480px;
+  padding:22px 18px 28px;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{
+  from{transform:translateY(40px);opacity:0;}
+  to{transform:translateY(0);opacity:1;}
+}
+.sheet h3{
+  margin:0 0 4px;
+  font-size:16px;
+  color:var(--green-deep);
+  font-weight:700;
+  text-align:center;
+  text-transform:uppercase;
+}
+.sheet .sub{text-align:center;font-size:13px;color:var(--text-soft);margin:0 0 16px;}
+.opcao{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px 14px;
+  border:2px solid var(--border);
+  border-radius:12px;
+  margin-bottom:8px;
+  cursor:pointer;
+  background:var(--bg-field);
+}
+.opcao.selected{border-color:var(--green-mid);background:var(--green-soft);}
+.opcao input{display:none;}
+.opcao .radio{
+  width:20px;height:20px;
+  border-radius:50%;
+  border:2px solid #ccc;
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.opcao.selected .radio{border-color:var(--green-mid);background:var(--green-mid);}
+.opcao.selected .radio::after{
+  content:'';
+  width:8px;height:8px;
+  border-radius:50%;
+  background:#fff;
+}
+.opcao .texto{font-weight:700;font-size:14px;color:var(--text);}
+.sheet-actions{margin-top:16px;display:flex;gap:10px;}
+.btn{
+  flex:1;
+  padding:13px;
+  border-radius:50px;
+  font-weight:700;
+  font-size:13px;
+  text-transform:uppercase;
+  cursor:pointer;
+  border:none;
+}
+.btn-primary{background:var(--green-mid);color:#fff;}
+.btn-primary:hover{background:var(--green-deep);}
+.btn-ghost{background:var(--bg-field);color:var(--green-deep);border:2px solid var(--border);}
+.btn-danger{background:var(--danger);color:#fff;}
+
+.popup-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  z-index:120;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.popup-overlay.show{display:flex;}
+.popup-card{
+  background:#fff;
+  border-radius:18px;
+  padding:26px 20px 22px;
+  max-width:360px;
+  width:100%;
+  text-align:center;
+  animation:popIn .25s ease;
+  box-shadow:0 12px 40px rgba(0,0,0,.25);
+}
+@keyframes popIn{
+  from{transform:scale(.92);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+.popup-card .icon-pop{
+  width:56px;height:56px;
+  margin:0 auto 12px;
+  background:var(--green-soft);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;
+}
+.popup-card h2{
+  margin:0 0 10px;
+  font-size:16px;
+  color:var(--green-deep);
+  font-weight:700;
+  text-transform:uppercase;
+}
+.popup-card p{
+  margin:0 0 20px;
+  font-size:14px;
+  line-height:1.5;
+  color:var(--text);
+}
+.popup-actions{display:flex;flex-direction:column;gap:10px;}
+
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--green-deep);
+  color:#fff;
+  padding:12px 18px;
+  border-radius:50px;
+  font-weight:700;
+  font-size:13px;
+  opacity:0;
+  transition:all .3s;
+  z-index:200;
+  pointer-events:none;
+  max-width:90%;
+  text-align:center;
+  box-shadow:0 6px 18px rgba(0,0,0,.25);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ===== DESKTOP / TABLET ===== */
+@media (min-width:768px){
+  body{
+    align-items:center;
+    padding:28px 24px;
+  }
+  .container{
+    max-width:720px;
+    min-height:640px;
+    border-radius:24px;
+  }
+  .header{padding:20px 28px 16px;}
+  .app-title{font-size:26px;}
+  .logo-icon{width:50px;}
+  .main-content{padding:28px 36px 36px;}
+  .page-title{font-size:22px;margin-bottom:24px;}
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px 20px;
+  }
+  .form-grid .form-group.full{grid-column:1 / -1;}
+  .secondary-row{max-width:420px;}
+  .cards-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .cards-grid .card{margin-bottom:0;}
+  .sheet{border-radius:20px;margin-bottom:24px;max-width:420px;}
+  .overlay{align-items:center;}
+}
+@media (min-width:1024px){
+  .container{max-width:880px;}
+  .main-content{padding:32px 48px 40px;}
+}
+@media (max-width:480px){
+  body{padding:0;}
+  .container{
+    max-width:100%;
+    border-radius:0;
+    min-height:100vh;
+    box-shadow:none;
+  }
+  .header{padding:14px 12px 12px;}
+  .app-title{font-size:20px;}
+  .logo-icon{width:38px;}
+  .header-btn .icon{width:38px!important;height:38px!important;font-size:20px!important;}
+  .main-content{padding:16px 14px 24px;}
+  .secondary-row{grid-template-columns:1fr;}
+  .primary-row{flex-direction:column;}
+  .btn-clear{justify-content:center;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <div class="header-top">
+      <button type="button" class="header-btn emergencia" onclick="mostrarToast('Chamado de Emergência (em breve)')" aria-label="Emergência">
+        <div class="icon">🔔</div>
+        <label>Emergência</label>
+      </button>
+      <div class="header-center">
+        <div class="logo-section">
+          <img class="logo-icon" src="data:image/png;base64,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" alt="TechSaúde">
+          <div class="app-title">TechSaúde</div>
+        </div>
+        <div class="datetime" id="datetime"></div>
+      </div>
+      <button type="button" class="header-btn inicio" onclick="mostrarToast('Tela Home (em breve)')" aria-label="Início">
+        <div class="icon">🏠</div>
+        <label>Início</label>
+      </button>
+    </div>
+  </header>
+
+  <div class="main-content">
+
+    <!-- ========== TELA 1: INCLUIR CONSULTA ========== -->
+    <section class="screen active" id="screen-incluir">
+      <h1 class="page-title" id="titulo-incluir">Incluir Consulta em Agenda</h1>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="field-label">Local (Clínica/Hospital)</label>
+          <div class="form-field">
+            <div class="field-icon">🏥</div>
+            <input type="text" id="c-local" placeholder="Ex: Hospital de Olhos" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Especialidade</label>
+          <div class="form-field">
+            <div class="field-icon">🩺</div>
+            <input type="text" id="c-especialidade" placeholder="Ex: Oftalmologia" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Médico</label>
+          <div class="form-field">
+            <div class="field-icon">👨‍⚕️</div>
+            <input type="text" id="c-medico" placeholder="Ex: Dra. Ana Silva" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Dia e Hora</label>
+          <div class="datetime-inputs">
+            <div class="form-field">
+              <div class="field-icon">📅</div>
+              <input type="date" id="c-data">
+            </div>
+            <div class="form-field">
+              <div class="field-icon">🕐</div>
+              <input type="time" id="c-hora">
+            </div>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label class="field-label">Alarme e Notificações</label>
+          <div class="alarm-section">
+            <div class="alarm-label">
+              <div class="field-icon">🔔</div>
+              <div>
+                <div class="alarm-title">Alarme e Notificações</div>
+                <div class="alarm-subtitle">(Criação Automática)</div>
+              </div>
+            </div>
+            <button type="button" class="toggle-switch active" id="alarmToggle" onclick="this.classList.toggle('active')" aria-label="Ativar alarme"></button>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label class="field-label">Observações (Opcional)</label>
+          <div class="form-field" style="align-items:flex-start;">
+            <div class="field-icon">✏️</div>
+            <textarea id="c-obs" placeholder="Ex: Jejum de 8h, levar exames anteriores"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="buttons-section">
+        <div class="primary-row">
+          <button type="button" class="btn-save" id="btn-salvar" onclick="salvarConsulta()">➕ Salvar na Agenda</button>
+          <button type="button" class="btn-clear" onclick="limparFormulario()">🗑️ Limpar</button>
+        </div>
+        <div class="secondary-row">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('c-local').focus()">⌨️ Digitar Consulta</button>
+          <button type="button" class="btn-secondary" onclick="mostrarToast('Scanner de encaminhamento (em breve)')">📷 Escanear</button>
+        </div>
+      </div>
+
+      <div class="footer-nav">
+        <button type="button" class="btn-block outline" onclick="goTo('consultas')">Minhas Consultas</button>
+        <button type="button" class="btn-ghost-block" onclick="goTo('lembretes')">Ver Meus Lembretes</button>
+      </div>
+    </section>
+
+    <!-- ========== TELA 2: MINHAS CONSULTAS ========== -->
+    <section class="screen" id="screen-consultas">
+      <h1 class="page-title">Minhas Consultas</h1>
+      <div id="lista-consultas" class="cards-grid"></div>
+      <a href="#" class="section-link" onclick="mostrarToast('Histórico de consultas anteriores (em breve)'); return false;">
+        <span>🕒 Ver consultas anteriores</span>
+        <span class="arrow">›</span>
+      </a>
+      <div class="footer-nav">
+        <button type="button" class="btn-block" onclick="limparFormulario(); goTo('incluir')">➕ Incluir Nova Consulta</button>
+        <button type="button" class="btn-block outline" onclick="goTo('lembretes')">Meus Lembretes</button>
+      </div>
+    </section>
+
+    <!-- ========== TELA 3: MEUS LEMBRETES ========== -->
+    <section class="screen" id="screen-lembretes">
+      <h1 class="page-title">Meus Lembretes<br>de Consultas</h1>
+      <div id="lista-lembretes" class="cards-grid"></div>
+      <div class="footer-nav">
+        <button type="button" class="btn-block outline" onclick="goTo('consultas')">Voltar para Minhas Consultas</button>
+        <button type="button" class="btn-ghost-block" onclick="limparFormulario(); goTo('incluir')">Incluir nova consulta</button>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- DROPDOWN CONFIGURAR LEMBRETE -->
+<div class="overlay" id="dropdown-lembrete" onclick="fecharDropdown(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <h3>Configurar Lembrete</h3>
+    <p class="sub" id="dropdown-sub">Escolha a antecedência</p>
+    <label class="opcao" data-valor="1d">
+      <input type="radio" name="ant" value="1d">
+      <span class="radio"></span>
+      <span class="texto">1 dia antes</span>
+    </label>
+    <label class="opcao selected" data-valor="2h">
+      <input type="radio" name="ant" value="2h" checked>
+      <span class="radio"></span>
+      <span class="texto">2 horas antes</span>
+    </label>
+    <label class="opcao" data-valor="30m">
+      <input type="radio" name="ant" value="30m">
+      <span class="radio"></span>
+      <span class="texto">30 minutos antes</span>
+    </label>
+    <div class="sheet-actions">
+      <button type="button" class="btn btn-ghost" onclick="fecharDropdown()">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="salvarLembrete()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- POP-UP SUCESSO -->
+<div class="popup-overlay" id="popup-sucesso">
+  <div class="popup-card">
+    <div class="icon-pop">✅</div>
+    <h2>Consulta salva!</h2>
+    <p>Sua consulta foi adicionada à agenda com sucesso.</p>
+    <div class="popup-actions">
+      <button type="button" class="btn btn-primary" onclick="fecharSucesso(); goTo('consultas')">Visualizar consultas</button>
+      <button type="button" class="btn btn-ghost" onclick="fecharSucesso()">Continuar incluindo</button>
+    </div>
+  </div>
+</div>
+
+<!-- POP-UP CONFIRMAÇÃO DE PRESENÇA -->
+<div class="popup-overlay" id="popup-presenca">
+  <div class="popup-card">
+    <div class="icon-pop">📅</div>
+    <h2>Confirmação de Presença</h2>
+    <p id="popup-texto"></p>
+    <div class="popup-actions">
+      <button type="button" class="btn btn-primary" onclick="confirmarPresenca()">Confirmar Presença</button>
+      <button type="button" class="btn btn-danger" onclick="reagendar()">Reagendar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- POP-UP CONFIRMAR EXCLUSÃO -->
+<div class="popup-overlay" id="popup-excluir">
+  <div class="popup-card">
+    <div class="icon-pop">🗑️</div>
+    <h2>Excluir consulta?</h2>
+    <p id="popup-excluir-texto">Esta ação não pode ser desfeita.</p>
+    <div class="popup-actions">
+      <button type="button" class="btn btn-danger" onclick="confirmarExclusao()">Sim, excluir</button>
+      <button type="button" class="btn btn-ghost" onclick="fecharExclusao()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+const STORAGE_KEY = 'techsaude_consultas_v2';
+let consultas = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || [
+  {id:1, medico:'Doutor Arnaldo', especialidade:'Cardiologia', data:'2026-03-11', hora:'09:30', local:'Clínica Vida Saudável, Av. Central, 455', obs:'', lembrete:'2h', confirmado:false},
+  {id:2, medico:'Dra. Mariana Costa', especialidade:'Oftalmologia', data:'2026-03-18', hora:'14:00', local:'Hospital de Olhos, Rua das Flores, 120', obs:'', lembrete:null, confirmado:false}
+];
+let atualId = null;
+let editandoId = null;
+let nextId = (consultas.reduce((m,c)=>Math.max(m,c.id),0) || 0) + 1;
+
+function salvarStorage(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(consultas));
+}
+
+function goTo(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if(el) el.classList.add('active');
+  if(name === 'consultas') renderConsultas();
+  if(name === 'lembretes') renderLembretes();
+  document.querySelector('.main-content').scrollTop = 0;
+}
+
+function fmtData(iso){
+  if(!iso) return '—';
+  const p = iso.split('-');
+  if(p.length !== 3) return iso;
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+function textoLembrete(v){
+  return ({'1d':'1 dia antes','2h':'2 horas antes','30m':'30 minutos antes'})[v] || null;
+}
+/** Sem a palavra "antes" — só no pop-up de confirmação de presença */
+function textoAntecedenciaPopup(v){
+  return ({'1d':'1 dia','2h':'2 horas','30m':'30 minutos'})[v] || '2 horas';
+}
+
+function renderConsultas(){
+  const el = document.getElementById('lista-consultas');
+  if(!consultas.length){
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">📋</div><p>Nenhuma consulta cadastrada ainda.</p><button type="button" class="btn-block" style="max-width:260px;margin:0 auto" onclick="limparFormulario(); goTo(\'incluir\')">Incluir Consulta</button></div>';
+    return;
+  }
+  el.innerHTML = consultas.map(c => {
+    const badge = c.lembrete
+      ? '<span class="badge badge-ok">Lembrete: ' + textoLembrete(c.lembrete) + '</span>'
+      : '<span class="badge badge-warn">Sem lembrete</span>';
+    return '<article class="card">' +
+      '<div class="card-title">' + escapeHtml(c.medico) + ' (' + escapeHtml(c.especialidade) + ')</div>' +
+      '<div class="card-line"><span class="lbl">Data:</span> ' + fmtData(c.data) + '</div>' +
+      '<div class="card-line"><span class="lbl">Horário:</span> ' + escapeHtml(c.hora) + '</div>' +
+      '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local) + '</div>' +
+      badge +
+      '<div class="card-actions">' +
+      '<button type="button" class="btn-sm outline" onclick="editarConsulta(' + c.id + ')">Editar</button>' +
+      '<button type="button" class="btn-sm danger" onclick="pedirExclusao(' + c.id + ')">Excluir</button>' +
+      '<button type="button" class="btn-sm" onclick="abrirConfig(' + c.id + ')">Configurar Lembrete</button>' +
+      '</div>' +
+      '</article>';
+  }).join('');
+}
+
+function renderLembretes(){
+  const el = document.getElementById('lista-lembretes');
+  const com = consultas.filter(c => c.lembrete);
+  if(!com.length){
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔔</div><p>Nenhum lembrete configurado ainda.<br>Vá em Minhas Consultas e configure um.</p><button type="button" class="btn-block" style="max-width:260px;margin:0 auto" onclick="goTo(\'consultas\')">Minhas Consultas</button></div>';
+    return;
+  }
+  el.innerHTML = com.map(c =>
+    '<article class="card">' +
+    '<div class="card-title">' + escapeHtml(c.medico) + ' (' + escapeHtml(c.especialidade) + ')</div>' +
+    '<div class="card-line"><span class="lbl">Data:</span> ' + fmtData(c.data) + ' às ' + escapeHtml(c.hora) + '</div>' +
+    '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local) + '</div>' +
+    '<span class="badge badge-ok">Avisar ' + textoLembrete(c.lembrete) + '</span>' +
+    '<div class="card-actions">' +
+    '<button type="button" class="btn-sm outline" onclick="editarConsulta(' + c.id + ')">Editar</button>' +
+    '<button type="button" class="btn-sm danger" onclick="pedirExclusao(' + c.id + ')">Excluir</button>' +
+    '<button type="button" class="btn-sm outline" onclick="abrirConfig(' + c.id + ')">Alterar lembrete</button>' +
+    '</div>' +
+    '</article>'
+  ).join('');
+}
+
+function escapeHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function salvarConsulta(){
+  const local = document.getElementById('c-local').value.trim();
+  const especialidade = document.getElementById('c-especialidade').value.trim();
+  const medico = document.getElementById('c-medico').value.trim();
+  const data = document.getElementById('c-data').value;
+  const hora = document.getElementById('c-hora').value;
+  const obs = document.getElementById('c-obs').value.trim();
+  const alarmeAtivo = document.getElementById('alarmToggle').classList.contains('active');
+
+  let ok = true;
+  [['c-local',local],['c-especialidade',especialidade],['c-medico',medico],['c-data',data],['c-hora',hora]].forEach(function(pair){
+    const field = document.getElementById(pair[0]).closest('.form-field');
+    if(!pair[1]){ field.classList.add('error'); field.classList.remove('success'); ok = false; }
+    else { field.classList.remove('error'); field.classList.add('success'); }
+  });
+  if(!ok){ mostrarToast('Preencha todos os campos obrigatórios'); return; }
+
+  if(editandoId != null){
+    const c = consultas.find(function(x){ return x.id === editandoId; });
+    if(c){
+      c.medico = medico;
+      c.especialidade = especialidade;
+      c.data = data;
+      c.hora = hora;
+      c.local = local;
+      c.obs = obs;
+      if(alarmeAtivo && !c.lembrete) c.lembrete = '2h';
+      if(!alarmeAtivo) c.lembrete = null;
+    }
+    salvarStorage();
+    limparFormulario();
+    mostrarToast('Consulta atualizada!');
+    goTo('consultas');
+  } else {
+    consultas.push({
+      id: nextId++,
+      medico: medico,
+      especialidade: especialidade,
+      data: data,
+      hora: hora,
+      local: local,
+      obs: obs,
+      lembrete: alarmeAtivo ? '2h' : null,
+      confirmado: false
+    });
+    salvarStorage();
+    limparFormulario();
+    document.getElementById('popup-sucesso').classList.add('show');
+  }
+}
+
+function limparFormulario(){
+  editandoId = null;
+  document.getElementById('titulo-incluir').textContent = 'Incluir Consulta em Agenda';
+  document.getElementById('btn-salvar').textContent = '➕ Salvar na Agenda';
+  ['c-local','c-especialidade','c-medico','c-data','c-hora','c-obs'].forEach(function(id){
+    document.getElementById(id).value = '';
+    document.getElementById(id).closest('.form-field').classList.remove('error','success');
+  });
+  document.getElementById('alarmToggle').classList.add('active');
+}
+
+function editarConsulta(id){
+  const c = consultas.find(function(x){ return x.id === id; });
+  if(!c) return;
+  editandoId = id;
+  document.getElementById('c-local').value = c.local || '';
+  document.getElementById('c-especialidade').value = c.especialidade || '';
+  document.getElementById('c-medico').value = c.medico || '';
+  document.getElementById('c-data').value = c.data || '';
+  document.getElementById('c-hora').value = c.hora || '';
+  document.getElementById('c-obs').value = c.obs || '';
+  const toggle = document.getElementById('alarmToggle');
+  if(c.lembrete) toggle.classList.add('active');
+  else toggle.classList.remove('active');
+  document.getElementById('titulo-incluir').textContent = 'Editar Consulta';
+  document.getElementById('btn-salvar').textContent = '💾 Salvar alterações';
+  goTo('incluir');
+}
+
+function fecharSucesso(){
+  document.getElementById('popup-sucesso').classList.remove('show');
+}
+
+function abrirConfig(id){
+  atualId = id;
+  const c = consultas.find(function(x){ return x.id === id; });
+  if(!c) return;
+  document.getElementById('dropdown-sub').textContent = c.medico + ' • ' + fmtData(c.data) + ' às ' + c.hora;
+  const atual = c.lembrete || '2h';
+  document.querySelectorAll('.opcao').forEach(function(el){
+    el.classList.toggle('selected', el.dataset.valor === atual);
+    el.querySelector('input').checked = el.dataset.valor === atual;
+  });
+  document.getElementById('dropdown-lembrete').classList.add('show');
+}
+
+function fecharDropdown(e){
+  if(e && e.target !== document.getElementById('dropdown-lembrete')) return;
+  document.getElementById('dropdown-lembrete').classList.remove('show');
+  atualId = null;
+}
+
+document.querySelectorAll('.opcao').forEach(function(el){
+  el.addEventListener('click', function(){
+    document.querySelectorAll('.opcao').forEach(function(o){ o.classList.remove('selected'); });
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+  });
+});
+
+function salvarLembrete(){
+  if(atualId == null) return;
+  const sel = document.querySelector('.opcao.selected');
+  const valor = sel ? sel.dataset.valor : '2h';
+  const c = consultas.find(function(x){ return x.id === atualId; });
+  if(c){
+    c.lembrete = valor;
+    salvarStorage();
+    renderConsultas();
+    renderLembretes();
+    mostrarToast('Lembrete configurado!');
+  }
+  fecharDropdown();
+}
+
+function mostrarPopupPresenca(id){
+  atualId = id;
+  const c = consultas.find(function(x){ return x.id === id; });
+  if(!c) return;
+  document.getElementById('popup-texto').textContent =
+    'Sua consulta com o ' + c.medico + ' é em ' + textoAntecedenciaPopup(c.lembrete || '2h') + '. Por favor, confirme sua presença.';
+  document.getElementById('popup-presenca').classList.add('show');
+}
+function confirmarPresenca(){
+  const c = consultas.find(function(x){ return x.id === atualId; });
+  if(c){ c.confirmado = true; salvarStorage(); mostrarToast('Presença confirmada!'); }
+  document.getElementById('popup-presenca').classList.remove('show');
+  atualId = null;
+}
+function reagendar(){
+  document.getElementById('popup-presenca').classList.remove('show');
+  mostrarToast('Reagendamento (em breve)');
+  atualId = null;
+}
+
+function pedirExclusao(id){
+  atualId = id;
+  const c = consultas.find(function(x){ return x.id === id; });
+  if(!c) return;
+  document.getElementById('popup-excluir-texto').textContent =
+    'Deseja excluir a consulta com ' + c.medico + ' em ' + fmtData(c.data) + ' às ' + c.hora + '? Esta ação não pode ser desfeita.';
+  document.getElementById('popup-excluir').classList.add('show');
+}
+function fecharExclusao(){
+  document.getElementById('popup-excluir').classList.remove('show');
+  atualId = null;
+}
+function confirmarExclusao(){
+  if(atualId == null) return;
+  consultas = consultas.filter(function(x){ return x.id !== atualId; });
+  salvarStorage();
+  renderConsultas();
+  renderLembretes();
+  document.getElementById('popup-excluir').classList.remove('show');
+  atualId = null;
+  mostrarToast('Consulta excluída.');
+}
+
+function mostrarToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2800);
+}
+
+function updateClock(){
+  const now = new Date();
+  const dias = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('datetime').textContent =
+    hh + ':' + mm + ' - ' + dias[now.getDay()] + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' de ' + now.getFullYear();
+}
+
+document.addEventListener('keydown', function(e){
+  if((e.key === 'p' || e.key === 'P') && consultas.length) mostrarPopupPresenca(consultas[0].id);
+});
+
+updateClock();
+setInterval(updateClock, 60000);
+</script>
+</body>
+</html>
