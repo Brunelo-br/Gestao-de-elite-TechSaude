@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde — Funções</title>
+<style>
+:root{
+  --cream:#f3efdc; --cream-deep:#ece5c9; --ink:#16301f; --ink-soft:#2e4a37;
+  --green-deep:#1b3a26; --green-mid:#2f6b46; --teal:#2f9e8f; --line:#cdbf95;
+  --text:#26332a; --text-soft:#55604f; --danger:#c0392b; --error:#a3402c;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{min-height:100vh;background:var(--cream);font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;color:var(--text);display:flex;flex-direction:column;}
+input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;}
+h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
+.wrap{flex:1;min-height:100vh;display:flex;flex-direction:column;background:var(--cream);}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;padding:18px 14px 14px;background:linear-gradient(160deg,#1d5b3a,#123a26);}
+.topbar-spacer{width:60px;}
+.logo-center{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:2px;}
+.logo-mark{width:72px;height:72px;object-fit:contain;}
+.wordmark{font-size:1.1rem;font-weight:800;letter-spacing:-0.5px;}
+.wordmark .tech{color:#8fe0cf;} .wordmark .saude{color:var(--cream);}
+.topbar-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:var(--cream);text-decoration:none;font-size:0.64rem;font-weight:800;letter-spacing:0.3px;text-transform:uppercase;padding:2px;width:60px;}
+.topbar-btn .icon-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.topbar-btn.emergencia .icon-circle{background:#c0392b;}
+.topbar-btn.inicio .icon-circle{background:rgba(255,255,255,0.16);}
+.topbar-btn svg{width:20px;height:20px;color:#fff;}
+.topbar-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+.datetime{padding:9px 18px;font-size:0.85rem;color:var(--text-soft);background:var(--cream);border-bottom:1px solid var(--line);}
+.main-content{flex:1;padding:16px 16px 32px;}
+
+/* TÍTULOS */
+.page-title{margin:2px 0 6px;font-size:1.3rem;text-align:center;letter-spacing:.3px;line-height:1.25;}
+.page-title.danger{color:var(--danger);}
+.page-sub{margin:0 0 16px;text-align:center;color:var(--text-soft);font-size:.9rem;line-height:1.45;font-weight:600;}
+
+/* BOTÕES */
+.btn-block{display:block;width:100%;text-align:center;text-decoration:none;border:none;border-radius:999px;padding:.9rem 1rem;cursor:pointer;font-weight:800;font-size:.9rem;text-transform:uppercase;letter-spacing:.3px;color:var(--cream);background:linear-gradient(180deg,#234a34,var(--green-deep));box-shadow:0 4px 0 #0e2416;margin-bottom:4px;}
+.btn-block:active{transform:translateY(3px);box-shadow:0 1px 0 #0e2416;}
+.btn-block.danger{background:linear-gradient(180deg,#d04a3b,var(--danger));box-shadow:0 4px 0 #7f241b;color:#fff;}
+.btn-block.danger:active{box-shadow:0 1px 0 #7f241b;}
+.btn-block.on{background:linear-gradient(180deg,#3bb3a3,var(--teal));box-shadow:0 4px 0 #1f6f64;}
+.btn-block:disabled{opacity:.45;cursor:not-allowed;}
+.btn-block:focus-visible,.btn-ghost:focus-visible,.btn-sm:focus-visible,.chip:focus-within{outline:3px solid var(--teal);outline-offset:2px;}
+.btn-ghost{display:block;width:100%;margin-top:10px;text-align:center;text-decoration:none;border:2px solid var(--line);background:#fff;color:var(--green-deep);border-radius:999px;padding:.8rem;font-weight:800;font-size:.85rem;text-transform:uppercase;letter-spacing:.3px;cursor:pointer;}
+.btn-ghost:hover{border-color:var(--teal);}
+.btn-sm{border-radius:999px;padding:.4rem .8rem;font-size:.7rem;font-weight:800;text-transform:uppercase;cursor:pointer;background:#fff;}
+.btn-sm.outline{border:2px solid var(--green-mid);color:var(--green-mid);}
+.btn-sm.danger{border:2px solid var(--danger);color:var(--danger);}
+
+/* CARDS, ABAS, FORMULÁRIOS */
+.card{background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:14px;}
+.card h2,.card h3{margin:0 0 .4rem;color:var(--green-deep);}
+.card p{line-height:1.45;}
+.list{display:flex;flex-direction:column;gap:12px;}
+.empty{text-align:center;color:var(--text-soft);font-size:.9rem;padding:1.4rem .8rem;background:var(--cream-deep);border:2px dashed var(--line);border-radius:16px;font-weight:600;}
+.tabs,.nav-row{display:flex;gap:8px;margin-bottom:14px;}
+.tabs button,.nav-row button{flex:1;border:2px solid var(--green-deep);background:#fff;color:var(--green-deep);border-radius:999px;padding:.7rem .5rem;font-weight:800;text-transform:uppercase;cursor:pointer;font-size:.75rem;}
+.tabs button.on,.tabs button.active,.nav-row button.on,.nav-row button.active{background:var(--green-deep);color:var(--cream);}
+.form-group{margin-bottom:.8rem;}
+.field-label{display:block;margin-bottom:.35rem;font-size:.72rem;font-weight:800;color:var(--green-deep);text-transform:uppercase;letter-spacing:.4px;}
+.form-field{display:flex;align-items:center;gap:.6rem;background:#fff;padding:.75rem .9rem;border-radius:14px;border:2px solid var(--line);}
+.form-field:focus-within{border-color:var(--teal);}
+.form-field input,.form-field select,.form-field textarea{flex:1;border:none;background:transparent;font-size:.95rem;font-weight:600;color:var(--text);outline:none;min-width:0;}
+.form-field textarea{resize:vertical;min-height:4.4rem;}
+.row-2,.datetime-inputs{display:flex;gap:8px;} .row-2 .form-group,.datetime-inputs .form-group{flex:1;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:.5rem .8rem;font-size:.8rem;font-weight:800;color:var(--green-deep);cursor:pointer;}
+.chip input{display:none;}
+.chip.on{background:var(--green-deep);border-color:var(--green-deep);color:var(--cream);}
+.hint{font-size:.78rem;color:var(--text-soft);margin:0 0 .8rem;text-align:center;}
+
+/* POP-UPS E AVISOS */
+.popup-overlay,.overlay{position:fixed;inset:0;background:rgba(10,20,14,0.55);display:none;align-items:center;justify-content:center;padding:1rem;z-index:120;}
+.popup-overlay.show,.overlay.show{display:flex;}
+.popup-card{background:var(--cream);border:2px solid var(--line);border-radius:22px;padding:1.5rem 1.2rem 1.2rem;max-width:400px;width:100%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.35);max-height:90vh;overflow-y:auto;}
+.popup-card h2{margin:0 0 .6rem;font-size:1.1rem;}
+.popup-card p{margin:0 0 1rem;font-size:.95rem;font-weight:600;line-height:1.45;}
+.popup-actions{display:flex;flex-direction:column;gap:.5rem;}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(1rem);background:var(--green-deep);color:var(--cream);padding:.75rem 1.1rem;border-radius:999px;font-weight:800;font-size:.85rem;opacity:0;transition:.3s;z-index:200;pointer-events:none;max-width:90%;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.3);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* DESKTOP (>= 900px) */
+@media (min-width:900px){
+  body{background:radial-gradient(circle at 50% 0%,#0f5132 0%,#0b3e28 45%,#082a1c 100%);align-items:center;justify-content:center;padding:40px 24px;}
+  .wrap{flex:none;width:100%;max-width:1080px;min-height:660px;border-radius:32px;margin:auto;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,0.45),0 0 0 1px rgba(255,255,255,0.06);}
+  .wrap.narrow{max-width:720px;}
+  .topbar{padding:26px 32px 18px;} .logo-mark{width:88px;height:88px;}
+  .datetime{padding:10px 32px;}
+  .main-content{padding:22px 32px 32px;}
+  .page-title{font-size:1.55rem;}
+}
+@media (max-width:480px){ .row-2,.datetime-inputs{flex-wrap:wrap;} }
+
+.funcoes-grid{display:flex;flex-direction:column;gap:12px;}
+.card h2{display:flex;align-items:center;gap:.5rem;margin:0 0 .4rem;font-size:1rem;}
+.card h2 svg{width:1.6rem;height:1.6rem;flex-shrink:0;}
+.card p{margin:0 0 12px;font-weight:600;line-height:1.4;}
+.card input{width:100%;border:2px solid var(--green-deep);border-radius:999px;padding:.75rem 1rem;font-size:1rem;font-weight:700;color:var(--green-deep);background:#fff;min-width:0;}
+.card input:focus{outline:3px solid var(--teal);outline-offset:2px;}
+.row{display:flex;gap:8px;}
+.status{font-size:.9rem;color:var(--text-soft);margin:8px 0 0;font-weight:600;}
+.card p.status{margin:8px 0 12px;} .card .btn-block + .status{margin:10px 0 0;}
+@media (min-width:900px){ .funcoes-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;} }
+</style>
+<script>
+  /* PADRÃO TECHSAÚDE: aplica o tamanho de letra salvo ANTES da tela aparecer */
+  (function(){ try{ var f = parseFloat(localStorage.getItem('techsaude_fonte')); if(f >= 85 && f <= 150){ document.documentElement.style.fontSize = f + '%'; } }catch(e){} })();
+</script>
+<style>
+.toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin:0 0 22px; }
+.toolbar-acessibilidade .font-group{ display:inline-flex; border:2px solid #cdbf95; border-radius:999px; overflow:hidden; background:#fff; }
+.toolbar-acessibilidade .font-btn{ border:none; background:#fff; color:#1b3a26; font-weight:800; padding:9px 13px; cursor:pointer; font-size:.75rem; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; min-width:44px; min-height:40px; margin:0; }
+.toolbar-acessibilidade .font-btn + .font-btn{ border-left:1px solid #e4dbbd; }
+.toolbar-acessibilidade .font-btn.active{ background:#1b3a26; color:#f3efdc; }
+.toolbar-acessibilidade .font-btn:focus-visible,.toolbar-acessibilidade .chip-btn:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+.toolbar-acessibilidade .chip-btn{ background:#fff; border:2px solid #cdbf95; border-radius:999px; padding:9px 15px; font-size:.75rem; min-height:40px; margin:0; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:#1b3a26; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; }
+.toolbar-acessibilidade .chip-btn:hover{ border-color:#2f9e8f; }
+.ajuda-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:10000; }
+.ajuda-overlay[hidden]{ display:none !important; }
+.ajuda-modal{ background:#f3efdc; border:2px solid #cdbf95; border-radius:22px; padding:2rem 1.6rem 1.5rem; max-width:460px; width:100%; position:relative; box-shadow:0 30px 60px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto; text-align:left; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; color:#26332a; animation:ajudaPop .2s ease; }
+@keyframes ajudaPop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.ajuda-modal .ajuda-fechar{ position:absolute; top:.75rem; right:.75rem; background:#ece5c9; border:none; width:2.6rem; height:2.6rem; border-radius:50%; font-size:1.1rem; cursor:pointer; color:#1b3a26; margin:0; padding:0; }
+.ajuda-modal .ajuda-tag{ margin:0 0 .3rem; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#2f6b46; }
+.ajuda-modal h2{ margin:0 2.6rem .5rem 0; padding:0; font-size:1.3rem; line-height:1.2; color:#1b3a26; font-weight:900; text-transform:uppercase; text-align:left; font-family:inherit; }
+.ajuda-modal .ajuda-intro{ margin:0 0 1rem; font-size:.98rem; font-weight:600; color:#55604f; line-height:1.45; }
+.ajuda-modal .ajuda-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.7rem; counter-reset:passo; }
+.ajuda-modal .ajuda-lista li{ counter-increment:passo; position:relative; padding:0 0 0 2.5rem; margin:0; min-height:1.9rem; font-size:1rem; font-weight:600; line-height:1.45; color:#26332a; }
+.ajuda-modal .ajuda-lista li::before{ content:counter(passo); position:absolute; left:0; top:-.05rem; width:1.9rem; height:1.9rem; border-radius:50%; background:#1b3a26; color:#f3efdc; font-weight:800; font-size:.95rem; display:flex; align-items:center; justify-content:center; }
+.ajuda-modal .ajuda-lista b{ color:#1b3a26; }
+.ajuda-modal .ajuda-extra{ margin:1.1rem 0 0; padding:.8rem 1rem; background:#dcefdf; border:1.5px solid #a5d6a7; border-radius:14px; font-size:.95rem; font-weight:600; color:#1b4332; line-height:1.4; }
+.ajuda-modal .ajuda-ok{ display:block; width:100%; margin:1.2rem 0 0; padding:.9rem; border:none; border-radius:999px; cursor:pointer; background:linear-gradient(180deg,#234a34,#1b3a26); color:#f3efdc; font-weight:800; font-size:1rem; text-transform:uppercase; letter-spacing:.4px; font-family:inherit; box-shadow:0 5px 0 #0e2416; }
+.ajuda-modal .ajuda-ok:active{ transform:translateY(3px); box-shadow:0 2px 0 #0e2416; }
+.ajuda-modal button:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+</style>
+</head>
+<body>
+<div class="wrap ">
+  <div class="topbar">
+    <span class="topbar-spacer"></span>
+    <div class="logo-center"><img class="logo-mark" src="img/logo.png" alt="Logo TechSaúde"><span class="wordmark"><span class="tech">Tech</span><span class="saude">Saúde</span></span></div>
+    <a class="topbar-btn inicio" href="home.html" aria-label="Início"><span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span>Início</a>
+  </div>
+  <div class="datetime" id="datetime"></div>
+  <div class="main-content">
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho da letra">
+        <button type="button" class="font-btn" data-scale="100" aria-label="Letra tamanho normal">A</button>
+        <button type="button" class="font-btn" data-scale="115" aria-label="Letra grande">A+</button>
+        <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
+      </div>
+      <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
+    </div>
+
+    <h1 class="page-title">Funções</h1>
+    <p class="page-sub">Atalhos do celular. Não é o menu do aplicativo: consulta, remédio e dicas continuam na Home.</p>
+    <div class="funcoes-grid">
+    <article class="card">
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Ligar</h2>
+      <p>Digite o número e abra o discador. Não usa a lista de emergência.</p>
+      <div class="row">
+        <input id="numero" inputmode="tel" placeholder="DDD e número" aria-label="Número para ligar">
+      </div>
+      <p class="status" id="ligar-status"></p>
+      <button class="btn-block" type="button" onclick="ligar()">Abrir discador</button>
+    </article>
+
+    <article class="card">
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Enviar minha localização</h2>
+      <p>Pega o lugar deste celular e abre o compartilhamento para mandar a um familiar.</p>
+      <button class="btn-block" type="button" onclick="enviarLocal()">Enviar localização</button>
+      <p class="status" id="local-status"></p>
+    </article>
+
+    <article class="card">
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19L8.5 5 14 19M5 14.5h7"/><path d="M15.5 19l3-8 3 8M16.7 16.5h3.6"/></svg>Aumentar o texto</h2>
+      <p>Deixa a letra bem maior. A escolha fica salva para todas as telas.</p>
+      <button class="btn-block" id="btn-texto" type="button" onclick="alternarTexto()">Aumentar texto</button>
+    </article>
+
+    <article class="card">
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8l-1.5 5h-5z"/><path d="M9.5 8v11a2 2 0 0 0 5 0V8"/><path d="M12 12v2"/></svg>Lanterna</h2>
+      <p>Acende a luz da câmera, se o celular permitir.</p>
+      <button class="btn-block" id="btn-luz" type="button" onclick="alternarLuz()">Acender lanterna</button>
+      <p class="status" id="luz-status"></p>
+    </article>
+    </div>
+  </div>
+</div>
+
+
+<div id="modalAjuda" class="ajuda-overlay" hidden>
+  <div class="ajuda-modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button type="button" class="ajuda-fechar" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <p class="ajuda-tag">❔ Ajuda</p>
+    <h2 id="ajudaTitulo">Como usar esta tela</h2>
+    <p class="ajuda-intro" id="ajudaIntro"></p>
+    <ol class="ajuda-lista" id="ajudaLista"></ol>
+    <p class="ajuda-extra" id="ajudaExtra"></p>
+    <button type="button" class="ajuda-ok" id="ajudaOk">Entendi</button>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var AJUDA_TELA = [
+  {
+    "titulo": "Como usar as Funções",
+    "intro": "São atalhos do celular. As funções do aplicativo continuam na tela inicial.",
+    "passos": [
+      "<b>Ligar</b>: digite o DDD e o número e toque em <b>Abrir discador</b>.",
+      "<b>Enviar minha localização</b>: libere o acesso quando o celular pedir e escolha para quem mandar.",
+      "<b>Aumentar o texto</b>: deixa a letra bem maior. Toque de novo para voltar ao normal.",
+      "<b>Lanterna</b>: acende a luz da câmera, se o celular permitir."
+    ],
+    "dica": "Em todas as telas existe o botão ❔ Ajuda. Toque nele sempre que tiver dúvida. 💚"
+  }
+];
+  var PASSO_LETRA = 'Letra pequena? Toque em <b>A+</b> ou <b>A++</b>, logo acima, para aumentar. Sua escolha fica salva para todas as telas.';
+  var CHAVE_FONTE = 'techsaude_fonte';
+  var botoesFonte = document.querySelectorAll('.toolbar-acessibilidade .font-btn');
+  function escalaAtual(){ return parseFloat(document.documentElement.style.fontSize) || 100; }
+  function marcarBotaoFonte(){
+    var atual = escalaAtual();
+    botoesFonte.forEach(function(b){ var ativo = Number(b.dataset.scale) === atual; b.classList.toggle('active', ativo); b.setAttribute('aria-pressed', ativo ? 'true' : 'false'); });
+  }
+  function aplicarFonte(escala, salvar){
+    document.documentElement.style.fontSize = escala + '%';
+    if(salvar){ try{ localStorage.setItem(CHAVE_FONTE, String(escala)); }catch(e){} }
+    marcarBotaoFonte();
+    window.dispatchEvent(new Event('techsaude:fonte'));
+  }
+  window.aplicarFonteTechSaude = aplicarFonte;
+  botoesFonte.forEach(function(btn){ btn.addEventListener('click', function(){ aplicarFonte(Number(btn.dataset.scale), true); }); });
+  window.addEventListener('techsaude:fonte', marcarBotaoFonte);
+  window.addEventListener('storage', function(e){ if(e.key === CHAVE_FONTE && e.newValue){ aplicarFonte(parseFloat(e.newValue) || 100, false); } });
+  marcarBotaoFonte();
+
+  var modal = document.getElementById('modalAjuda');
+  var focoAnterior = null;
+  function conteudoAtual(){
+    for(var i = 0; i < AJUDA_TELA.length; i++){ var item = AJUDA_TELA[i]; if(!item.quando || document.querySelector(item.quando)) return item; }
+    return AJUDA_TELA[AJUDA_TELA.length - 1];
+  }
+  function abrirAjuda(){
+    var c = conteudoAtual();
+    document.getElementById('ajudaTitulo').textContent = c.titulo;
+    var intro = document.getElementById('ajudaIntro'); intro.innerHTML = c.intro || ''; intro.hidden = !c.intro;
+    document.getElementById('ajudaLista').innerHTML = c.passos.concat([PASSO_LETRA]).map(function(p){ return '<li>' + p + '</li>'; }).join('');
+    var extra = document.getElementById('ajudaExtra'); extra.innerHTML = c.dica || ''; extra.hidden = !c.dica;
+    focoAnterior = document.activeElement; modal.hidden = false;
+    document.getElementById('ajudaOk').focus({ preventScroll: true });
+    modal.querySelector('.ajuda-modal').scrollTop = 0;
+  }
+  function fecharAjuda(){ modal.hidden = true; if(focoAnterior && focoAnterior.focus){ focoAnterior.focus(); } }
+  document.getElementById('btnAjuda').addEventListener('click', abrirAjuda);
+  document.getElementById('fecharAjuda').addEventListener('click', fecharAjuda);
+  document.getElementById('ajudaOk').addEventListener('click', fecharAjuda);
+  modal.addEventListener('click', function(e){ if(e.target === modal) fecharAjuda(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.hidden) fecharAjuda(); });
+})();
+</script>
+<script>
+function clock(){
+  const n = new Date();
+  const dias = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('datetime').textContent = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' - '+dias[n.getDay()]+', '+n.getDate()+' de '+meses[n.getMonth()]+' de '+n.getFullYear();
+}
+clock();
+
+function ligar(){
+  const tel = document.getElementById('numero').value.replace(/[^\d+]/g,'');
+  const st = document.getElementById('ligar-status');
+  if(tel.length < 8){ st.textContent = 'Digite o DDD e o número.'; return; }
+  st.textContent = 'Abrindo o discador…';
+  window.location.href = 'tel:'+tel;
+}
+
+function enviarLocal(){
+  const st = document.getElementById('local-status');
+  if(!navigator.geolocation){ st.textContent = 'Este celular não informou a localização.'; return; }
+  st.textContent = 'Buscando o lugar…';
+  navigator.geolocation.getCurrentPosition(function(pos){
+    const url = 'https://maps.google.com/?q='+pos.coords.latitude+','+pos.coords.longitude;
+    const texto = 'Estou aqui: '+url;
+    st.textContent = 'Local pronto para enviar.';
+    if(navigator.share){ navigator.share({title:'Minha localização', text:texto, url:url}).catch(function(){}); }
+    else { window.open('https://wa.me/?text='+encodeURIComponent(texto), '_blank'); }
+  }, function(){ st.textContent = 'Não foi possível pegar a localização. Libere o acesso no celular.'; });
+}
+
+function textoGrandeAtivo(){ return (parseFloat(document.documentElement.style.fontSize) || 100) > 100; }
+function atualizarBtnTexto(){
+  var on = textoGrandeAtivo();
+  var btn = document.getElementById('btn-texto');
+  btn.textContent = on ? 'Voltar ao texto normal' : 'Aumentar texto';
+  btn.classList.toggle('on', on);
+}
+function alternarTexto(){ window.aplicarFonteTechSaude(textoGrandeAtivo() ? 100 : 130, true); }
+window.addEventListener('techsaude:fonte', atualizarBtnTexto);
+atualizarBtnTexto();
+
+let streamLuz = null;
+async function alternarLuz(){
+  const btn = document.getElementById('btn-luz');
+  const st = document.getElementById('luz-status');
+  if(streamLuz){
+    streamLuz.getTracks().forEach(function(t){ t.stop(); });
+    streamLuz = null;
+    btn.textContent = 'Acender lanterna';
+    btn.classList.remove('on');
+    st.textContent = 'Lanterna apagada.';
+    return;
+  }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    st.textContent = 'Este aparelho não liberou a lanterna pelo navegador.';
+    return;
+  }
+  try {
+    streamLuz = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const track = streamLuz.getVideoTracks()[0];
+    await track.applyConstraints({advanced:[{torch:true}]});
+    btn.textContent = 'Apagar lanterna';
+    btn.classList.add('on');
+    st.textContent = 'Lanterna acesa.';
+  } catch(e) {
+    if(streamLuz){ streamLuz.getTracks().forEach(function(t){ t.stop(); }); streamLuz = null; }
+    st.textContent = 'Não foi possível acender. Use a lanterna do celular.';
+  }
+}
+</script>
+</body>
+</html>
