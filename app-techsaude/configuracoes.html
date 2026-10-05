@@ -613,13 +613,18 @@
     </div>
     <div class="modal-body">
       <div class="two-col">
-        <div class="mfield">
-          <label for="enderecoLogradouro">Logradouro</label>
+        <div class="mfield" style="grid-column:1 / -1;">
+          <label for="enderecoCep">CEP</label>
+          <input type="text" id="enderecoCep" inputmode="numeric" placeholder="00000-000" maxlength="9" />
+          <small id="enderecoCepFeedback" style="display:block;margin-top:4px;font-size:12px;color:var(--text-soft);"></small>
+        </div>
+        <div class="mfield" style="grid-column:1 / -1;">
+          <label for="enderecoLogradouro">Rua / Avenida</label>
           <input type="text" id="enderecoLogradouro" />
         </div>
         <div class="mfield">
           <label for="enderecoNumero">Número</label>
-          <input type="text" id="enderecoNumero" />
+          <input type="text" id="enderecoNumero" maxlength="10" />
         </div>
         <div class="mfield">
           <label for="enderecoBairro">Bairro</label>
@@ -630,12 +635,8 @@
           <input type="text" id="enderecoCidade" />
         </div>
         <div class="mfield">
-          <label for="enderecoEstado">Estado</label>
-          <input type="text" id="enderecoEstado" maxlength="2" />
-        </div>
-        <div class="mfield">
-          <label for="enderecoCep">CEP</label>
-          <input type="text" id="enderecoCep" maxlength="9" />
+          <label for="enderecoEstado">UF</label>
+          <input type="text" id="enderecoEstado" maxlength="2" placeholder="SP" />
         </div>
       </div>
     </div>
@@ -811,21 +812,93 @@
 
   /* ── Avatar ── */
   function triggerPhoto() { document.getElementById('photoInput').click(); }
-  function handlePhoto(e) {
-    const f = e.target.files[0]; if (!f) return;
-    const r = new FileReader();
-    r.onload = ev => {
-      const c = document.getElementById('avatarCircle');
-      c.innerHTML = `<img src="${ev.target.result}" alt="Foto" />`;
+
+  // Reduz a imagem (máx. 600px) e converte para JPEG.
+  function redimensionarImagem(arquivo, maxLado = 600, qualidade = 0.85) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(arquivo);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const escala = Math.min(1, maxLado / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * escala);
+        canvas.height = Math.round(img.height * escala);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          blob => blob ? resolve(blob) : reject(new Error('Falha ao processar a imagem.')),
+          'image/jpeg', qualidade
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Imagem inválida.')); };
+      img.src = url;
+    });
+  }
+
+  // Envia para o bucket "fotos-perfil" (mesmo caminho do cadastro, então substitui a foto antiga).
+  async function uploadFotoPerfil(cpf, blob) {
+    const caminho = `${cpf}/perfil.jpg`;
+    const { error } = await supabaseClient.storage
+      .from('fotos-perfil')
+      .upload(caminho, blob, { upsert: true, contentType: 'image/jpeg' });
+    if (error) throw error;
+    const { data } = supabaseClient.storage.from('fotos-perfil').getPublicUrl(caminho);
+    return data.publicUrl + '?v=' + Date.now();
+  }
+
+  async function handlePhoto(e) {
+    const input = e.target;
+    const f = input.files[0]; if (!f) return;
+
+    if (!f.type.startsWith('image/')) {
+      showToast('⚠️ Escolha um arquivo de imagem.');
+      input.value = '';
+      return;
+    }
+
+    const cpfDoUsuario = String(usuarioLogado?.cpf ?? '').replace(/\D/g, '');
+    if (!cpfDoUsuario || !supabaseClient) {
+      showToast('Não foi possível identificar sua conta.');
+      input.value = '';
+      return;
+    }
+
+    showToast('Enviando foto...');
+    try {
+      const blob = await redimensionarImagem(f);
+      const urlFoto = await uploadFotoPerfil(cpfDoUsuario, blob);
+
+      const { error } = await supabaseClient
+        .from('usuario')
+        .update({ foto_perfil_url: urlFoto })
+        .eq('cpf', cpfDoUsuario);
+      if (error) throw error;
+
+      // Só mostra a nova foto depois que ela foi salva de verdade
+      const img = document.createElement('img');
+      img.src = urlFoto;
+      img.alt = 'Foto do perfil';
+      document.getElementById('avatarCircle').replaceChildren(img);
+
+      // Mantém a sessão local em dia para a tela inicial usar a foto nova
+      usuarioLogado.foto_perfil_url = urlFoto;
+      if (localStorage.getItem('usuario_logado')) {
+        localStorage.setItem('usuario_logado', JSON.stringify(usuarioLogado));
+      }
       showToast('✅ Foto atualizada!');
-    };
-    r.readAsDataURL(f);
+    } catch (error) {
+      console.error('Erro ao salvar foto:', error);
+      showToast('Não foi possível salvar a foto.');
+    } finally {
+      input.value = '';
+    }
   }
 
   /* ── Modal helpers ── */
   function openModal(id) {
     if (id==='nome')     document.getElementById('nomeInput').value     = document.getElementById('nomeDisplay').textContent;
     if (id==='endereco') {
+      document.getElementById('enderecoCepFeedback').textContent = '';
       Object.entries(enderecoAtual).forEach(([campo, valor]) => {
         const idCampo = { logradouro: 'enderecoLogradouro', numero: 'enderecoNumero', bairro: 'enderecoBairro', cidade: 'enderecoCidade', estado: 'enderecoEstado', cep: 'enderecoCep' }[campo];
         document.getElementById(idCampo).value = valor;
@@ -994,6 +1067,33 @@
     else if(v.length>2) v='('+v.slice(0,2)+') '+v.slice(2);
     else if(v.length) v='('+v;
     this.value=v;
+  });
+
+  /* ── CEP: máscara e preenchimento automático (ViaCEP) ── */
+  document.getElementById('enderecoCep').addEventListener('input', async function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 8).replace(/(\d{5})(\d)/, '$1-$2');
+    const aviso = document.getElementById('enderecoCepFeedback');
+    aviso.textContent = '';
+    const digitos = this.value.replace(/\D/g, '');
+    if (digitos.length !== 8) return;
+
+    try {
+      const resposta = await fetch(`https://viacep.com.br/ws/${digitos}/json/`);
+      const dados = resposta.ok ? await resposta.json() : { erro: true };
+      if (dados.erro) { aviso.textContent = 'CEP não encontrado. Preencha manualmente.'; return; }
+      if (dados.logradouro) document.getElementById('enderecoLogradouro').value = dados.logradouro;
+      if (dados.bairro)     document.getElementById('enderecoBairro').value = dados.bairro;
+      if (dados.localidade) document.getElementById('enderecoCidade').value = dados.localidade;
+      if (dados.uf)         document.getElementById('enderecoEstado').value = dados.uf;
+      aviso.textContent = 'Endereço encontrado. Confira e informe o número.';
+      document.getElementById('enderecoNumero').focus();
+    } catch (erro) {
+      aviso.textContent = 'Não foi possível consultar o CEP. Preencha manualmente.';
+    }
+  });
+
+  document.getElementById('enderecoEstado').addEventListener('input', function () {
+    this.value = this.value.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 2);
   });
 
   /* ── ESC ── */

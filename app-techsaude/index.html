@@ -372,6 +372,51 @@
   .form-actions{
     margin-top:18px;
   }
+
+  /* ============ FOTO E ENDEREÇO NO CADASTRO ============ */
+  .form-section-title{
+    margin:28px 0 20px;
+    padding-bottom:6px;
+    border-bottom:2px solid var(--line);
+    font-size:0.9rem;
+    font-weight:900;
+    color:var(--green-deep);
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  .photo-picker{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    margin:4px 0 26px;
+  }
+  .photo-preview{
+    width:120px; height:120px;
+    border-radius:50%;
+    border:3px solid var(--green-mid);
+    background:#dcefdf;
+    overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    font-size:3.4rem;
+    cursor:pointer;
+  }
+  .photo-preview img{ width:100%; height:100%; object-fit:cover; }
+  .btn-photo{
+    padding:10px 20px;
+    border-radius:999px;
+    border:2px solid var(--green-deep);
+    background:transparent;
+    color:var(--green-deep);
+    font-weight:800;
+    font-size:0.85rem;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+  .btn-photo:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; }
+  .photo-hint{ font-size:0.8rem; color:var(--text-soft); text-align:center; }
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
+  .field-grid.wide-left{ grid-template-columns:2fr 1fr; }
 </style>
 </head>
 <body>
@@ -481,6 +526,12 @@
             <div class="msg-banner" id="cadastro-msg"></div>
 
             <form id="form-cadastro" novalidate>
+              <div class="photo-picker">
+                <div class="photo-preview" id="foto-preview" onclick="document.getElementById('c-foto').click()" title="Escolher foto">👤</div>
+                <button type="button" class="btn-photo" onclick="document.getElementById('c-foto').click()">Escolher foto</button>
+                <input type="file" id="c-foto" accept="image/*" hidden>
+                <span class="photo-hint">Foto do seu rosto, para identificar sua conta.</span>
+              </div>
               <div class="field">
                 <label for="c-nome">Nome</label>
                 <input type="text" id="c-nome" placeholder="Seu nome completo" autocomplete="name">
@@ -506,6 +557,38 @@
                 <label for="c-email">E-mail</label>
                 <input type="email" id="c-email" placeholder="seu.email@exemplo.com" autocomplete="email">
               </div>
+              <h2 class="form-section-title">Endereço</h2>
+              <div class="field">
+                <label for="c-cep">CEP</label>
+                <input type="text" id="c-cep" placeholder="00000-000" inputmode="numeric" maxlength="9" autocomplete="postal-code">
+                <small id="c-cep-feedback" class="input-feedback" aria-live="polite"></small>
+              </div>
+              <div class="field">
+                <label for="c-logradouro">Rua / Avenida</label>
+                <input type="text" id="c-logradouro" placeholder="Nome da rua" autocomplete="address-line1">
+              </div>
+              <div class="field-grid">
+                <div class="field">
+                  <label for="c-numero">Número</label>
+                  <input type="text" id="c-numero" placeholder="Ex: 123" maxlength="10">
+                </div>
+                <div class="field">
+                  <label for="c-bairro">Bairro</label>
+                  <input type="text" id="c-bairro" placeholder="Seu bairro">
+                </div>
+              </div>
+              <div class="field-grid wide-left">
+                <div class="field">
+                  <label for="c-cidade">Cidade</label>
+                  <input type="text" id="c-cidade" placeholder="Sua cidade" autocomplete="address-level2">
+                </div>
+                <div class="field">
+                  <label for="c-estado">UF</label>
+                  <input type="text" id="c-estado" placeholder="SP" maxlength="2" autocomplete="address-level1">
+                </div>
+              </div>
+
+              <h2 class="form-section-title">Acesso</h2>
               <div class="field">
                 <label for="c-senha">Senha</label>
                 <div class="field-input-wrap">
@@ -692,7 +775,111 @@
     e.target.value = v;
   });
 
-  // ---------- 6. CADASTRO REAL NO SUPABASE ----------
+  // ---------- 6. FOTO E ENDEREÇO DO CADASTRO ----------
+  const FOTO_OBRIGATORIA = false; // troque para true se quiser exigir a foto no cadastro
+  let fotoSelecionada = null;     // Blob (JPEG já reduzido) pronto para enviar
+
+  // Reduz a imagem (máx. 600px) e converte para JPEG, para não gastar espaço à toa.
+  function redimensionarImagem(arquivo, maxLado = 600, qualidade = 0.85){
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(arquivo);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const escala = Math.min(1, maxLado / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * escala);
+        canvas.height = Math.round(img.height * escala);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          blob => blob ? resolve(blob) : reject(new Error('Falha ao processar a imagem.')),
+          'image/jpeg', qualidade
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Imagem inválida.')); };
+      img.src = url;
+    });
+  }
+
+  // Envia a foto para o Storage do Supabase (bucket "FOTOS-PERFIL") e devolve a URL pública.
+  async function uploadFotoPerfil(cpf, blob){
+    const caminho = `${cpf}/perfil.jpg`;
+    const { error } = await supabaseClient.storage
+      .from('FOTOS-PERFIL')
+      .upload(caminho, blob, { upsert: true, contentType: 'image/jpeg' });
+    if(error) throw error;
+    const { data } = supabaseClient.storage.from('FOTOS-PERFIL').getPublicUrl(caminho);
+    return data.publicUrl + '?v=' + Date.now(); // ?v= evita mostrar foto antiga em cache
+  }
+
+  document.getElementById('c-foto').addEventListener('change', async function(e){
+    const arquivo = e.target.files[0];
+    if(!arquivo) return;
+    if(!arquivo.type.startsWith('image/')){
+      fotoSelecionada = null;
+      e.target.value = '';
+      showMsg('cadastro-msg', 'Escolha um arquivo de imagem (JPG ou PNG).', 'error');
+      return;
+    }
+    try {
+      fotoSelecionada = await redimensionarImagem(arquivo);
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(fotoSelecionada);
+      img.alt = 'Prévia da sua foto';
+      document.getElementById('foto-preview').replaceChildren(img);
+      hideMsg('cadastro-msg');
+    } catch(error) {
+      fotoSelecionada = null;
+      e.target.value = '';
+      showMsg('cadastro-msg', 'Não foi possível ler essa imagem. Tente outra foto.', 'error');
+    }
+  });
+
+  function formatarCEP(valor){
+    return valor.replace(/\D/g,'').slice(0,8).replace(/(\d{5})(\d)/,'$1-$2');
+  }
+
+  // Consulta o ViaCEP (serviço gratuito dos Correios) para preencher o endereço.
+  async function buscarCep(cep){
+    const digitos = cep.replace(/\D/g,'');
+    if(digitos.length !== 8) return null;
+    try {
+      const resposta = await fetch(`https://viacep.com.br/ws/${digitos}/json/`);
+      if(!resposta.ok) return null;
+      const dados = await resposta.json();
+      return dados.erro ? null : dados;
+    } catch(error) {
+      return null;
+    }
+  }
+
+  document.getElementById('c-cep').addEventListener('input', async function(e){
+    e.target.value = formatarCEP(e.target.value);
+    const feedback = document.getElementById('c-cep-feedback');
+    feedback.className = 'input-feedback';
+    feedback.textContent = '';
+    if(e.target.value.replace(/\D/g,'').length !== 8) return;
+
+    const dados = await buscarCep(e.target.value);
+    if(!dados){
+      feedback.classList.add('show', 'error');
+      feedback.textContent = 'CEP não encontrado. Preencha o endereço manualmente.';
+      return;
+    }
+    if(dados.logradouro) document.getElementById('c-logradouro').value = dados.logradouro;
+    if(dados.bairro)     document.getElementById('c-bairro').value = dados.bairro;
+    if(dados.localidade) document.getElementById('c-cidade').value = dados.localidade;
+    if(dados.uf)         document.getElementById('c-estado').value = dados.uf;
+    feedback.classList.add('show', 'ok');
+    feedback.textContent = 'Endereço encontrado. Confira e informe o número.';
+    document.getElementById('c-numero').focus();
+  });
+
+  document.getElementById('c-estado').addEventListener('input', function(e){
+    e.target.value = e.target.value.replace(/[^a-zA-Z]/g,'').toUpperCase().slice(0,2);
+  });
+
+  // ---------- 6.1 CADASTRO REAL NO SUPABASE ----------
   document.getElementById('form-cadastro').addEventListener('submit', async function(e){
     e.preventDefault();
     hideMsg('cadastro-msg');
@@ -703,11 +890,25 @@
     const idade = parseInt(document.getElementById('c-idade').value, 10);
     const telefone = document.getElementById('c-telefone').value.trim();
     const email = document.getElementById('c-email').value.trim().toLowerCase();
+    const cep = document.getElementById('c-cep').value.trim();
+    const logradouro = document.getElementById('c-logradouro').value.trim();
+    const numero = document.getElementById('c-numero').value.trim();
+    const bairro = document.getElementById('c-bairro').value.trim();
+    const cidade = document.getElementById('c-cidade').value.trim();
+    const estado = document.getElementById('c-estado').value.trim().toUpperCase();
     const senha = document.getElementById('c-senha').value;
     const senha2 = document.getElementById('c-senha2').value;
 
     if(!nome || !cpf || !rg || !idade || !telefone || !email || !senha || !senha2){
       showMsg('cadastro-msg', 'Por favor, preencha todos os campos antes de continuar.', 'error');
+      return;
+    }
+    if(!cep || !logradouro || !numero || !bairro || !cidade || !estado){
+      showMsg('cadastro-msg', 'Preencha o endereço completo (CEP, rua, número, bairro, cidade e UF).', 'error');
+      return;
+    }
+    if(FOTO_OBRIGATORIA && !fotoSelecionada){
+      showMsg('cadastro-msg', 'Escolha uma foto para continuar.', 'error');
       return;
     }
     if(!validarCPF(cpf)){
@@ -718,6 +919,16 @@
     if(!/^\d{2}\.\d{3}\.\d{3}-\d$/.test(document.getElementById('c-rg').value)){
       showMsg('cadastro-msg', 'Informe um RG com 9 dígitos.', 'error');
       document.getElementById('c-rg').focus();
+      return;
+    }
+    if(cep.replace(/\D/g,'').length !== 8){
+      showMsg('cadastro-msg', 'Informe um CEP com 8 números.', 'error');
+      document.getElementById('c-cep').focus();
+      return;
+    }
+    if(estado.length !== 2){
+      showMsg('cadastro-msg', 'Informe a sigla do estado com 2 letras (ex: SP).', 'error');
+      document.getElementById('c-estado').focus();
       return;
     }
     if(senha !== senha2){
@@ -733,9 +944,11 @@
       return;
     }
 
+    const botaoCadastrar = this.querySelector('button[type="submit"]');
+    botaoCadastrar.disabled = true;
     showMsg('cadastro-msg', 'Cadastrando no banco de dados...', 'ok');
 
-    // Inserção direta na tabela usuario do Supabase
+    // 1) Dados principais na tabela usuario
     const { data, error } = await supabaseClient
       .from('usuario')
       .insert([{
@@ -749,6 +962,7 @@
       }]);
 
     if(error){
+      botaoCadastrar.disabled = false;
       if(error.code === '23505'){
         showMsg('cadastro-msg', 'E-mail ou CPF já cadastrado no sistema.', 'error');
       } else {
@@ -757,12 +971,43 @@
       return;
     }
 
-    showMsg('cadastro-msg', 'Cadastro realizado com sucesso! Redirecionando...', 'ok');
+    // 2) Foto e endereço. Se algum falhar, a conta já existe e o usuário completa em Configurações.
+    const naoSalvos = [];
+
+    if(fotoSelecionada){
+      try {
+        const urlFoto = await uploadFotoPerfil(cpf, fotoSelecionada);
+        const { error: erroFoto } = await supabaseClient
+          .from('usuario')
+          .update({ foto_perfil_url: urlFoto })
+          .eq('cpf', cpf);
+        if(erroFoto) throw erroFoto;
+      } catch(erroFoto) {
+        console.error('Erro ao salvar a foto:', erroFoto);
+        naoSalvos.push('a foto');
+      }
+    }
+
+    const { error: erroEndereco } = await supabaseClient
+      .from('endereco')
+      .upsert({ cpf_usuario: cpf, logradouro, numero, bairro, cidade, estado, cep }, { onConflict: 'cpf_usuario' });
+    if(erroEndereco){
+      console.error('Erro ao salvar o endereço:', erroEndereco);
+      naoSalvos.push('o endereço');
+    }
+
+    if(naoSalvos.length){
+      showMsg('cadastro-msg', 'Conta criada, mas não foi possível salvar ' + naoSalvos.join(' e ') + '. Você poderá completar em Configurações. Redirecionando...', 'error');
+    } else {
+      showMsg('cadastro-msg', 'Cadastro realizado com sucesso! Redirecionando...', 'ok');
+    }
+
     setTimeout(() => {
+      botaoCadastrar.disabled = false;
       goTo('login');
       document.getElementById('login-user').value = email;
       document.getElementById('login-senha').focus();
-    }, 1200);
+    }, naoSalvos.length ? 3500 : 1200);
   });
 
   // ---------- 7. LOGIN REAL NO SUPABASE ----------
