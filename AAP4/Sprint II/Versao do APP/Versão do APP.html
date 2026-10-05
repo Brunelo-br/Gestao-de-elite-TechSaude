@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>TechSaúde - Versão do App</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --cream: #f3efdc;
+    --cream-deep: #ece5c9;
+    --card-bg: #faf7ec;
+    --ink: #16301f;
+    --ink-soft: #2e4a37;
+    --green-deep: #1b3a26;
+    --green-mid: #2f6b46;
+    --forest: #1b3a26;
+    --forest-2: #234a34;
+    --teal: #2f9e8f;
+    --teal-bg: #dcefec;
+    --teal-border: #9fd3cb;
+    --line: #cdbf95;
+    --border-soft: #cdbf95;
+    --text: #26332a;
+    --text-soft: #55604f;
+    --muted: #55604f;
+    --error: #a3402c;
+    --error-bg: #f4dcd6;
+    --success: #1b4332;
+    --success-bg: #dcefdf;
+    --success-border: #a5d6a7;
+    --warn-bg: #fff3e0;
+    --warn: #a14a00;
+    --warn-border: #ffcc80;
+    --danger: #c0392b;
+    --shadow-outer: 0 30px 60px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;min-height:100%;}
+  body{
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255,255,255,0.06), transparent 40%),
+      linear-gradient(160deg, #16412B 0%, #0F2E1C 100%);
+    padding:48px 24px;
+  }
+  input, select, textarea, button{ font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; }
+  h1, h2{ color:var(--green-deep); font-weight:900; text-transform:uppercase; margin:0 0 .4rem; }
+  .hidden{display:none !important;}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+  /* ===== CARTÃO PRINCIPAL ===== */
+  .site{
+    width:100%;
+    max-width:1000px;
+    background:var(--cream);
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:var(--shadow-outer);
+  }
+  @media (max-width:480px){
+    body{ padding:0; }
+    .site{ max-width:100%; min-height:100vh; border-radius:0; box-shadow:none; }
+  }
+
+  /* ===== CABEÇALHO PADRÃO (emergência / logo / início) ===== */
+  .topbar{
+    background: linear-gradient(160deg, #12583a, #0b3423);
+    padding:20px 20px 18px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .nav-btn{
+    background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer; color:var(--cream); font-family:'Baloo 2', sans-serif; font-weight:700;
+    font-size:11.5px; letter-spacing:0.4px; text-transform:uppercase; text-decoration:none;
+    padding:2px; flex-shrink:0;
+  }
+  .nav-btn .icon-circle{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:2px; }
+  .nav-btn.emergencia .icon-circle{ background:var(--danger); box-shadow:0 4px 12px rgba(192,57,43,.35); }
+  .nav-btn.inicio .icon-circle{ background:rgba(255,255,255,0.18); }
+  .nav-btn .icon-circle svg{ width:20px; height:20px; color:#fff; }
+  .nav-btn:hover{ transform:scale(1.05); }
+  .nav-btn:focus-visible{ outline:3px solid var(--cream); outline-offset:3px; border-radius:8px; }
+  .brand-top{ display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; }
+  .brand-top img{ width:200px; height:200px; object-fit:contain; }
+  .brand-top .app-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:19px; color:var(--cream); letter-spacing:.3px; }
+
+  /* ===== CONTEÚDO ===== */
+  .app{ padding:24px 24px 40px; }
+  @media (min-width:901px){ .app{ padding:32px 40px 48px; } .topbar{ padding:26px 36px 22px; } }
+
+  .datetime{
+    text-align:center; font-weight:700; font-size:13.5px; color:var(--forest);
+    border-bottom:2px solid var(--border-soft); padding-bottom:14px; margin-bottom:18px;
+  }
+
+  .toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:22px; }
+  .font-group{ display:inline-flex; border:2px solid var(--line); border-radius:999px; overflow:hidden; }
+  .font-group button{ border:none; background:#fff; color:var(--green-deep); font-weight:800; padding:9px 13px; cursor:pointer; font-size:12px; }
+  .font-group button.active{ background:var(--green-deep); color:var(--cream); }
+  .chip-btn{
+    background:#fff; border:2px solid var(--line); border-radius:999px; padding:9px 15px; font-size:12px;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--green-deep); cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .chip-btn:hover{ border-color:var(--teal); }
+  .chip-btn:focus-visible, .font-group button:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+
+  h2{ font-size:1.4rem; }
+  .subtitle{ color:var(--text-soft); margin:0 0 1.3rem; font-weight:600; font-size:.95rem; }
+
+  .btn-texto{
+    display:inline-flex; align-items:center; gap:6px; text-decoration:none;
+    background:#fff; border:2px solid var(--line); border-radius:999px; padding:.6rem 1.1rem; font-size:.85rem;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--green-deep); cursor:pointer;
+    min-height:2.75rem; font-family:inherit;
+  }
+  .btn-texto:hover{ border-color:var(--teal); }
+  .btn-texto:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+  .topo-acoes{ margin-bottom:16px; }
+
+  /* ===== CARTÃO DA VERSÃO ATUAL ===== */
+  .versao-hero{
+    display:flex; align-items:center; gap:18px;
+    background:linear-gradient(160deg, #1d5b3a, #123a26);
+    color:var(--cream); border-radius:24px; padding:22px 22px;
+    box-shadow:0 6px 0 #0e2416, 0 12px 22px rgba(0,0,0,.18);
+    margin-bottom:28px;
+  }
+  .versao-hero-icon{
+    flex-shrink:0; width:72px; height:72px; border-radius:20px;
+    background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center;
+    font-size:2.2rem;
+  }
+  .versao-hero-body{ min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .versao-hero-label{ font-size:.8rem; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:#8fe0cf; }
+  .versao-hero-numero{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:2.4rem; line-height:1.05; }
+  .versao-hero-data{ font-size:.95rem; font-weight:700; color:rgba(243,239,220,.9); }
+  .versao-hero-resumo{ font-size:.92rem; font-weight:600; color:rgba(243,239,220,.8); margin-top:4px; }
+  @media (max-width:480px){
+    .versao-hero{ padding:18px 16px; gap:14px; }
+    .versao-hero-icon{ width:56px; height:56px; font-size:1.7rem; border-radius:16px; }
+    .versao-hero-numero{ font-size:2rem; }
+  }
+
+  /* ===== LISTA DE NOVIDADES ===== */
+  .novidades-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+  .novidade-card{
+    display:flex; align-items:flex-start; gap:16px;
+    background:var(--card-bg); border:2.5px solid var(--line); border-radius:22px;
+    padding:18px 18px 18px 16px;
+  }
+  .novidade-icon{
+    flex-shrink:0; width:60px; height:60px; border-radius:18px;
+    background:linear-gradient(180deg, var(--forest-2), var(--green-deep));
+    display:flex; align-items:center; justify-content:center; font-size:1.9rem;
+    box-shadow:0 4px 0 #0e2416;
+  }
+  .novidade-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+  .novidade-topo{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+  .novidade-titulo{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.15rem; color:var(--green-deep); line-height:1.2; }
+  .novidade-texto{ font-size:1rem; font-weight:600; color:var(--text); line-height:1.45; margin:0; }
+  .tag-tipo{
+    border-radius:999px; padding:3px 10px; font-size:.72rem; font-weight:800; text-transform:uppercase;
+    letter-spacing:.3px; white-space:nowrap; border:1.5px solid;
+  }
+  .tag-tipo.novo{ background:var(--success-bg); border-color:var(--success-border); color:var(--green-mid); }
+  .tag-tipo.melhoria{ background:var(--teal-bg); border-color:var(--teal-border); color:#1d6b61; }
+  .tag-tipo.correcao{ background:var(--warn-bg); border-color:var(--warn-border); color:var(--warn); }
+  @media (max-width:480px){
+    .novidade-card{ padding:16px 14px; gap:12px; }
+    .novidade-icon{ width:50px; height:50px; font-size:1.55rem; border-radius:15px; }
+    .novidade-titulo{ font-size:1.05rem; }
+  }
+
+  /* ===== VERSÕES ANTERIORES ===== */
+  .secao-anteriores{ margin-top:34px; }
+  .versao-anterior{
+    background:var(--card-bg); border:2px solid var(--line); border-radius:20px;
+    margin-bottom:12px; overflow:hidden;
+  }
+  .versao-anterior summary{
+    list-style:none; cursor:pointer; padding:16px 18px; display:flex; align-items:center; gap:12px;
+    font-weight:800; color:var(--green-deep); min-height:3.5rem;
+  }
+  .versao-anterior summary::-webkit-details-marker{ display:none; }
+  .versao-anterior summary:focus-visible{ outline:3px solid var(--teal); outline-offset:-3px; border-radius:20px; }
+  .versao-anterior summary:hover{ background:var(--cream-deep); }
+  .va-numero{ font-family:'Baloo 2', sans-serif; font-size:1.15rem; }
+  .va-data{ font-weight:600; color:var(--text-soft); font-size:.92rem; flex:1; }
+  .va-seta{ font-size:1.4rem; color:var(--line); transition:transform .15s ease; }
+  .versao-anterior[open] .va-seta{ transform:rotate(90deg); color:var(--teal); }
+  .va-conteudo{ padding:4px 16px 16px; }
+  .va-conteudo .novidade-card{ background:#fff; border-width:2px; }
+
+  .aviso-vazio{
+    text-align:center; color:var(--text-soft); font-weight:600; font-size:.95rem; line-height:1.45;
+    padding:18px 16px; border:2px dashed var(--line); border-radius:18px; margin:0;
+  }
+
+  .rodape-versao{
+    margin-top:30px; text-align:center; font-size:.85rem; font-weight:700; color:var(--text-soft);
+  }
+
+  .erro-dados{
+    background:var(--error-bg); color:var(--error); border-radius:14px; padding:14px 16px;
+    font-weight:700; text-align:center;
+  }
+
+  /* ===== MODAL (padrão popup-card) ===== */
+  .modal-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:50; }
+  .modal{ background:var(--cream); border:2px solid var(--line); border-radius:22px; padding:2rem 1.6rem; max-width:440px; width:100%; position:relative; box-shadow:var(--shadow-outer); max-height:90vh; overflow-y:auto; }
+  .modal-close{ position:absolute; top:.75rem; right:.75rem; background:var(--cream-deep); border:none; width:2.6rem; height:2.6rem; border-radius:50%; font-size:1.1rem; cursor:pointer; color:var(--forest); }
+  .ajuda-lista{ padding-left:1.2rem; display:flex; flex-direction:column; gap:.5rem; font-size:1rem; font-weight:600; color:var(--text); }
+  .ajuda-extra{ margin-top:1rem; font-size:.95rem; font-weight:600; color:var(--text-soft); }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(16px);
+    background:var(--green-deep); color:#fff; padding:12px 18px; border-radius:999px; font-weight:700; font-size:13px;
+    opacity:0; transition:all .3s; z-index:200; pointer-events:none; max-width:90%; text-align:center;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce){
+    .va-seta, .toast{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="site">
+
+  <!-- CABEÇALHO PADRÃO: emergência (esquerda) · logo (centro) · início (direita) -->
+  <header class="topbar">
+    <button type="button" class="nav-btn emergencia" id="btnEmergencia">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v1.06A7.5 7.5 0 0 0 3 15v3a1 1 0 0 0 1 1h1.17a3.5 3.5 0 0 0 6.66 1h.34a3.5 3.5 0 0 0 6.66-1H20a1 1 0 0 0 1-1v-3a7.5 7.5 0 0 0-4-6.94V7a5 5 0 0 0-5-5Z"/></svg>
+      </span>
+      Emergência
+    </button>
+
+    <div class="brand-top">
+      <img src="logo.png" alt="Logo TechSaúde" onerror="var img=this; if(img.dataset.tentativa!=='1'){ img.dataset.tentativa='1'; img.src='img/logo.png'; } else { img.style.visibility='hidden'; }">
+      <span class="app-title">Versão do App</span>
+    </div>
+
+    <a class="nav-btn inicio" href="home.html">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>
+      </span>
+      Início
+    </a>
+  </header>
+
+  <div class="app">
+    <div class="datetime" id="datetime" aria-live="off">--:-- - carregando data...</div>
+
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho do texto">
+        <button class="font-btn" data-scale="100" aria-label="Texto tamanho normal">A</button>
+        <button class="font-btn" data-scale="115" aria-label="Texto grande">A+</button>
+        <button class="font-btn" data-scale="130" aria-label="Texto extra grande">A++</button>
+      </div>
+      <button id="btnAjuda" class="chip-btn">❔ Ajuda</button>
+    </div>
+
+    <main>
+      <div class="topo-acoes">
+        <!-- Quando a tela "Sobre o App" (sobre.html) existir, trocar o destino em VOLTAR_PARA, no script abaixo -->
+        <a id="btnVoltar" class="btn-texto" href="home.html">↩ Voltar</a>
+      </div>
+
+      <div id="conteudoVersao">
+        <!-- Preenchido pelo script a partir de versoes.js -->
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="modalAjuda" class="modal-overlay hidden">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button class="modal-close" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <h2 id="ajudaTitulo">Sobre esta tela</h2>
+    <ol class="ajuda-lista">
+      <li>No quadro verde, você vê qual versão do TechSaúde está usando.</li>
+      <li>Logo abaixo, estão as novidades que chegaram nesta versão.</li>
+      <li>Sempre que o aplicativo for atualizado, as novidades aparecem aqui.</li>
+      <li>As versões mais antigas ficam guardadas no fim da tela. Toque em uma delas para ver o que mudou.</li>
+      <li>Use o botão "Voltar" ou "Início" para sair desta tela.</li>
+    </ol>
+    <p class="ajuda-extra">Se precisar de ajuda com o aplicativo, peça a um familiar ou cuidador. 💚</p>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+
+<!-- ==========================================================
+     VERSÕES DO APLICATIVO E SUAS NOVIDADES
+     ----------------------------------------------------------
+     COMO LANÇAR UMA NOVA VERSÃO:
+       1. Troque "atual" abaixo pelo novo número (ex.: "1.1.0").
+       2. Adicione um novo bloco NO TOPO da lista "historico",
+          com a mesma versão, a data (AAAA-MM-DD) e os itens.
+       3. Escreva cada texto em linguagem simples, dizendo o que
+          muda PARA O USUÁRIO (ex.: "O alarme agora toca mais alto").
+       4. Na home.html, troque também o número em
+          VERSAO_ATUAL_DO_APP (é o que faz o aviso aparecer).
+
+     Número da versão (MAIOR.MENOR.CORREÇÃO):
+       - MAIOR    → mudança grande no app todo  (1.0.0 → 2.0.0)
+       - MENOR    → nova função ou melhoria     (1.0.0 → 1.1.0)
+       - CORREÇÃO → só correção de problemas    (1.0.0 → 1.0.1)
+
+     Tipos de item: "novo", "melhoria" ou "correcao".
+     ========================================================== -->
+<script>
+window.TECHSAUDE_VERSOES = {
+  atual: "1.0.0",
+
+  historico: [
+    {
+      versao: "1.0.0",
+      data: "2026-09-28",
+      resumo: "A primeira versão do TechSaúde.",
+      itens: [
+        {
+          tipo: "novo",
+          icone: "⏰",
+          titulo: "Alarme de Medicamentos",
+          texto: "Cadastre seus remédios e o aplicativo avisa na hora certa de tomar."
+        },
+        {
+          tipo: "novo",
+          icone: "📅",
+          titulo: "Agenda de Consultas",
+          texto: "Anote suas consultas médicas e não esqueça nenhum compromisso."
+        },
+        {
+          tipo: "novo",
+          icone: "🧩",
+          titulo: "Mini Jogos",
+          texto: "Caça-Palavras e Jogo da Memória para exercitar a mente, sem pressa e sem pontuação."
+        },
+        {
+          tipo: "novo",
+          icone: "👤",
+          titulo: "Sua conta",
+          texto: "Crie seu cadastro, entre no aplicativo e, se esquecer a senha, crie uma nova com facilidade."
+        }
+      ]
+    }
+  ]
+};
+
+/* Rótulos e cores de cada tipo de item (usados pelas telas) */
+window.TECHSAUDE_TIPOS_ITEM = {
+  novo:     { rotulo: "Novo",      emoji: "✨" },
+  melhoria: { rotulo: "Melhorou",  emoji: "👍" },
+  correcao: { rotulo: "Corrigido", emoji: "🔧" }
+};
+</script>
+
+<script>
+(function(){
+  "use strict";
+
+  // Destino do botão "Voltar". Trocar para 'sobre.html' quando a tela "Sobre o App" existir.
+  var VOLTAR_PARA = 'home.html';
+  document.getElementById('btnVoltar').setAttribute('href', VOLTAR_PARA);
+
+  // ---------- RELÓGIO (mesmo padrão das demais telas) ----------
+  var datetimeEl = document.getElementById('datetime');
+  function atualizarDataHora(){
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    var diaSemana = agora.toLocaleDateString('pt-BR', {weekday:'long'});
+    diaSemana = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+    var dataFormatada = agora.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+    datetimeEl.textContent = hora + ' - ' + diaSemana + ', ' + dataFormatada;
+  }
+  atualizarDataHora();
+  setInterval(atualizarDataHora, 30000);
+
+  // ---------- BOTÃO DE EMERGÊNCIA (ainda não conectado — será feito em outra etapa) ----------
+  document.getElementById('btnEmergencia').addEventListener('click', function(){
+    showToast('🚨 Botão de emergência ainda será conectado nesta tela.');
+  });
+
+  function showToast(msg){
+    var toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(function(){ toast.classList.remove('show'); }, 2600);
+  }
+
+  // ---------- UTILITÁRIOS ----------
+  function escapeHtml(texto){
+    var div = document.createElement('div');
+    div.textContent = texto == null ? '' : String(texto);
+    return div.innerHTML;
+  }
+
+  // "2026-09-28" → "28 de setembro de 2026" (meio-dia evita erro de fuso horário)
+  function formatarData(iso){
+    if(!iso) return '';
+    var d = new Date(iso + 'T12:00:00');
+    if(isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+  }
+
+  // ---------- RENDERIZAÇÃO ----------
+  var dados = window.TECHSAUDE_VERSOES;
+  var tipos = window.TECHSAUDE_TIPOS_ITEM || {};
+  var alvo = document.getElementById('conteudoVersao');
+
+  function htmlItem(item){
+    var tipo = tipos[item.tipo] ? item.tipo : 'novo';
+    var rotulo = (tipos[tipo] && tipos[tipo].rotulo) || 'Novo';
+    return (
+      '<li class="novidade-card">' +
+        '<span class="novidade-icon" aria-hidden="true">' + escapeHtml(item.icone || '✨') + '</span>' +
+        '<div class="novidade-body">' +
+          '<div class="novidade-topo">' +
+            '<span class="novidade-titulo">' + escapeHtml(item.titulo) + '</span>' +
+            '<span class="tag-tipo ' + tipo + '">' + escapeHtml(rotulo) + '</span>' +
+          '</div>' +
+          '<p class="novidade-texto">' + escapeHtml(item.texto) + '</p>' +
+        '</div>' +
+      '</li>'
+    );
+  }
+
+  function renderizar(){
+    if(!dados || !dados.atual || !Array.isArray(dados.historico) || dados.historico.length === 0){
+      alvo.innerHTML = '<p class="erro-dados">Não foi possível carregar as informações da versão. Verifique se o arquivo versoes.js está na mesma pasta desta tela.</p>';
+      return;
+    }
+
+    var atual = dados.historico.find(function(v){ return v.versao === dados.atual; }) || dados.historico[0];
+    var anteriores = dados.historico.filter(function(v){ return v !== atual; });
+
+    var html = '';
+
+    // Cartão da versão atual
+    html +=
+      '<section class="versao-hero" aria-labelledby="tituloVersao">' +
+        '<span class="versao-hero-icon" aria-hidden="true">📱</span>' +
+        '<div class="versao-hero-body">' +
+          '<span class="versao-hero-label" id="tituloVersao">Você está usando a versão</span>' +
+          '<span class="versao-hero-numero">' + escapeHtml(dados.atual) + '</span>' +
+          (atual.data ? '<span class="versao-hero-data">Lançada em ' + escapeHtml(formatarData(atual.data)) + '</span>' : '') +
+          (atual.resumo ? '<span class="versao-hero-resumo">' + escapeHtml(atual.resumo) + '</span>' : '') +
+        '</div>' +
+      '</section>';
+
+    // Novidades da versão atual
+    html += '<h2 id="tituloNovidades">O que tem nesta versão</h2>';
+    html += '<p class="subtitle">Conheça o que o TechSaúde faz por você.</p>';
+    html += '<ul class="novidades-lista" aria-labelledby="tituloNovidades">' +
+              (atual.itens || []).map(htmlItem).join('') +
+            '</ul>';
+
+    // Versões anteriores
+    html += '<section class="secao-anteriores" aria-labelledby="tituloAnteriores">';
+    html += '<h2 id="tituloAnteriores">Versões anteriores</h2>';
+    if(anteriores.length === 0){
+      html += '<p class="aviso-vazio">Esta é a primeira versão do TechSaúde. Quando o aplicativo for atualizado, as versões antigas vão ficar guardadas aqui.</p>';
+    } else {
+      html += '<p class="subtitle">Toque em uma versão para ver o que mudou nela.</p>';
+      anteriores.forEach(function(v){
+        html +=
+          '<details class="versao-anterior">' +
+            '<summary>' +
+              '<span class="va-numero">Versão ' + escapeHtml(v.versao) + '</span>' +
+              '<span class="va-data">' + escapeHtml(formatarData(v.data)) + '</span>' +
+              '<span class="va-seta" aria-hidden="true">›</span>' +
+            '</summary>' +
+            '<div class="va-conteudo">' +
+              (v.resumo ? '<p class="subtitle" style="margin-bottom:.8rem;">' + escapeHtml(v.resumo) + '</p>' : '') +
+              '<ul class="novidades-lista">' + (v.itens || []).map(htmlItem).join('') + '</ul>' +
+            '</div>' +
+          '</details>';
+      });
+    }
+    html += '</section>';
+
+    html += '<p class="rodape-versao">TechSaúde · versão ' + escapeHtml(dados.atual) + '</p>';
+
+    alvo.innerHTML = html;
+  }
+  renderizar();
+
+  // ---------- REGISTRA A VERSÃO COMO "JÁ VISTA" ----------
+  // Quem abriu esta tela já viu as novidades: o aviso da Home não aparece de novo.
+  // Usa a mesma chave do aviso da home.html (uma por usuário).
+  (function marcarComoVista(){
+    if(!dados || !dados.atual) return;
+    try{
+      var salvo = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
+      var usuario = salvo ? JSON.parse(salvo) : null;
+      var id = usuario && (usuario.id_usuario != null ? usuario.id_usuario : usuario.id);
+      localStorage.setItem('techsaude_versao_vista' + (id != null ? '_' + id : ''), dados.atual);
+    }catch(e){ /* sem armazenamento disponível: segue sem registrar */ }
+  })();
+
+  // ---------- AJUDA ----------
+  var modalAjuda = document.getElementById('modalAjuda');
+  var btnAjuda = document.getElementById('btnAjuda');
+  function fecharAjuda(){ modalAjuda.classList.add('hidden'); btnAjuda.focus(); }
+  btnAjuda.addEventListener('click', function(){
+    modalAjuda.classList.remove('hidden');
+    document.getElementById('fecharAjuda').focus();
+  });
+  document.getElementById('fecharAjuda').addEventListener('click', fecharAjuda);
+  modalAjuda.addEventListener('click', function(e){ if(e.target === modalAjuda) fecharAjuda(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !modalAjuda.classList.contains('hidden')) fecharAjuda();
+  });
+
+  // ---------- CONTROLE DE FONTE ----------
+  document.querySelectorAll('.font-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.font-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      document.documentElement.style.fontSize = btn.dataset.scale + '%';
+    });
+  });
+  document.querySelector('.font-btn[data-scale="100"]').classList.add('active');
+
+})();
+</script>
+</body>
+</html>
