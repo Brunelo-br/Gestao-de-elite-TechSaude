@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde — Calendário de Saúde</title>
+<style>
+:root{
+  --cream:#f3efdc; --cream-deep:#ece5c9; --ink:#16301f; --ink-soft:#2e4a37;
+  --green-deep:#1b3a26; --green-mid:#2f6b46; --teal:#2f9e8f; --line:#cdbf95;
+  --text:#26332a; --text-soft:#55604f; --danger:#c0392b; --error:#a3402c;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{min-height:100vh;background:var(--cream);font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;color:var(--text);display:flex;flex-direction:column;}
+input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;}
+h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
+.wrap{flex:1;min-height:100vh;display:flex;flex-direction:column;background:var(--cream);}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;padding:18px 14px 14px;background:linear-gradient(160deg,#1d5b3a,#123a26);}
+.topbar-spacer{width:60px;}
+.logo-center{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:2px;}
+.logo-mark{width:200px;height:200px;object-fit:contain;}
+.topbar-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:var(--cream);text-decoration:none;font-size:0.64rem;font-weight:800;letter-spacing:0.3px;text-transform:uppercase;padding:2px;width:60px;}
+.topbar-btn .icon-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.topbar-btn.emergencia .icon-circle{background:#c0392b;}
+.topbar-btn.inicio .icon-circle{background:rgba(255,255,255,0.16);}
+.topbar-btn svg{width:20px;height:20px;color:#fff;}
+.topbar-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+.datetime{padding:9px 18px;font-size:0.85rem;color:var(--text-soft);background:var(--cream);border-bottom:1px solid var(--line);}
+.main-content{flex:1;padding:16px 16px 32px;}
+
+/* TÍTULOS */
+.page-title{margin:2px 0 6px;font-size:1.3rem;text-align:center;letter-spacing:.3px;line-height:1.25;}
+.page-title.danger{color:var(--danger);}
+.page-sub{margin:0 0 16px;text-align:center;color:var(--text-soft);font-size:.9rem;line-height:1.45;font-weight:600;}
+
+/* BOTÕES */
+.btn-block{display:block;width:100%;text-align:center;text-decoration:none;border:none;border-radius:999px;padding:.9rem 1rem;cursor:pointer;font-weight:800;font-size:.9rem;text-transform:uppercase;letter-spacing:.3px;color:var(--cream);background:linear-gradient(180deg,#234a34,var(--green-deep));box-shadow:0 4px 0 #0e2416;margin-bottom:4px;}
+.btn-block:active{transform:translateY(3px);box-shadow:0 1px 0 #0e2416;}
+.btn-block.danger{background:linear-gradient(180deg,#d04a3b,var(--danger));box-shadow:0 4px 0 #7f241b;color:#fff;}
+.btn-block.danger:active{box-shadow:0 1px 0 #7f241b;}
+.btn-block.on{background:linear-gradient(180deg,#3bb3a3,var(--teal));box-shadow:0 4px 0 #1f6f64;}
+.btn-block:disabled{opacity:.45;cursor:not-allowed;}
+.btn-block:focus-visible,.btn-ghost:focus-visible,.btn-sm:focus-visible,.chip:focus-within{outline:3px solid var(--teal);outline-offset:2px;}
+.btn-ghost{display:block;width:100%;margin-top:10px;text-align:center;text-decoration:none;border:2px solid var(--line);background:#fff;color:var(--green-deep);border-radius:999px;padding:.8rem;font-weight:800;font-size:.85rem;text-transform:uppercase;letter-spacing:.3px;cursor:pointer;}
+.btn-ghost:hover{border-color:var(--teal);}
+.btn-sm{border-radius:999px;padding:.4rem .8rem;font-size:.7rem;font-weight:800;text-transform:uppercase;cursor:pointer;background:#fff;}
+.btn-sm.outline{border:2px solid var(--green-mid);color:var(--green-mid);}
+.btn-sm.danger{border:2px solid var(--danger);color:var(--danger);}
+
+/* CARDS, ABAS, FORMULÁRIOS */
+.card{background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:14px;}
+.card h2,.card h3{margin:0 0 .4rem;color:var(--green-deep);}
+.card p{line-height:1.45;}
+.list{display:flex;flex-direction:column;gap:12px;}
+.empty{text-align:center;color:var(--text-soft);font-size:.9rem;padding:1.4rem .8rem;background:var(--cream-deep);border:2px dashed var(--line);border-radius:16px;font-weight:600;}
+.tabs,.nav-row{display:flex;gap:8px;margin-bottom:14px;}
+.tabs button,.nav-row button{flex:1;border:2px solid var(--green-deep);background:#fff;color:var(--green-deep);border-radius:999px;padding:.7rem .5rem;font-weight:800;text-transform:uppercase;cursor:pointer;font-size:.75rem;}
+.tabs button.on,.tabs button.active,.nav-row button.on,.nav-row button.active{background:var(--green-deep);color:var(--cream);}
+.form-group{margin-bottom:.8rem;}
+.field-label{display:block;margin-bottom:.35rem;font-size:.72rem;font-weight:800;color:var(--green-deep);text-transform:uppercase;letter-spacing:.4px;}
+.form-field{display:flex;align-items:center;gap:.6rem;background:#fff;padding:.75rem .9rem;border-radius:14px;border:2px solid var(--line);}
+.form-field:focus-within{border-color:var(--teal);}
+.form-field input,.form-field select,.form-field textarea{flex:1;border:none;background:transparent;font-size:.95rem;font-weight:600;color:var(--text);outline:none;min-width:0;}
+.form-field textarea{resize:vertical;min-height:4.4rem;}
+.row-2,.datetime-inputs{display:flex;gap:8px;} .row-2 .form-group,.datetime-inputs .form-group{flex:1;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:.5rem .8rem;font-size:.8rem;font-weight:800;color:var(--green-deep);cursor:pointer;}
+.chip input{display:none;}
+.chip.on{background:var(--green-deep);border-color:var(--green-deep);color:var(--cream);}
+.hint{font-size:.78rem;color:var(--text-soft);margin:0 0 .8rem;text-align:center;}
+
+/* POP-UPS E AVISOS */
+.popup-overlay,.overlay{position:fixed;inset:0;background:rgba(10,20,14,0.55);display:none;align-items:center;justify-content:center;padding:1rem;z-index:120;}
+.popup-overlay.show,.overlay.show{display:flex;}
+.popup-card{background:var(--cream);border:2px solid var(--line);border-radius:22px;padding:1.5rem 1.2rem 1.2rem;max-width:400px;width:100%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.35);max-height:90vh;overflow-y:auto;}
+.popup-card h2{margin:0 0 .6rem;font-size:1.1rem;}
+.popup-card p{margin:0 0 1rem;font-size:.95rem;font-weight:600;line-height:1.45;}
+.popup-actions{display:flex;flex-direction:column;gap:.5rem;}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(1rem);background:var(--green-deep);color:var(--cream);padding:.75rem 1.1rem;border-radius:999px;font-weight:800;font-size:.85rem;opacity:0;transition:.3s;z-index:200;pointer-events:none;max-width:90%;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.3);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* DESKTOP (>= 900px) */
+@media (min-width:900px){
+  body{background:radial-gradient(circle at 50% 0%,#0f5132 0%,#0b3e28 45%,#082a1c 100%);align-items:center;justify-content:center;padding:40px 24px;}
+  .wrap{flex:none;width:100%;max-width:1080px;min-height:660px;border-radius:32px;margin:auto;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,0.45),0 0 0 1px rgba(255,255,255,0.06);}
+  .wrap.narrow{max-width:720px;}
+  .topbar{padding:26px 32px 18px;}
+  .datetime{padding:10px 32px;}
+  .main-content{padding:22px 32px 32px;}
+  .page-title{font-size:1.55rem;}
+}
+@media (max-width:480px){ .row-2,.datetime-inputs{flex-wrap:wrap;} }
+
+.cal-wrap{background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:.75rem .6rem .9rem;margin-bottom:1.2rem;}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;padding:0 .25rem;}
+.cal-head h2{margin:0;font-size:1rem;letter-spacing:.4px;}
+.cal-nav{width:2.6rem;height:2.6rem;border:none;border-radius:50%;cursor:pointer;background:linear-gradient(180deg,#234a34,var(--green-deep));color:var(--cream);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 3px 0 #0e2416;}
+.cal-nav svg{width:1.2rem;height:1.2rem;}
+.weekdays,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.weekdays span{text-align:center;font-size:.7rem;font-weight:800;color:var(--text-soft);padding:.4rem 0;text-transform:uppercase;}
+.day{position:relative;aspect-ratio:1;border:none;background:transparent;border-radius:50%;cursor:pointer;font-weight:800;font-size:.9rem;color:var(--green-deep);}
+.day:focus-visible{outline:3px solid var(--teal);outline-offset:2px;}
+.day.muted{color:#b5aa84;font-weight:600;}
+.day.today{background:var(--green-deep);color:var(--cream);}
+.day.selected:not(.today){outline:2px solid var(--teal);outline-offset:-2px;background:#fff;}
+.day.has-event::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--teal);}
+.day.today.has-event::after{background:#8fe0cf;}
+.section-title{font-size:.95rem;text-align:center;margin:0 0 .75rem;letter-spacing:.3px;}
+.event-list{display:flex;flex-direction:column;gap:10px;margin-bottom:1.1rem;}
+.event-card{display:flex;align-items:center;gap:.65rem;background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:.75rem;}
+.event-icon{width:2.8rem;height:2.8rem;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid var(--line);color:var(--green-deep);}
+.event-icon svg{width:1.5rem;height:1.5rem;}
+.event-body{flex:1;min-width:0;}
+.event-title{margin:0;font-weight:800;color:var(--green-deep);font-size:.9rem;}
+.event-meta{margin:3px 0 0;font-size:.78rem;color:var(--text-soft);font-weight:600;}
+.event-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+@media (min-width:900px){
+  .desktop-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:start;margin-bottom:22px;}
+  .cal-wrap{margin-bottom:0;padding:1.1rem 1rem 1.2rem;}
+  .cal-head h2{font-size:1.2rem;} .day{font-size:1rem;}
+  .events-col .event-list{max-height:520px;overflow-y:auto;}
+  .main-content > .btn-block{max-width:420px;margin:0 auto;}
+}
+</style>
+<script>
+  /* PADRÃO TECHSAÚDE: aplica o tamanho de letra salvo ANTES da tela aparecer */
+  (function(){ try{ var f = parseFloat(localStorage.getItem('techsaude_fonte')); if(f >= 85 && f <= 150){ document.documentElement.style.fontSize = f + '%'; } }catch(e){} })();
+</script>
+<style>
+.toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin:0 0 22px; }
+.toolbar-acessibilidade .font-group{ display:inline-flex; border:2px solid #cdbf95; border-radius:999px; overflow:hidden; background:#fff; }
+.toolbar-acessibilidade .font-btn{ border:none; background:#fff; color:#1b3a26; font-weight:800; padding:9px 13px; cursor:pointer; font-size:.75rem; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; min-width:44px; min-height:40px; margin:0; }
+.toolbar-acessibilidade .font-btn + .font-btn{ border-left:1px solid #e4dbbd; }
+.toolbar-acessibilidade .font-btn.active{ background:#1b3a26; color:#f3efdc; }
+.toolbar-acessibilidade .font-btn:focus-visible,.toolbar-acessibilidade .chip-btn:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+.toolbar-acessibilidade .chip-btn{ background:#fff; border:2px solid #cdbf95; border-radius:999px; padding:9px 15px; font-size:.75rem; min-height:40px; margin:0; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:#1b3a26; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; }
+.toolbar-acessibilidade .chip-btn:hover{ border-color:#2f9e8f; }
+.ajuda-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:10000; }
+.ajuda-overlay[hidden]{ display:none !important; }
+.ajuda-modal{ background:#f3efdc; border:2px solid #cdbf95; border-radius:22px; padding:2rem 1.6rem 1.5rem; max-width:460px; width:100%; position:relative; box-shadow:0 30px 60px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto; text-align:left; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; color:#26332a; animation:ajudaPop .2s ease; }
+@keyframes ajudaPop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.ajuda-modal .ajuda-fechar{ position:absolute; top:.75rem; right:.75rem; background:#ece5c9; border:none; width:2.6rem; height:2.6rem; border-radius:50%; font-size:1.1rem; cursor:pointer; color:#1b3a26; margin:0; padding:0; }
+.ajuda-modal .ajuda-tag{ margin:0 0 .3rem; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#2f6b46; }
+.ajuda-modal h2{ margin:0 2.6rem .5rem 0; padding:0; font-size:1.3rem; line-height:1.2; color:#1b3a26; font-weight:900; text-transform:uppercase; text-align:left; font-family:inherit; }
+.ajuda-modal .ajuda-intro{ margin:0 0 1rem; font-size:.98rem; font-weight:600; color:#55604f; line-height:1.45; }
+.ajuda-modal .ajuda-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.7rem; counter-reset:passo; }
+.ajuda-modal .ajuda-lista li{ counter-increment:passo; position:relative; padding:0 0 0 2.5rem; margin:0; min-height:1.9rem; font-size:1rem; font-weight:600; line-height:1.45; color:#26332a; }
+.ajuda-modal .ajuda-lista li::before{ content:counter(passo); position:absolute; left:0; top:-.05rem; width:1.9rem; height:1.9rem; border-radius:50%; background:#1b3a26; color:#f3efdc; font-weight:800; font-size:.95rem; display:flex; align-items:center; justify-content:center; }
+.ajuda-modal .ajuda-lista b{ color:#1b3a26; }
+.ajuda-modal .ajuda-extra{ margin:1.1rem 0 0; padding:.8rem 1rem; background:#dcefdf; border:1.5px solid #a5d6a7; border-radius:14px; font-size:.95rem; font-weight:600; color:#1b4332; line-height:1.4; }
+.ajuda-modal .ajuda-ok{ display:block; width:100%; margin:1.2rem 0 0; padding:.9rem; border:none; border-radius:999px; cursor:pointer; background:linear-gradient(180deg,#234a34,#1b3a26); color:#f3efdc; font-weight:800; font-size:1rem; text-transform:uppercase; letter-spacing:.4px; font-family:inherit; box-shadow:0 5px 0 #0e2416; }
+.ajuda-modal .ajuda-ok:active{ transform:translateY(3px); box-shadow:0 2px 0 #0e2416; }
+.ajuda-modal button:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+</style>
+</head>
+<body>
+<div class="wrap ">
+  <div class="topbar">
+    <button type="button" class="topbar-btn emergencia" onclick="mostrarToast('Emergência: ligue 192 (SAMU) ou 193 se precisar.')" aria-label="Emergência"><span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a5 5 0 0 0-5 5v3.5c0 1-.4 1.9-1.1 2.6L4 16h16l-1.9-1.9c-.7-.7-1.1-1.6-1.1-2.6V8a5 5 0 0 0-5-5Z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></svg></span>Emergência</button>
+    <div class="logo-center"><img class="logo-mark" src="img/logo.png" alt="Logo TechSaúde"></div>
+    <a class="topbar-btn inicio" href="home.html" aria-label="Início"><span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span>Início</a>
+  </div>
+  <div class="datetime" id="datetime"></div>
+  <div class="main-content">
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho da letra">
+        <button type="button" class="font-btn" data-scale="100" aria-label="Letra tamanho normal">A</button>
+        <button type="button" class="font-btn" data-scale="115" aria-label="Letra grande">A+</button>
+        <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
+      </div>
+      <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
+    </div>
+
+    <h1 class="page-title">Calendário de Saúde</h1>
+
+    <div class="desktop-grid">
+    <section class="cal-wrap" aria-label="Calendário mensal">
+      <div class="cal-head">
+        <button type="button" class="cal-nav" onclick="mudarMes(-1)" aria-label="Mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h2 id="cal-titulo">MARÇO 2026</h2>
+        <button type="button" class="cal-nav" onclick="mudarMes(1)" aria-label="Próximo mês"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <div class="weekdays">
+        <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
+      </div>
+      <div class="days" id="cal-dias"></div>
+    </section>
+
+    <div class="events-col">
+    <h2 class="section-title">Próximos Eventos</h2>
+    <div class="event-list" id="lista-eventos"></div>
+    </div>
+    </div>
+
+    <button type="button" class="btn-block" onclick="abrirForm()">+ Incluir novo evento</button>
+  </div>
+</div>
+<div class="popup-overlay" id="popup-form">
+  <div class="popup-card" style="text-align:left;max-width:440px;">
+    <h2 id="form-titulo" style="text-align:center;">Incluir novo evento</h2>
+    <form id="form-evento" onsubmit="salvarEvento(event)">
+      <input type="hidden" id="ev-id">
+      <div class="form-group">
+        <label class="field-label">Tipo de evento</label>
+        <div class="form-field">
+          <select id="ev-tipo">
+            <option value="consulta">Consulta médica</option>
+            <option value="medicamento">Medicamento</option>
+            <option value="aniversario">Aniversário / compromisso</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Descrição</label>
+        <div class="form-field">
+          <input id="ev-titulo" type="text" placeholder="Ex: Consulta com Dr. Silva" required>
+        </div>
+      </div>
+      <div class="datetime-inputs">
+        <div class="form-group">
+          <label class="field-label">Data</label>
+          <div class="form-field">
+            <input id="ev-data" type="date" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Hora</label>
+          <div class="form-field">
+            <input id="ev-hora" type="time">
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Observações (opcional)</label>
+        <div class="form-field">
+          <textarea id="ev-obs" placeholder="Local, dosagem, observações..."></textarea>
+        </div>
+      </div>
+      <p class="hint">Scanner de receita e persistência no banco ficam para a próxima sprint.</p>
+      <div class="popup-actions">
+        <button type="submit" class="btn-block">Salvar</button>
+        <button type="button" class="btn-sm outline" style="padding:12px;" onclick="fecharForm()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="popup-overlay" id="popup-excluir">
+  <div class="popup-card">
+    <h2>Excluir evento?</h2>
+    <p id="excluir-texto"></p>
+    <div class="popup-actions">
+      <button type="button" class="btn-block danger" onclick="confirmarExclusao()">Sim, excluir</button>
+      <button type="button" class="btn-sm outline" style="padding:12px;" onclick="fecharExcluir()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="modalAjuda" class="ajuda-overlay" hidden>
+  <div class="ajuda-modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button type="button" class="ajuda-fechar" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <p class="ajuda-tag">❔ Ajuda</p>
+    <h2 id="ajudaTitulo">Como usar esta tela</h2>
+    <p class="ajuda-intro" id="ajudaIntro"></p>
+    <ol class="ajuda-lista" id="ajudaLista"></ol>
+    <p class="ajuda-extra" id="ajudaExtra"></p>
+    <button type="button" class="ajuda-ok" id="ajudaOk">Entendi</button>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var AJUDA_TELA = [
+  {
+    "titulo": "Como usar o Calendário de Saúde",
+    "intro": "Aqui ficam suas consultas, remédios e compromissos, todos num só lugar.",
+    "passos": [
+      "Use as setas <b>‹ ›</b> para trocar de mês.",
+      "Toque em um <b>dia</b> para ver só os eventos dele. Os dias com um pontinho têm algo marcado. Toque de novo para ver o mês todo.",
+      "Toque em <b>+ Incluir novo evento</b>, escolha o tipo, escreva a descrição, a data e a hora, e toque em <b>Salvar</b>.",
+      "Em cada evento, toque em <b>Editar</b> para mudar ou em <b>Excluir</b> para apagar."
+    ],
+    "dica": "Em todas as telas existe o botão ❔ Ajuda. Toque nele sempre que tiver dúvida. 💚"
+  }
+];
+  var PASSO_LETRA = 'Letra pequena? Toque em <b>A+</b> ou <b>A++</b>, logo acima, para aumentar. Sua escolha fica salva para todas as telas.';
+  var CHAVE_FONTE = 'techsaude_fonte';
+  var botoesFonte = document.querySelectorAll('.toolbar-acessibilidade .font-btn');
+  function escalaAtual(){ return parseFloat(document.documentElement.style.fontSize) || 100; }
+  function marcarBotaoFonte(){
+    var atual = escalaAtual();
+    botoesFonte.forEach(function(b){ var ativo = Number(b.dataset.scale) === atual; b.classList.toggle('active', ativo); b.setAttribute('aria-pressed', ativo ? 'true' : 'false'); });
+  }
+  function aplicarFonte(escala, salvar){
+    document.documentElement.style.fontSize = escala + '%';
+    if(salvar){ try{ localStorage.setItem(CHAVE_FONTE, String(escala)); }catch(e){} }
+    marcarBotaoFonte();
+    window.dispatchEvent(new Event('techsaude:fonte'));
+  }
+  window.aplicarFonteTechSaude = aplicarFonte;
+  botoesFonte.forEach(function(btn){ btn.addEventListener('click', function(){ aplicarFonte(Number(btn.dataset.scale), true); }); });
+  window.addEventListener('techsaude:fonte', marcarBotaoFonte);
+  window.addEventListener('storage', function(e){ if(e.key === CHAVE_FONTE && e.newValue){ aplicarFonte(parseFloat(e.newValue) || 100, false); } });
+  marcarBotaoFonte();
+
+  var modal = document.getElementById('modalAjuda');
+  var focoAnterior = null;
+  function conteudoAtual(){
+    for(var i = 0; i < AJUDA_TELA.length; i++){ var item = AJUDA_TELA[i]; if(!item.quando || document.querySelector(item.quando)) return item; }
+    return AJUDA_TELA[AJUDA_TELA.length - 1];
+  }
+  function abrirAjuda(){
+    var c = conteudoAtual();
+    document.getElementById('ajudaTitulo').textContent = c.titulo;
+    var intro = document.getElementById('ajudaIntro'); intro.innerHTML = c.intro || ''; intro.hidden = !c.intro;
+    document.getElementById('ajudaLista').innerHTML = c.passos.concat([PASSO_LETRA]).map(function(p){ return '<li>' + p + '</li>'; }).join('');
+    var extra = document.getElementById('ajudaExtra'); extra.innerHTML = c.dica || ''; extra.hidden = !c.dica;
+    focoAnterior = document.activeElement; modal.hidden = false;
+    document.getElementById('ajudaOk').focus({ preventScroll: true });
+    modal.querySelector('.ajuda-modal').scrollTop = 0;
+  }
+  function fecharAjuda(){ modal.hidden = true; if(focoAnterior && focoAnterior.focus){ focoAnterior.focus(); } }
+  document.getElementById('btnAjuda').addEventListener('click', abrirAjuda);
+  document.getElementById('fecharAjuda').addEventListener('click', fecharAjuda);
+  document.getElementById('ajudaOk').addEventListener('click', fecharAjuda);
+  modal.addEventListener('click', function(e){ if(e.target === modal) fecharAjuda(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.hidden) fecharAjuda(); });
+})();
+</script>
+<script>
+const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+const SEMANA = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+const MESES_LONG = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const KEY = 'techsaude_calendario_v1';
+const ICONS = {"consulta": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 3v6a4 4 0 0 0 8 0V3\"/><path d=\"M5 3h2M13 3h2\"/><path d=\"M10 13v2a4.5 4.5 0 0 0 9 0v-2\"/><circle cx=\"19\" cy=\"11\" r=\"2\"/></svg>", "medicamento": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><g transform=\"rotate(-45 12 12)\"><rect x=\"2.5\" y=\"8.5\" width=\"19\" height=\"7\" rx=\"3.5\"/><line x1=\"12\" y1=\"8.5\" x2=\"12\" y2=\"15.5\"/></g></svg>", "aniversario": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"9\" width=\"17\" height=\"11.5\" rx=\"2\"/><path d=\"M3.5 13h17M12 9v11.5\"/><path d=\"M12 9c-1-4-5-4.5-5-2s3 2 5 2c2 0 5 .5 5-2s-4-2-5 2z\"/></svg>", "outro": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21z\"/><circle cx=\"12\" cy=\"9.5\" r=\"2.5\"/></svg>"};
+
+let viewYear, viewMonth, selectedISO = null, excluirId = null;
+
+const seed = [
+  {id:1, tipo:'consulta', titulo:'Consulta com Dr. Silva', data:'2026-03-02', hora:'', obs:''},
+  {id:2, tipo:'medicamento', titulo:'Tomar Remédio (Pílula)', data:'2026-03-02', hora:'18:00', obs:''},
+  {id:3, tipo:'aniversario', titulo:'Aniversário da Ana', data:'2026-03-03', hora:'', obs:''},
+  {id:4, tipo:'consulta', titulo:'Retorno cardiologia', data:'2026-03-10', hora:'09:30', obs:''},
+  {id:5, tipo:'medicamento', titulo:'Tomar Remédio (Pílula)', data:'2026-03-15', hora:'08:00', obs:''}
+];
+
+function canUseStorage(){
+  try{
+    const t='__ts_test__';
+    window.localStorage.setItem(t,'1');
+    window.localStorage.removeItem(t);
+    return true;
+  }catch(e){ return false; }
+}
+const HAS_STORAGE = canUseStorage();
+function loadEventos(){
+  if(HAS_STORAGE){
+    try{
+      const raw = localStorage.getItem(KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        if(Array.isArray(parsed) && parsed.length) return parsed;
+      }
+      localStorage.setItem(KEY, JSON.stringify(seed));
+    }catch(e){}
+  }
+  return seed.slice();
+}
+let eventos = loadEventos();
+function saveEventos(){
+  if(!HAS_STORAGE) return;
+  try{ localStorage.setItem(KEY, JSON.stringify(eventos)); }catch(e){}
+}
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function toISO(y,m,d){ return y + '-' + pad(m+1) + '-' + pad(d); }
+function fmtDataBR(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return d + '/' + m + '/' + y;
+}
+
+function atualizarRelogio(){
+  const now = new Date();
+  document.getElementById('datetime').textContent =
+    pad(now.getHours()) + ':' + pad(now.getMinutes()) + ' - ' +
+    SEMANA[now.getDay()] + ', ' + now.getDate() + ' de ' + MESES_LONG[now.getMonth()] + ' de ' + now.getFullYear();
+}
+
+function renderCalendario(){
+  document.getElementById('cal-titulo').textContent = MESES[viewMonth] + ' ' + viewYear;
+  const first = new Date(viewYear, viewMonth, 1);
+  let start = first.getDay();
+  start = start === 0 ? 6 : start - 1;
+  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+  const prevDays = new Date(viewYear, viewMonth, 0).getDate();
+  const today = new Date();
+  const todayISO = toISO(today.getFullYear(), today.getMonth(), today.getDate());
+  const eventDays = new Set(eventos.map(e => e.data));
+
+  const grid = document.getElementById('cal-dias');
+  grid.innerHTML = '';
+  const cells = [];
+  for(let i=0;i<start;i++){
+    const d = prevDays - start + 1 + i;
+    cells.push({d, muted:true, iso: toISO(viewMonth===0?viewYear-1:viewYear, viewMonth===0?11:viewMonth-1, d)});
+  }
+  for(let d=1;d<=daysInMonth;d++){
+    cells.push({d, muted:false, iso: toISO(viewYear, viewMonth, d)});
+  }
+  while(cells.length % 7 !== 0){
+    const extra = cells.length - (start + daysInMonth) + 1;
+    cells.push({d: extra, muted:true, iso: toISO(viewMonth===11?viewYear+1:viewYear, viewMonth===11?0:viewMonth+1, extra)});
+  }
+  cells.forEach(c => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'day';
+    btn.textContent = c.d;
+    if(c.muted) btn.classList.add('muted');
+    if(c.iso === todayISO) btn.classList.add('today');
+    if(c.iso === selectedISO) btn.classList.add('selected');
+    if(eventDays.has(c.iso)) btn.classList.add('has-event');
+    btn.onclick = () => { selectedISO = (selectedISO === c.iso) ? null : c.iso; renderCalendario(); renderEventos(); };
+    grid.appendChild(btn);
+  });
+}
+
+function renderEventos(){
+  const el = document.getElementById('lista-eventos');
+  let lista = eventos.slice().sort((a,b) => (a.data+(a.hora||'')).localeCompare(b.data+(b.hora||'')));
+  if(selectedISO) lista = lista.filter(e => e.data === selectedISO);
+  else {
+    const prefix = viewYear + '-' + String(viewMonth+1).padStart(2,'0');
+    lista = lista.filter(e => e.data.startsWith(prefix)).slice(0, 8);
+  }
+  if(!lista.length){
+    el.innerHTML = '<div class="empty" style="grid-column:1/-1">Nenhum evento neste período.</div>';
+    return;
+  }
+  el.innerHTML = lista.map(e => {
+    const hora = e.hora ? ' – ' + e.hora : '';
+    return '<article class="event-card">' +
+      '<div class="event-icon">' + (ICONS[e.tipo] || ICONS.outro) + '</div>' +
+      '<div class="event-body">' +
+        '<p class="event-title">' + escapeHtml(e.titulo) + '</p>' +
+        '<p class="event-meta">' + fmtDataBR(e.data) + hora + '</p>' +
+      '</div>' +
+      '<div class="event-actions">' +
+        '<button type="button" class="btn-sm outline" onclick="editarEvento(' + e.id + ')">Editar</button>' +
+        '<button type="button" class="btn-sm danger" onclick="pedirExclusao(' + e.id + ')">Excluir</button>' +
+      '</div></article>';
+  }).join('');
+}
+
+function escapeHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function mudarMes(delta){
+  viewMonth += delta;
+  if(viewMonth < 0){ viewMonth = 11; viewYear--; }
+  if(viewMonth > 11){ viewMonth = 0; viewYear++; }
+  renderCalendario();
+}
+
+function abrirForm(ev){
+  document.getElementById('form-titulo').textContent = ev ? 'Editar evento' : 'Incluir novo evento';
+  document.getElementById('ev-id').value = ev ? ev.id : '';
+  document.getElementById('ev-tipo').value = ev ? ev.tipo : 'consulta';
+  document.getElementById('ev-titulo').value = ev ? ev.titulo : '';
+  document.getElementById('ev-data').value = ev ? ev.data : (selectedISO || toISO(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()));
+  document.getElementById('ev-hora').value = ev && ev.hora ? ev.hora : '';
+  document.getElementById('ev-obs').value = ev && ev.obs ? ev.obs : '';
+  document.getElementById('popup-form').classList.add('show');
+}
+function fecharForm(){ document.getElementById('popup-form').classList.remove('show'); }
+
+function salvarEvento(e){
+  e.preventDefault();
+  const id = document.getElementById('ev-id').value;
+  const item = {
+    id: id ? Number(id) : Date.now(),
+    tipo: document.getElementById('ev-tipo').value,
+    titulo: document.getElementById('ev-titulo').value.trim(),
+    data: document.getElementById('ev-data').value,
+    hora: document.getElementById('ev-hora').value,
+    obs: document.getElementById('ev-obs').value.trim()
+  };
+  if(!item.titulo || !item.data){ mostrarToast('Preencha descrição e data'); return; }
+  if(id){
+    eventos = eventos.map(x => x.id === item.id ? item : x);
+    mostrarToast('Evento atualizado!');
+  } else {
+    eventos.push(item);
+    mostrarToast('Evento incluído!');
+  }
+  saveEventos();
+  fecharForm();
+  renderCalendario();
+  renderEventos();
+}
+
+function editarEvento(id){
+  const ev = eventos.find(x => x.id === id);
+  if(ev) abrirForm(ev);
+}
+function pedirExclusao(id){
+  const ev = eventos.find(x => x.id === id);
+  if(!ev) return;
+  excluirId = id;
+  document.getElementById('excluir-texto').textContent = ev.titulo + ' — ' + fmtDataBR(ev.data);
+  document.getElementById('popup-excluir').classList.add('show');
+}
+function fecharExcluir(){ document.getElementById('popup-excluir').classList.remove('show'); excluirId = null; }
+function confirmarExclusao(){
+  eventos = eventos.filter(x => x.id !== excluirId);
+  saveEventos();
+  fecharExcluir();
+  renderCalendario();
+  renderEventos();
+  mostrarToast('Evento excluído.');
+}
+
+function mostrarToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+(function init(){
+  viewYear = 2026;
+  viewMonth = 2;
+  atualizarRelogio();
+  setInterval(atualizarRelogio, 30000);
+  renderCalendario();
+  renderEventos();
+})();
+</script>
+</body>
+</html>
