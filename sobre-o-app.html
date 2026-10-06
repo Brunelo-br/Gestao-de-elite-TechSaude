@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde — Termos, Privacidade e Versão</title>
+
+<!-- SUPABASE JS (usado só pelo botão de Emergência) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Aplica o tamanho de letra salvo ANTES da tela aparecer (evita "piscar") -->
+<script>
+  (function(){
+    try{
+      var f = parseFloat(localStorage.getItem('techsaude_fonte'));
+      if(f >= 85 && f <= 150){ document.documentElement.style.fontSize = f + '%'; }
+    }catch(e){}
+  })();
+</script>
+
+<style>
+  :root{
+    --cream:#f3efdc; --cream-deep:#ece5c9; --paper:#fbf9ee;
+    --ink:#16301f; --green-deep:#1b3a26; --green-mid:#2f6b46; --teal:#2f9e8f;
+    --line:#cdbf95; --text:#26332a; --text-soft:#55604f; --error:#a3402c;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    min-height:100vh; background:var(--cream); color:var(--text);
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    display:flex; flex-direction:column;
+  }
+  button, input{ font-family:inherit; }
+
+  /* ============ CABEÇALHO ============ */
+  .wrap{ width:100%; flex:1; display:flex; flex-direction:column; background:var(--cream); }
+  .topbar{
+    display:grid; grid-template-columns:70px 1fr 70px; align-items:start;
+    padding:18px 14px 20px; color:var(--cream);
+    background:linear-gradient(160deg,#1d5b3a,#123a26);
+  }
+  .topbar-btn{
+    display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer;
+    color:var(--cream); font-size:.64rem; font-weight:800; letter-spacing:.3px; text-transform:uppercase; padding:2px; width:64px;
+  }
+  .topbar-btn .icon-circle{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .topbar-btn.emergencia .icon-circle{ background:#c0392b; }
+  .topbar-btn.inicio .icon-circle{ background:rgba(255,255,255,.16); }
+  .topbar-btn svg{ width:20px; height:20px; }
+  .topbar-btn:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+  .topbar-btn[hidden]{ display:none; }
+  .topbar-center{ display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; }
+  .topbar-center img{ width:130px; height:130px; object-fit:contain; }
+  .topbar-center h1{ margin:0; font-size:1.05rem; font-weight:800; color:var(--cream); text-transform:none; }
+
+  /* ============ CORPO ============ */
+  .body{ padding:14px 16px 28px; max-width:860px; width:100%; margin:0 auto; flex:1; }
+  .datetime{ text-align:center; font-size:.85rem; color:var(--text-soft); padding:6px 0 12px; border-bottom:1px solid var(--line); margin-bottom:14px; }
+
+  .toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin:0 0 16px; }
+  .font-group{ display:inline-flex; border:2px solid var(--line); border-radius:999px; overflow:hidden; background:#fff; }
+  .font-btn{ border:none; background:#fff; color:var(--green-deep); font-weight:800; padding:9px 13px; cursor:pointer; font-size:.75rem; min-width:44px; min-height:40px; margin:0; }
+  .font-btn + .font-btn{ border-left:1px solid #e4dbbd; }
+  .font-btn.active{ background:var(--green-deep); color:var(--cream); }
+  .chip-btn{
+    background:#fff; border:2px solid var(--line); border-radius:999px; padding:9px 15px; font-size:.75rem; min-height:40px; margin:0;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--green-deep); cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+  }
+  .chip-btn:hover{ border-color:var(--teal); }
+  .font-btn:focus-visible, .chip-btn:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+
+  .voltar-row{ margin:0 0 14px; }
+  .voltar-row[hidden]{ display:none; }
+
+  .view[hidden]{ display:none; }
+  .view-title{ margin:4px 0 4px; text-align:center; font-size:1.3rem; font-weight:900; text-transform:uppercase; color:var(--green-deep); }
+  .view-sub{ margin:0 0 16px; text-align:center; font-size:.9rem; color:var(--text-soft); }
+
+  /* Aviso de primeiro acesso */
+  .aviso-primeiro{
+    margin:0 0 16px; padding:14px 16px; border-radius:16px; background:#dcefdf; border:2px solid #9dcbab;
+    color:#1b4332; font-weight:700; font-size:.95rem; line-height:1.45;
+  }
+  .aviso-primeiro[hidden]{ display:none; }
+  .aviso-erro{ background:#f4dcd6; border-color:#e0a998; color:var(--error); }
+
+  /* ============ MENU (3 DOCUMENTOS) ============ */
+  .menu{ display:grid; gap:14px; grid-template-columns:1fr; }
+  .menu-card{
+    display:flex; align-items:center; gap:16px; text-align:left; cursor:pointer;
+    background:var(--paper); border:2px solid var(--line); border-radius:20px; padding:18px 18px;
+    color:var(--green-deep); transition:border-color .15s ease, transform .08s ease;
+  }
+  .menu-card:hover{ border-color:var(--teal); }
+  .menu-card:active{ transform:scale(.985); }
+  .menu-card:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+  .menu-ico{
+    flex:0 0 auto; width:60px; height:60px; border-radius:16px; background:var(--green-deep);
+    display:flex; align-items:center; justify-content:center; font-size:1.9rem; box-shadow:0 4px 0 #0e2416;
+  }
+  .menu-txt{ flex:1; min-width:0; }
+  .menu-txt strong{ display:block; font-size:1.05rem; font-weight:900; text-transform:uppercase; line-height:1.2; }
+  .menu-txt span{ display:block; margin-top:4px; font-size:.9rem; font-weight:600; color:var(--text-soft); line-height:1.35; }
+  .menu-seta{ flex:0 0 auto; font-size:1.6rem; font-weight:900; color:var(--green-mid); }
+  .menu-txt .selo{ display:inline-block; }
+  .selo{ display:inline-block; margin-top:6px; padding:2px 10px; border-radius:999px; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.3px; }
+  .selo.pendente{ background:#f7e8c4; color:#7a5a12; border:1px solid #e0c277; }
+  .selo.lido{ background:#dcefdf; color:#1b4332; border:1px solid #9dcbab; }
+
+  /* ============ DOCUMENTOS ============ */
+  .doc{
+    background:var(--paper); border:2px solid var(--line); border-radius:20px; padding:20px 20px 14px;
+    font-size:.95rem; line-height:1.6;
+  }
+  .doc h3{ margin:18px 0 4px; font-size:.95rem; font-weight:900; text-transform:uppercase; color:var(--green-deep); }
+  .doc h3:first-child{ margin-top:0; }
+  .doc p{ margin:0 0 8px; }
+  .doc ol, .doc ul{ margin:0 0 8px; padding-left:1.4rem; }
+  .doc li{ margin-bottom:6px; }
+  .doc .atualizacao{ margin:16px 0 4px; font-size:.8rem; color:var(--text-soft); }
+
+  /* Versão do app */
+  .versao-atual{
+    display:flex; gap:16px; align-items:center; padding:18px; border-radius:20px; color:var(--cream);
+    background:linear-gradient(160deg,#1d5b3a,#123a26); box-shadow:0 5px 0 #0e2416; margin-bottom:22px;
+  }
+  .versao-atual .ico{ flex:0 0 auto; width:62px; height:62px; border-radius:16px; background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center; font-size:2rem; }
+  .versao-atual small{ display:block; font-size:.72rem; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:#8fe0cf; }
+  .versao-atual .num{ font-size:2rem; font-weight:900; line-height:1.1; }
+  .versao-atual .data{ font-size:.9rem; font-weight:700; }
+  .versao-atual .desc{ font-size:.82rem; opacity:.9; }
+  .sec-titulo{ margin:0 0 2px; font-size:1.1rem; font-weight:900; text-transform:uppercase; color:var(--green-deep); }
+  .sec-sub{ margin:0 0 12px; font-size:.9rem; color:var(--text-soft); }
+  .novidades{ display:grid; gap:10px; margin-bottom:22px; }
+  .novidade{ display:flex; gap:14px; align-items:center; background:var(--paper); border:2px solid var(--line); border-radius:18px; padding:12px 14px; }
+  .novidade .ico{ flex:0 0 auto; width:46px; height:46px; border-radius:12px; background:var(--green-deep); display:flex; align-items:center; justify-content:center; font-size:1.4rem; }
+  .novidade strong{ font-size:.95rem; font-weight:900; color:var(--green-deep); }
+  .novidade p{ margin:2px 0 0; font-size:.9rem; font-weight:600; line-height:1.4; }
+  .tag-novo{ display:inline-block; margin-left:6px; padding:1px 8px; border-radius:999px; background:#dcefdf; border:1px solid #9dcbab; color:#1b4332; font-size:.66rem; font-weight:800; text-transform:uppercase; vertical-align:middle; }
+  .anteriores{ padding:14px; text-align:center; border:2px dashed var(--line); border-radius:16px; color:var(--text-soft); font-size:.9rem; }
+  .rodape-versao{ text-align:center; margin:18px 0 0; font-size:.8rem; color:var(--text-soft); }
+
+  /* ============ ACEITE ============ */
+  .aceite{
+    margin-top:18px; padding:16px 18px; border-radius:20px; background:var(--cream-deep); border:2px solid var(--line);
+  }
+  .aceite[hidden]{ display:none; }
+  .aceite label{ display:flex; gap:12px; align-items:flex-start; cursor:pointer; font-weight:800; color:var(--green-deep); line-height:1.4; font-size:.98rem; }
+  .aceite input[type=checkbox]{ width:26px; height:26px; flex:0 0 auto; margin:0; accent-color:var(--green-deep); cursor:pointer; }
+  .aceite-botoes{ display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; }
+  .btn{
+    flex:1 1 200px; padding:.95rem 1rem; border-radius:999px; cursor:pointer; font-weight:800; font-size:1rem;
+    text-transform:uppercase; letter-spacing:.4px; min-height:52px;
+  }
+  .btn-aceitar{ border:none; background:linear-gradient(180deg,#234a34,#1b3a26); color:var(--cream); box-shadow:0 5px 0 #0e2416; }
+  .btn-aceitar:active:not(:disabled){ transform:translateY(3px); box-shadow:0 2px 0 #0e2416; }
+  .btn-aceitar:disabled{ opacity:.45; cursor:not-allowed; box-shadow:0 5px 0 #0e2416; }
+  .btn-recusar{ background:#fff; color:var(--green-deep); border:2px solid var(--green-deep); }
+  .btn-recusar:hover{ background:#f4dcd6; border-color:var(--error); color:var(--error); }
+  .btn:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; }
+  .aceite-nota{ margin:12px 0 0; font-size:.82rem; color:var(--text-soft); line-height:1.4; }
+
+  /* Mensagem de emergência */
+  .msg-emerg{ display:none; margin:0 0 14px; padding:11px 14px; border-radius:14px; font-size:.88rem; font-weight:700; background:#f4dcd6; color:var(--error); border:1px solid #e0a998; }
+  .msg-emerg.show{ display:block; }
+
+  /* Pop-up de ajuda */
+  .ajuda-overlay{ position:fixed; inset:0; background:rgba(10,20,14,.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:10000; }
+  .ajuda-overlay[hidden]{ display:none !important; }
+  .ajuda-modal{
+    background:var(--cream); border:2px solid var(--line); border-radius:22px; padding:2rem 1.6rem 1.5rem; max-width:460px; width:100%;
+    position:relative; box-shadow:0 30px 60px rgba(0,0,0,.35); max-height:90vh; overflow-y:auto; color:var(--text); animation:ajudaPop .2s ease;
+  }
+  @keyframes ajudaPop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .ajuda-fechar{ position:absolute; top:.75rem; right:.75rem; background:var(--cream-deep); border:none; width:2.6rem; height:2.6rem; border-radius:50%; font-size:1.1rem; cursor:pointer; color:var(--green-deep); }
+  .ajuda-tag{ margin:0 0 .3rem; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--green-mid); }
+  .ajuda-modal h2{ margin:0 2.6rem .5rem 0; font-size:1.3rem; line-height:1.2; color:var(--green-deep); font-weight:900; text-transform:uppercase; }
+  .ajuda-intro{ margin:0 0 1rem; font-size:.98rem; font-weight:600; color:var(--text-soft); line-height:1.45; }
+  .ajuda-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.7rem; counter-reset:passo; }
+  .ajuda-lista li{ counter-increment:passo; position:relative; padding:0 0 0 2.5rem; min-height:1.9rem; font-size:1rem; font-weight:600; line-height:1.45; }
+  .ajuda-lista li::before{ content:counter(passo); position:absolute; left:0; top:-.05rem; width:1.9rem; height:1.9rem; border-radius:50%; background:var(--green-deep); color:var(--cream); font-weight:800; font-size:.95rem; display:flex; align-items:center; justify-content:center; }
+  .ajuda-lista b{ color:var(--green-deep); }
+  .ajuda-extra{ margin:1.1rem 0 0; padding:.8rem 1rem; background:#dcefdf; border:1.5px solid #a5d6a7; border-radius:14px; font-size:.95rem; font-weight:600; color:#1b4332; line-height:1.4; }
+  .ajuda-ok{ display:block; width:100%; margin:1.2rem 0 0; padding:.9rem; border:none; border-radius:999px; cursor:pointer; background:linear-gradient(180deg,#234a34,#1b3a26); color:var(--cream); font-weight:800; font-size:1rem; text-transform:uppercase; letter-spacing:.4px; box-shadow:0 5px 0 #0e2416; }
+  .ajuda-ok:active{ transform:translateY(3px); box-shadow:0 2px 0 #0e2416; }
+  .ajuda-modal button:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+
+  /* ============ DESKTOP ============ */
+  @media (min-width:900px){
+    body{
+      background:radial-gradient(circle at 50% 0%, #0f5132 0%, #0b3e28 45%, #082a1c 100%);
+      align-items:center; justify-content:center; padding:40px 24px;
+    }
+    .wrap{
+      max-width:980px; min-height:660px; border-radius:32px; margin:auto; overflow:hidden;
+      box-shadow:0 30px 70px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.06);
+    }
+    .topbar{ padding:24px 32px 24px; grid-template-columns:90px 1fr 90px; }
+    .body{ padding:16px 32px 32px; }
+    .menu-card{ padding:22px 22px; }
+  }
+  @media (max-width:420px){
+    .menu-ico{ width:52px; height:52px; font-size:1.6rem; }
+    .topbar-center img{ width:100px; height:100px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- CABEÇALHO -->
+  <header class="topbar">
+    <button type="button" class="topbar-btn emergencia" id="btnEmergencia">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3a5 5 0 0 0-5 5v3.5c0 1-.4 1.9-1.1 2.6L4 16h16l-1.9-1.9c-.7-.7-1.1-1.6-1.1-2.6V8a5 5 0 0 0-5-5Z"/>
+          <path d="M9.5 19a2.5 2.5 0 0 0 5 0"/>
+        </svg>
+      </span>
+      Emergência
+    </button>
+
+    <div class="topbar-center">
+      <img src="img/logo.png" alt="Logo TechSaúde">
+      <h1 id="tituloTela">Termos, Privacidade e Versão</h1>
+    </div>
+
+    <button type="button" class="topbar-btn inicio" id="btnInicio">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>
+        </svg>
+      </span>
+      Início
+    </button>
+  </header>
+
+  <main class="body">
+    <div class="datetime" id="relogio">--:-- - --, -- de -- de ----</div>
+    <div class="msg-emerg" id="msgEmerg" role="alert"></div>
+
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho da letra">
+        <button type="button" class="font-btn" data-scale="100" aria-label="Letra tamanho normal">A</button>
+        <button type="button" class="font-btn" data-scale="115" aria-label="Letra grande">A+</button>
+        <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
+      </div>
+      <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
+    </div>
+
+    <div class="voltar-row" id="voltarRow" hidden>
+      <button type="button" class="chip-btn" id="btnVoltar">↩ Voltar</button>
+    </div>
+
+    <!-- ===== 1) ESCOLHA DO DOCUMENTO ===== -->
+    <section class="view" id="view-menu">
+      <h2 class="view-title">O que você quer abrir?</h2>
+      <p class="view-sub">Toque em um dos quadrados abaixo para ler com calma.</p>
+
+      <div class="aviso-primeiro" id="avisoPrimeiro" hidden>
+        👋 <b>Bem-vindo(a) ao TechSaúde!</b> Antes de começar, leia os <b>Termos de Uso</b> e a <b>Política de Privacidade</b>
+        e escolha <b>Aceitar</b> ou <b>Recusar</b> no fim desta tela.
+      </div>
+      <div class="aviso-primeiro aviso-erro" id="avisoRecusa" hidden></div>
+
+      <div class="menu">
+        <button type="button" class="menu-card" data-abrir="termos">
+          <span class="menu-ico" aria-hidden="true">📜</span>
+          <span class="menu-txt">
+            <strong>Termos de Uso</strong>
+            <span>As regras para usar o aplicativo.</span>
+            <span class="selo pendente" data-selo="termos" hidden>Falta ler</span>
+          </span>
+          <span class="menu-seta" aria-hidden="true">›</span>
+        </button>
+
+        <button type="button" class="menu-card" data-abrir="privacidade">
+          <span class="menu-ico" aria-hidden="true">🔒</span>
+          <span class="menu-txt">
+            <strong>Política de Privacidade</strong>
+            <span>Como seus dados são guardados e protegidos.</span>
+            <span class="selo pendente" data-selo="privacidade" hidden>Falta ler</span>
+          </span>
+          <span class="menu-seta" aria-hidden="true">›</span>
+        </button>
+
+        <button type="button" class="menu-card" data-abrir="versao">
+          <span class="menu-ico" aria-hidden="true">📱</span>
+          <span class="menu-txt">
+            <strong>Versão do App</strong>
+            <span>Qual versão você usa e o que ela tem de novo.</span>
+          </span>
+          <span class="menu-seta" aria-hidden="true">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== 2) TERMOS DE USO ===== -->
+    <section class="view" id="view-termos" hidden>
+      <h2 class="view-title">Termos de Uso</h2>
+      <p class="view-sub">Leia com calma. Se aceitar, marque a caixinha no final.</p>
+
+      <article class="doc">
+        <h3>1. O que é o TechSaúde</h3>
+        <p>O TechSaúde é um aplicativo de apoio ao dia a dia de pessoas idosas e de quem ajuda elas no celular. Ele reúne saúde (consultas, lembretes, medicamentos e calendário) e outras rotinas, como Pix, dicas e jogos de memória. Não substitui hospital, UPA, SAMU nem o médico.</p>
+
+        <h3>2. Para quem é</h3>
+        <p>O uso é gratuito nesta versão acadêmica, feita pela equipe TechSaúde (FATEC Barueri). Pode ser usado pela própria pessoa idosa ou por um familiar/cuidador, com respeito à privacidade de quem está na conta.</p>
+
+        <h3>3. O que o aplicativo não faz</h3>
+        <ol>
+          <li>Não dá diagnóstico, receita ou orientação médica personalizada.</li>
+          <li>Não garante que um lembrete ou alarme vai tocar se o celular estiver desligado, sem internet ou com o som no mudo.</li>
+          <li>Em emergência de verdade, use o botão de Emergência do app <b>e também</b> ligue 192 (SAMU) ou 193 (Bombeiros), se precisar.</li>
+        </ol>
+
+        <h3>4. Conta e senha</h3>
+        <p>Quem cria a conta é responsável pelos dados informados (nome, CPF, telefone, e-mail) e por guardar a senha. Não compartilhe a senha. Se esquecer, use Recuperar senha.</p>
+
+        <h3>5. Seus dados</h3>
+        <p>Coletamos só o necessário para o app funcionar: cadastro, consultas, lembretes, medicamentos, fichas de pré-consulta e contato de emergência. Nesta etapa do projeto, parte das informações ainda pode ficar só neste aparelho. Quando o banco de dados (Supabase) estiver ligado, os dados passam a ser guardados com acesso restrito à equipe do projeto, para a finalidade do aplicativo.</p>
+        <p>Não vendemos dados. Não usamos suas informações para anúncio. Você pode pedir para ver, corrigir ou apagar o que foi cadastrado, falando com a equipe do projeto.</p>
+
+        <h3>6. Responsabilidades</h3>
+        <p>Você se compromete a usar o TechSaúde de boa-fé, sem cadastrar dados de outra pessoa sem autorização e sem usar o app para algo ilegal. A equipe se compromete a manter a tela simples, avisar limitações desta versão e tratar os dados com cuidado.</p>
+
+        <h3>7. Versão de projeto</h3>
+        <p>Este é um protótipo acadêmico em evolução. Funções como disparo automático de lembrete, scanner de receita e alguns itens da Home ainda podem estar incompletos. Falhas podem acontecer. Avise o grupo se encontrar algum problema.</p>
+
+        <h3>8. Aceite</h3>
+        <p>Ao marcar “Li e aceito” e continuar, você declara que leu estes Termos de Uso e concorda em usar o TechSaúde nas condições acima. Se não concordar, não crie a conta e feche o aplicativo.</p>
+
+        <p class="atualizacao">Última atualização: setembro de 2026. Equipe TechSaúde — FATEC Barueri.</p>
+      </article>
+    </section>
+
+    <!-- ===== 3) POLÍTICA DE PRIVACIDADE ===== -->
+    <section class="view" id="view-privacidade" hidden>
+      <h2 class="view-title">Política de Privacidade</h2>
+      <p class="view-sub">Explicamos, de forma simples, o que fazemos com os seus dados.</p>
+
+      <article class="doc">
+        <h3>1. Quem cuida dos seus dados</h3>
+        <p>Os dados do TechSaúde são tratados pela equipe TechSaúde, do curso de Gestão da Tecnologia da Informação da FATEC Barueri, responsável por este projeto acadêmico.</p>
+
+        <h3>2. Quais dados coletamos</h3>
+        <p>Só o necessário para o aplicativo funcionar:</p>
+        <ul>
+          <li><b>Cadastro:</b> nome, CPF, data de nascimento, telefone, e-mail, endereço e, se você quiser, foto de perfil.</li>
+          <li><b>Saúde e rotina:</b> consultas, lembretes, medicamentos e fichas de pré-consulta que você cadastrar.</li>
+          <li><b>Emergência:</b> nome e telefone dos contatos que você indicar.</li>
+          <li><b>Acesso:</b> registro das entradas na conta (data e identificação usada no login), para segurança.</li>
+        </ul>
+
+        <h3>3. Para que usamos</h3>
+        <p>Usamos os dados apenas para o app funcionar: avisar seus remédios e consultas, mostrar seus contatos de emergência e manter sua conta segura. Não usamos seus dados para anúncio.</p>
+
+        <h3>4. Com quem compartilhamos</h3>
+        <p>Não vendemos nem compartilhamos seus dados com empresas para fins comerciais. O acesso é restrito à equipe do projeto, para a finalidade do aplicativo. Os dados ficam guardados em um serviço de banco de dados (Supabase).</p>
+
+        <h3>5. Como protegemos</h3>
+        <p>Sua senha é guardada de forma protegida (criptografada), e nem a equipe consegue ler a senha original. Mesmo assim, nenhum sistema é 100% seguro. Por isso, guarde bem a sua senha e não a compartilhe.</p>
+
+        <h3>6. Seus direitos</h3>
+        <p>Você pode pedir para <b>ver</b>, <b>corrigir</b> ou <b>apagar</b> os dados que cadastrou, falando com a equipe do projeto. Também pode deixar de usar o aplicativo quando quiser.</p>
+
+        <h3>7. Dados de outra pessoa</h3>
+        <p>Se você ajuda um familiar, cadastre dados dele somente com a autorização dele, e respeite a privacidade de quem está na conta.</p>
+
+        <h3>8. Mudanças nesta política</h3>
+        <p>Como o TechSaúde é um protótipo em evolução, esta política pode mudar. Se isso acontecer, pediremos o seu aceite novamente.</p>
+
+        <p class="atualizacao">Última atualização: setembro de 2026. Equipe TechSaúde — FATEC Barueri.</p>
+      </article>
+    </section>
+
+    <!-- ===== 4) VERSÃO DO APP ===== -->
+    <section class="view" id="view-versao" hidden>
+      <div class="versao-atual">
+        <div class="ico" aria-hidden="true">📱</div>
+        <div>
+          <small>Você está usando a versão</small>
+          <div class="num">1.0.0</div>
+          <div class="data">Lançada em 28 de setembro de 2026</div>
+          <div class="desc">A primeira versão do TechSaúde.</div>
+        </div>
+      </div>
+
+      <h2 class="sec-titulo">O que tem nesta versão</h2>
+      <p class="sec-sub">Conheça o que o TechSaúde faz por você.</p>
+
+      <div class="novidades">
+        <div class="novidade">
+          <div class="ico" aria-hidden="true">⏰</div>
+          <div><strong>Alarme de Medicamentos</strong><span class="tag-novo">Novo</span>
+            <p>Cadastre seus remédios e o aplicativo avisa na hora certa de tomar.</p></div>
+        </div>
+        <div class="novidade">
+          <div class="ico" aria-hidden="true">📅</div>
+          <div><strong>Agenda de Consultas</strong><span class="tag-novo">Novo</span>
+            <p>Anote suas consultas médicas e não esqueça nenhum compromisso.</p></div>
+        </div>
+        <div class="novidade">
+          <div class="ico" aria-hidden="true">🧩</div>
+          <div><strong>Mini Jogos</strong><span class="tag-novo">Novo</span>
+            <p>Caça-Palavras e Jogo da Memória para exercitar a mente, sem pressa e sem pontuação.</p></div>
+        </div>
+        <div class="novidade">
+          <div class="ico" aria-hidden="true">👤</div>
+          <div><strong>Sua conta</strong><span class="tag-novo">Novo</span>
+            <p>Crie seu cadastro, entre no aplicativo e, se esquecer a senha, crie uma nova com facilidade.</p></div>
+        </div>
+      </div>
+
+      <h2 class="sec-titulo">Versões anteriores</h2>
+      <div class="anteriores">Esta é a primeira versão do TechSaúde. Quando o aplicativo for atualizado, as versões antigas vão ficar guardadas aqui.</div>
+      <p class="rodape-versao">TechSaúde · versão 1.0.0</p>
+    </section>
+
+    <!-- ===== ACEITE (só aparece no primeiro acesso) ===== -->
+    <section class="aceite" id="aceite" hidden aria-labelledby="aceiteTitulo">
+      <label for="chkAceite" id="aceiteTitulo">
+        <input type="checkbox" id="chkAceite">
+        <span>Li e aceito os Termos de Uso e a Política de Privacidade.</span>
+      </label>
+      <div class="aceite-botoes">
+        <button type="button" class="btn btn-aceitar" id="btnAceitar" disabled>Aceitar e continuar</button>
+        <button type="button" class="btn btn-recusar" id="btnRecusar">Recusar</button>
+      </div>
+      <p class="aceite-nota">Se você recusar, sua sessão será encerrada e você volta para a tela de entrada. Você poderá aceitar quando entrar de novo.</p>
+    </section>
+  </main>
+</div>
+
+<!-- POP-UP DE AJUDA -->
+<div id="modalAjuda" class="ajuda-overlay" hidden>
+  <div class="ajuda-modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button type="button" class="ajuda-fechar" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <p class="ajuda-tag">❔ Ajuda</p>
+    <h2 id="ajudaTitulo">Como usar esta tela</h2>
+    <p class="ajuda-intro" id="ajudaIntro"></p>
+    <ol class="ajuda-lista" id="ajudaLista"></ol>
+    <p class="ajuda-extra" id="ajudaExtra"></p>
+    <button type="button" class="ajuda-ok" id="ajudaOk">Entendi</button>
+  </div>
+</div>
+
+<script src="termos-aceite.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  // ---------- SESSÃO ----------
+  var usuario = null;
+  try {
+    var salvo = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
+    if (salvo) usuario = JSON.parse(salvo);
+  } catch (e) {}
+
+  // Sem login não há o que aceitar: volta para a entrada.
+  if (!usuario) { window.location.replace('index.html'); return; }
+
+  var params = new URLSearchParams(window.location.search);
+  // Modo "primeiro acesso": ainda não aceitou a versão atual dos documentos.
+  // (Também vale se a URL pedir ?primeiro=1 e o aceite ainda não existe.)
+  var pendente = !TechSaudeTermos.aceito(usuario);
+  var origem = params.get('de') || 'home.html';
+
+  var $ = function(id){ return document.getElementById(id); };
+  var views = { menu: $('view-menu'), termos: $('view-termos'), privacidade: $('view-privacidade'), versao: $('view-versao') };
+  var titulos = {
+    menu: 'Termos, Privacidade e Versão',
+    termos: 'Termos de Uso',
+    privacidade: 'Política de Privacidade',
+    versao: 'Versão do App'
+  };
+  var lidos = { termos: false, privacidade: false };
+  var atual = 'menu';
+
+  // ---------- RELÓGIO ----------
+  var dias = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  var meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  function relogio(){
+    var n = new Date();
+    $('relogio').textContent = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0') +
+      ' - ' + dias[n.getDay()] + ', ' + n.getDate() + ' de ' + meses[n.getMonth()] + ' de ' + n.getFullYear();
+  }
+  relogio(); setInterval(relogio, 30000);
+
+  // ---------- NAVEGAÇÃO ENTRE OS DOCUMENTOS ----------
+  function mostrar(nome){
+    atual = nome;
+    Object.keys(views).forEach(function(k){ views[k].hidden = (k !== nome); });
+    $('tituloTela').textContent = titulos[nome];
+    document.title = 'TechSaúde — ' + titulos[nome];
+    $('voltarRow').hidden = (nome === 'menu' && pendente); // no 1º acesso o menu é a base
+    $('btnVoltar').textContent = nome === 'menu' ? '↩ Voltar' : '↩ Voltar ao menu';
+
+    if (nome === 'termos' || nome === 'privacidade') {
+      lidos[nome] = true;
+      atualizarSelos();
+    }
+    // O aceite aparece no menu, nos Termos e na Política (nunca na Versão)
+    $('aceite').hidden = !(pendente && nome !== 'versao');
+    window.scrollTo(0, 0);
+    marcarAjuda();
+  }
+
+  function atualizarSelos(){
+    ['termos','privacidade'].forEach(function(k){
+      var s = document.querySelector('[data-selo="' + k + '"]');
+      if (!s) return;
+      s.hidden = !pendente;
+      s.className = 'selo ' + (lidos[k] ? 'lido' : 'pendente');
+      s.textContent = lidos[k] ? '✓ Lido' : 'Falta ler';
+    });
+  }
+
+  document.querySelectorAll('[data-abrir]').forEach(function(b){
+    b.addEventListener('click', function(){ mostrar(b.getAttribute('data-abrir')); });
+  });
+
+  $('btnVoltar').addEventListener('click', function(){
+    if (atual !== 'menu') { mostrar('menu'); return; }
+    if (history.length > 1 && document.referrer) history.back(); else window.location.href = origem;
+  });
+
+  // ---------- INÍCIO / EMERGÊNCIA ----------
+  // No primeiro acesso o usuário precisa decidir antes de ir para a Home.
+  $('btnInicio').hidden = pendente;
+  $('btnInicio').addEventListener('click', function(){ window.location.href = 'home.html'; });
+
+  var SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+  $('btnEmergencia').addEventListener('click', async function(){
+    var el = $('msgEmerg');
+    var texto = '🚨 Serviço de emergência acionado! Se for urgente, ligue 192 (SAMU) ou 193 (Bombeiros).';
+    try {
+      if (window.supabase && usuario.id_usuario) {
+        var cli = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        var r = await cli.from('contato_emergencia').select('*').eq('id_usuario', usuario.id_usuario);
+        if (r.data && r.data.length) {
+          texto = '🚨 Acionando emergência para: ' + r.data[0].nome_contato + ' (' + r.data[0].telefone + '). Se for urgente, ligue também 192 (SAMU).';
+        }
+      }
+    } catch (e) {}
+    el.textContent = texto;
+    el.className = 'msg-emerg show';
+    window.scrollTo(0, 0);
+    setTimeout(function(){ el.className = 'msg-emerg'; }, 7000);
+  });
+
+  // ---------- ACEITAR / RECUSAR ----------
+  var chk = $('chkAceite'), btnAceitar = $('btnAceitar');
+  chk.addEventListener('change', function(){ btnAceitar.disabled = !chk.checked; });
+
+  btnAceitar.addEventListener('click', function(){
+    if (!chk.checked) return;
+    if (!TechSaudeTermos.registrar(usuario)) {
+      alert('Não foi possível salvar o seu aceite neste navegador. Verifique se o armazenamento não está bloqueado e tente de novo.');
+      return;
+    }
+    window.location.href = 'home.html';
+  });
+
+  $('btnRecusar').addEventListener('click', function(){
+    var ok = confirm('Se você recusar, não poderá usar o TechSaúde e sua sessão será encerrada.\n\nDeseja mesmo recusar?');
+    if (ok) TechSaudeTermos.recusar();
+  });
+
+  // ---------- ESTADO INICIAL ----------
+  $('avisoPrimeiro').hidden = !pendente;
+  atualizarSelos();
+  var abrirDireto = params.get('doc');
+  mostrar(views[abrirDireto] && abrirDireto !== 'menu' ? abrirDireto : 'menu');
+
+  // ---------- TAMANHO DA LETRA ----------
+  var CHAVE_FONTE = 'techsaude_fonte';
+  var botoesFonte = document.querySelectorAll('.toolbar-acessibilidade .font-btn');
+  function escalaAtual(){ return parseFloat(document.documentElement.style.fontSize) || 100; }
+  function marcarBotaoFonte(){
+    var a = escalaAtual();
+    botoesFonte.forEach(function(b){
+      var ativo = Number(b.dataset.scale) === a;
+      b.classList.toggle('active', ativo);
+      b.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+    });
+  }
+  function aplicarFonte(e, salvar){
+    document.documentElement.style.fontSize = e + '%';
+    if (salvar) { try { localStorage.setItem(CHAVE_FONTE, String(e)); } catch (x) {} }
+    marcarBotaoFonte();
+  }
+  botoesFonte.forEach(function(b){ b.addEventListener('click', function(){ aplicarFonte(Number(b.dataset.scale), true); }); });
+  window.addEventListener('techsaude:fonte', marcarBotaoFonte);
+  window.addEventListener('storage', function(e){ if (e.key === CHAVE_FONTE && e.newValue) aplicarFonte(parseFloat(e.newValue) || 100, false); });
+  marcarBotaoFonte();
+
+  // ---------- AJUDA (muda conforme a parte da tela) ----------
+  var AJUDA = {
+    menu: {
+      titulo: 'Como usar esta tela',
+      intro: 'Aqui ficam os Termos de Uso, a Política de Privacidade e a Versão do aplicativo.',
+      passos: [
+        'Toque em um dos <b>quadrados</b> para abrir o documento que você quer ler.',
+        'Para voltar a esta escolha, toque em <b>Voltar ao menu</b>.'
+      ],
+      dica: 'Leia com calma. Não há pressa. 💚'
+    },
+    leitura: {
+      titulo: 'Como ler este documento',
+      intro: 'Role a tela para baixo para ler tudo.',
+      passos: [
+        'No fim da tela, marque a caixinha <b>“Li e aceito”</b>.',
+        'Depois toque em <b>Aceitar e continuar</b>. Se não concordar, toque em <b>Recusar</b>.',
+        'Para escolher outro documento, toque em <b>Voltar ao menu</b>.'
+      ],
+      dica: 'O botão “Aceitar e continuar” só fica ativo depois de marcar a caixinha.'
+    },
+    leituraLivre: {
+      titulo: 'Como ler este documento',
+      intro: 'Role a tela para baixo para ler tudo.',
+      passos: ['Para escolher outro documento, toque em <b>Voltar ao menu</b>.'],
+      dica: 'Você já aceitou estes documentos. Eles ficam aqui para consulta quando quiser.'
+    },
+    versao: {
+      titulo: 'Como ler a versão do app',
+      intro: 'Esta tela mostra qual versão do TechSaúde você está usando.',
+      passos: [
+        'No quadro verde fica o <b>número da versão</b> e a data de lançamento.',
+        'Mais abaixo, veja <b>o que tem nesta versão</b>.',
+        'Para escolher outro documento, toque em <b>Voltar ao menu</b>.'
+      ],
+      dica: 'Quando houver atualizações, as versões antigas ficam guardadas aqui.'
+    }
+  };
+  var PASSO_LETRA = 'Letra pequena? Toque em <b>A+</b> ou <b>A++</b>, logo acima, para aumentar. Sua escolha fica salva para todas as telas.';
+  var modal = $('modalAjuda'), focoAnterior = null;
+
+  function conteudoAjuda(){
+    if (atual === 'menu') return AJUDA.menu;
+    if (atual === 'versao') return AJUDA.versao;
+    return pendente ? AJUDA.leitura : AJUDA.leituraLivre;
+  }
+  function marcarAjuda(){ /* conteúdo é montado ao abrir */ }
+  function abrirAjuda(){
+    var c = conteudoAjuda();
+    $('ajudaTitulo').textContent = c.titulo;
+    var intro = $('ajudaIntro'); intro.innerHTML = c.intro || ''; intro.hidden = !c.intro;
+    $('ajudaLista').innerHTML = c.passos.concat([PASSO_LETRA]).map(function(p){ return '<li>' + p + '</li>'; }).join('');
+    var extra = $('ajudaExtra'); extra.innerHTML = c.dica || ''; extra.hidden = !c.dica;
+    focoAnterior = document.activeElement;
+    modal.hidden = false;
+    $('ajudaOk').focus({ preventScroll: true });
+    modal.querySelector('.ajuda-modal').scrollTop = 0;
+  }
+  function fecharAjuda(){ modal.hidden = true; if (focoAnterior && focoAnterior.focus) focoAnterior.focus(); }
+  $('btnAjuda').addEventListener('click', abrirAjuda);
+  $('fecharAjuda').addEventListener('click', fecharAjuda);
+  $('ajudaOk').addEventListener('click', fecharAjuda);
+  modal.addEventListener('click', function(e){ if (e.target === modal) fecharAjuda(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !modal.hidden) fecharAjuda(); });
+})();
+</script>
+</body>
+</html>
