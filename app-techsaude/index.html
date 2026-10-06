@@ -1491,6 +1491,13 @@
   }
 
   // ---------- 7. LOGIN REAL NO SUPABASE ----------
+  const VERSAO_TERMOS_ACEITE = '1.0.0';
+  function chaveAceiteTermos(usuario){
+    if(usuario.id_usuario != null) return 'techsaude_termos_aceite:usuario:' + usuario.id_usuario;
+    const identificador = usuario.email || usuario.cpf;
+    return identificador ? 'techsaude_termos_aceite:conta:' + String(identificador).trim().toLowerCase() : null;
+  }
+
   document.getElementById('form-login').addEventListener('submit', async function(e){
     e.preventDefault();
     hideMsg('login-msg');
@@ -1560,7 +1567,14 @@
     const usuarioSessao = { ...data };
     delete usuarioSessao.senha_hash;
     localStorage.setItem('usuario_logado', JSON.stringify(usuarioSessao));
-    window.location.href = 'home.html';
+    let termosAceitos = false;
+    try {
+      const chaveAceite = chaveAceiteTermos(usuarioSessao);
+      termosAceitos = Boolean(chaveAceite) && localStorage.getItem(chaveAceite) === VERSAO_TERMOS_ACEITE;
+    } catch(error) {
+      console.error('Não foi possível verificar o aceite dos Termos de Uso:', error);
+    }
+    window.location.href = termosAceitos ? 'home.html' : 'sobre-o-app.html?doc=termos&de=home.html';
   });
 
   function logout(){

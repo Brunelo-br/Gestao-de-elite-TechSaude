@@ -219,6 +219,7 @@
       border-radius: 6px;
       margin: 0 -4px;
       padding-left: 4px; padding-right: 4px;
+      color: inherit; text-decoration: none;
     }
     .pref-row:last-child { border-bottom: none; }
     .pref-row:hover { background: #f5faf0; }
@@ -293,6 +294,9 @@
     .modal-x:hover { color: #fff; }
 
     .modal-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+    .sobre-modal { max-width: 900px; max-height: 95vh; }
+    .sobre-modal-body { display: block; padding: 0; }
+    .sobre-modal-frame { display: block; width: 100%; height: min(74vh, 800px); min-height: min(320px, 60vh); border: 0; }
 
     .mfield label {
       display: block; font-size: .6875rem; font-weight: 700;
@@ -633,7 +637,7 @@
         <i class="ti ti-chevron-right pref-chevron"></i>
       </div>
 
-      <div class="pref-row" onclick="openModal('sobre')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
+      <div class="pref-row" onclick="openModal('sobre')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
         <i class="ti ti-info-circle pref-icon"></i>
         <div class="pref-text">
           <div class="pref-title-text">Sobre o App</div>
@@ -769,26 +773,13 @@
 
 <!-- ════ MODAL: SOBRE ════ -->
 <div class="modal-overlay" id="modal-sobre" onclick="ovClose(event,'sobre')">
-  <div class="modal">
+  <div class="modal sobre-modal">
     <div class="modal-head">
       <span class="modal-head-title">ℹ️ Sobre o App</span>
       <button class="modal-x" onclick="closeModal('sobre')"><i class="ti ti-x"></i></button>
     </div>
-    <div class="modal-body">
-      <div style="text-align:center;padding:12px 0 8px;">
-        <img src="img/logo.png" alt="Logo" style="width:60px;height:60px;object-fit:contain;margin-bottom:8px;"
-          onerror="this.style.display='none'" />
-        <div style="font-size:1.375rem;font-weight:900;color:var(--green-deep);">TechSaúde</div>
-        <div style="font-size:.8125rem;color:var(--text-soft);margin-top:4px;">Versão 1.0.0 · Acadêmica 2026</div>
-        <hr style="margin:14px 0;border:none;border-top:1px solid var(--line);" />
-        <div style="font-size:.8125rem;color:var(--text);line-height:1.7;text-align:left;">
-          Um acompanhante digital simples para a rotina de quem tem mais idade — e de quem ajuda no celular.<br><br>
-          Projeto acadêmico da equipe TechSaúde, do curso de Gestão da Tecnologia da Informação da FATEC Barueri (4º semestre, 2026).
-        </div>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="mbtn-ok" style="flex:unset;width:100%;" onclick="closeModal('sobre')">Fechar</button>
+    <div class="modal-body sobre-modal-body">
+      <iframe class="sobre-modal-frame" src="sobre-o-app.html?modal=1" title="Sobre o App: termos, privacidade e versão"></iframe>
     </div>
   </div>
 </div>
@@ -1009,6 +1000,9 @@
   }
   function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
   function ovClose(e,id)  { if (e.target===e.currentTarget) closeModal(id); }
+  window.addEventListener('message', event => {
+    if (event.origin === window.location.origin && event.data === 'techsaude:fechar-sobre') closeModal('sobre');
+  });
 
   /* ── Saves ── */
   function saveEndereco() {
