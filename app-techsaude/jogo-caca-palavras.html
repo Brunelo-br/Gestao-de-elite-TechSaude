@@ -431,10 +431,6 @@
 (function(){
   "use strict";
 
-  // CONFIGURAÇÃO SUPABASE
-  const SUPABASE_URL = "https://mbqcazpulgywultkrbvq.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1icWNhenB1bGd5d3VsdGtyYnZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwNzkyODgsImV4cCI6MjEwMjY1NTI4OH0.RvmmqqMlGuPfmAE8N3NcrPKHjUCwB_75hxXu-uDF4bA";
-  const JOGO_CACA_PALAVRAS_ID = "da9a7786-eb9a-40e4-83d0-e23896d1475b";
 
   // ---------- RELÓGIO (mesmo padrão de medicamentos.html / lembretedeconsultas.html) ----------
   var datetimeEl = document.getElementById('datetime');
@@ -596,8 +592,6 @@
   let soundOn = true;
   let audioCtx = null;
   let hintTimeouts = [];
-  let hintsUsedCount = 0;
-  let currentGameSaved = false;
 
   function clearHintTimeouts(){
     hintTimeouts.forEach(t => clearTimeout(t));
@@ -799,7 +793,6 @@
   function onDica(){
     const remaining = activeWords.filter(w => !foundWords.has(w));
     if(remaining.length === 0) return;
-    hintsUsedCount++;
     const word = remaining[Math.floor(Math.random() * remaining.length)];
     const placement = puzzleData.placements.find(p => p.word === word);
     placement.cells.forEach(p => cellAt(p.r, p.c).classList.add("hint"));
@@ -833,77 +826,11 @@
     playVictoryChime();
     el.modalVitoria.classList.remove("hidden");
     announce("Parabéns! Você completou o caça-palavras.");
-    if(!currentGameSaved){
-      currentGameSaved = true;
-      void salvarPartida();
-    }
   }
 
-  async function salvarPartida(){
-    const url = `${SUPABASE_URL}/rest/v1/historico_partidas`;
-    try{
-      let usuarioId = localStorage.getItem('usuario_id')
-        || localStorage.getItem('userId')
-        || localStorage.getItem('usuario')
-        || localStorage.getItem('user');
-
-      if(usuarioId && !localStorage.getItem('usuario_id') && !localStorage.getItem('userId')){
-        try{
-          const usuario = JSON.parse(usuarioId);
-          if(usuario && typeof usuario === 'object'){
-            usuarioId = usuario.id || usuario.usuario_id;
-          }
-        }catch(parseError){}
-      }
-
-      if(!usuarioId){
-        const usuarioSalvo = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
-        if(usuarioSalvo){
-          try{
-            const usuario = JSON.parse(usuarioSalvo);
-            usuarioId = usuario.id || usuario.usuario_id || usuario.id_usuario || usuario.userId;
-          }catch(parseError){}
-        }
-      }
-
-      const payload = {
-        usuario_id: usuarioId || "4",
-        jogo_id: JOGO_CACA_PALAVRAS_ID,
-        nivel: typeof currentLevelKey !== 'undefined' ? currentLevelKey : 'FACIL',
-        tempo_segundos: typeof secondsElapsed !== 'undefined' ? secondsElapsed : 0,
-        metricas_extras: {
-          palavras_totais: typeof activeWords !== 'undefined' ? activeWords.length : 0,
-          dicas_usadas: typeof hintsUsedCount !== 'undefined' ? hintsUsedCount : 0
-        }
-      };
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-
-      if(!response.ok){
-        console.error("Erro ao gravar no Supabase:", result);
-      } else {
-        console.log("SUCESSO! Partida gravada no banco de dados:", result);
-      }
-    }catch(err){
-      console.error("Erro na requisição:", err);
-    }
-  }
 
   function novoJogo(){
     clearHintTimeouts();
-    hintsUsedCount = 0;
-    currentGameSaved = false;
     foundWords = new Set();
     selStart = null;
     activeWords = sampleWords(MASTER_POOL, currentLevel.count, currentLevel.maxLen);

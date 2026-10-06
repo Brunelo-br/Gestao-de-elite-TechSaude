@@ -489,11 +489,7 @@
   let soundOn = true;
   let audioCtx = null;
   let pendingTimeouts = [];
-  let currentGameSaved = false;
 
-  const SUPABASE_URL = "https://mbqcazpulgywultkrbvq.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1icWNhenB1bGd5d3VsdGtyYnZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwNzkyODgsImV4cCI6MjEwMjY1NTI4OH0.RvmmqqMlGuPfmAE8N3NcrPKHjUCwB_75hxXu-uDF4bA";
-  const JOGO_MEMORIA_ID = "bf37c5d1-915d-44be-a0bd-9038f1509adf";
 
   function clearPendingTimeouts(){
     pendingTimeouts.forEach(t => clearTimeout(t));
@@ -648,76 +644,11 @@
     playVictoryChime();
     el.modalVitoria.classList.remove("hidden");
     announce("Parabéns! Você encontrou todos os pares.");
-    if(!currentGameSaved){
-      currentGameSaved = true;
-      void salvarPartida();
-    }
   }
 
-  async function salvarPartida(){
-    const url = `${SUPABASE_URL}/rest/v1/historico_partidas`;
-    try{
-      let usuarioId = localStorage.getItem('usuario_id')
-        || localStorage.getItem('userId')
-        || localStorage.getItem('usuario')
-        || localStorage.getItem('user');
-
-      if(usuarioId && !localStorage.getItem('usuario_id') && !localStorage.getItem('userId')){
-        try{
-          const usuario = JSON.parse(usuarioId);
-          if(usuario && typeof usuario === 'object'){
-            usuarioId = usuario.id || usuario.usuario_id;
-          }
-        }catch(parseError){}
-      }
-
-      if(!usuarioId){
-        const usuarioSalvo = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
-        if(usuarioSalvo){
-          try{
-            const usuario = JSON.parse(usuarioSalvo);
-            usuarioId = usuario.id || usuario.usuario_id || usuario.id_usuario || usuario.userId;
-          }catch(parseError){}
-        }
-      }
-
-      const payload = {
-        usuario_id: usuarioId || "4",
-        jogo_id: JOGO_MEMORIA_ID,
-        nivel: typeof currentLevelKey !== 'undefined' ? currentLevelKey : 'FACIL',
-        tempo_segundos: typeof secondsElapsed !== 'undefined' ? secondsElapsed : 0,
-        metricas_extras: {
-          tentativas: typeof attempts !== 'undefined' ? attempts : 0,
-          espiadela_usada: typeof peekUsed !== 'undefined' ? peekUsed : false
-        }
-      };
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-
-      if(!response.ok){
-        console.error("Erro ao gravar no Supabase:", result);
-      } else {
-        console.log("SUCESSO! Partida de Memória gravada no banco de dados:", result);
-      }
-    }catch(err){
-      console.error("Erro na requisição:", err);
-    }
-  }
 
   function novoJogo(){
     clearPendingTimeouts();
-    currentGameSaved = false;
     flippedIndexes = [];
     matchedPairs = 0;
     attempts = 0;

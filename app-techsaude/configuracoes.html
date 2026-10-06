@@ -586,11 +586,8 @@
         <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)" />
       </div>
       <div class="profile-info">
-        <div class="label">Nome social</div>
+        <div class="label">Nome</div>
         <div class="value" id="nomeDisplay">Não informado</div>
-        <div class="edit-hint" onclick="openModal('nome')">
-          <i class="ti ti-pencil"></i> Clique para editar
-        </div>
       </div>
     </div>
 
@@ -664,26 +661,6 @@
 
 </div><!-- /app-shell -->
 
-
-<!-- ════ MODAL: NOME ════ -->
-<div class="modal-overlay" id="modal-nome" onclick="ovClose(event,'nome')">
-  <div class="modal">
-    <div class="modal-head">
-      <span class="modal-head-title">✏️ Editar Nome Social</span>
-      <button class="modal-x" onclick="closeModal('nome')"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="modal-body">
-      <div class="mfield">
-        <label>Nome social</label>
-        <input type="text" id="nomeInput" placeholder="Ex: Pedro - Pai" maxlength="60" />
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="mbtn-cancel" onclick="closeModal('nome')">Cancelar</button>
-      <button class="mbtn-ok" onclick="saveNome()">Salvar</button>
-    </div>
-  </div>
-</div>
 
 <!-- ════ MODAL: ENDEREÇO ════ -->
 <div class="modal-overlay" id="modal-endereco" onclick="ovClose(event,'endereco')">
@@ -831,6 +808,21 @@
     return valor != null && String(valor).trim() ? String(valor).trim() : 'Não informado';
   }
 
+  // Primeiro nome + primeiro sobrenome do cadastro.
+  // Ex.: "Maria da Silva Santos" -> "Maria da Silva" | "José Carlos Souza" -> "José Carlos".
+  // Partículas como "da", "de", "dos" ficam junto do sobrenome que vem depois delas.
+  function nomeESobrenome(nomeCompleto) {
+    const partes = String(nomeCompleto ?? '').trim().split(/\s+/).filter(Boolean);
+    if (partes.length <= 1) return partes.join('');
+    const particulas = ['da', 'de', 'do', 'das', 'dos', 'e', 'di', 'du', 'del', 'van', 'von'];
+    const resultado = [partes[0]];
+    for (let i = 1; i < partes.length; i++) {
+      resultado.push(partes[i]);
+      if (!particulas.includes(partes[i].toLowerCase())) break;
+    }
+    return resultado.join(' ');
+  }
+
   function formatarEndereco(endereco) {
     if (!Object.values(endereco).some(valor => String(valor ?? '').trim())) return 'Não informado';
     const complemento = String(endereco.complemento ?? '').trim() ? ` - ${String(endereco.complemento).trim()}` : '';
@@ -855,13 +847,15 @@
 
       const { data, error } = await supabaseClient
         .from('usuario')
-        .select('nome_social, telefone, foto_perfil_url, endereco(logradouro, numero, complemento, bairro, cidade, estado, cep)')
+        .select('nome_completo, telefone, foto_perfil_url, endereco(logradouro, numero, complemento, bairro, cidade, estado, cep)')
         .eq('cpf', cpfDoUsuario)
         .single();
 
       if (error) throw error;
 
-      document.getElementById('nomeDisplay').textContent = valorOuNaoInformado(data.nome_social);
+      // Nome fixo: primeiro nome + primeiro sobrenome do cadastro (não pode ser editado aqui).
+      document.getElementById('nomeDisplay').textContent =
+        valorOuNaoInformado(nomeESobrenome(data.nome_completo));
       document.getElementById('telefoneDisplay').textContent = valorOuNaoInformado(data.telefone);
 
       const endereco = Array.isArray(data.endereco) ? data.endereco[0] : data.endereco;
@@ -927,15 +921,24 @@
     });
   }
 
-  // Envia para o bucket "fotos-perfil" (mesmo caminho do cadastro, então substitui a foto antiga).
+  // Envia para o bucket "FOTOS-PERFIL" — o MESMO nome usado no cadastro (index.html).
+  // Atenção: o Supabase diferencia maiúsculas de minúsculas no nome do bucket.
+  const BUCKET_FOTOS = 'FOTOS-PERFIL';
+
   async function uploadFotoPerfil(cpf, blob) {
+    // Sempre o mesmo arquivo por usuário: FOTOS-PERFIL/<cpf>/perfil.jpg (substitui a foto antiga).
+    // cacheControl '0' = o Supabase não guarda cópia antiga em cache, então a foto nova
+    // aparece na hora (no app e no painel do Storage).
     const caminho = `${cpf}/perfil.jpg`;
-    const { error } = await supabaseClient.storage
-      .from('fotos-perfil')
-      .upload(caminho, blob, { upsert: true, contentType: 'image/jpeg' });
+    const storage = supabaseClient.storage.from(BUCKET_FOTOS);
+    const { error } = await storage.upload(caminho, blob, {
+      upsert: true,
+      contentType: 'image/jpeg',
+      cacheControl: '0'
+    });
     if (error) throw error;
-    const { data } = supabaseClient.storage.from('fotos-perfil').getPublicUrl(caminho);
-    return data.publicUrl + '?v=' + Date.now();
+    const { data } = storage.getPublicUrl(caminho);
+    return data.publicUrl + '?v=' + Date.now(); // ?v= evita mostrar foto antiga em cache
   }
 
   async function handlePhoto(e) {
@@ -988,7 +991,6 @@
 
   /* ── Modal helpers ── */
   function openModal(id) {
-    if (id==='nome')     document.getElementById('nomeInput').value     = document.getElementById('nomeDisplay').textContent;
     if (id==='endereco') {
       document.getElementById('enderecoCepFeedback').textContent = '';
       Object.entries(enderecoAtual).forEach(([campo, valor]) => {
@@ -1009,12 +1011,6 @@
   function ovClose(e,id)  { if (e.target===e.currentTarget) closeModal(id); }
 
   /* ── Saves ── */
-  function saveNome() {
-    const v = document.getElementById('nomeInput').value.trim();
-    if (!v) { showToast('⚠️ Digite um nome!'); return; }
-    document.getElementById('nomeDisplay').textContent = v.toUpperCase();
-    closeModal('nome'); showToast('✅ Nome atualizado!');
-  }
   function saveEndereco() {
     const novoEndereco = {
       logradouro: document.getElementById('enderecoLogradouro').value.trim(),
@@ -1127,12 +1123,10 @@
     botaoSalvar.disabled = true;
 
     try {
-      const nomeSocial = document.getElementById('nomeDisplay').textContent.trim();
       const telefone = document.getElementById('telefoneDisplay').textContent.trim();
       const { error: erroUsuario } = await supabaseClient
         .from('usuario')
         .update({
-          nome_social: nomeSocial === 'Não informado' ? null : nomeSocial,
           telefone: telefone === 'Não informado' ? null : telefone
         })
         .eq('cpf', cpfDoUsuario);
@@ -1203,7 +1197,7 @@
   /* ── ESC ── */
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape')
-      ['nome','endereco','telefone','senha','sobre'].forEach(closeModal);
+      ['endereco','telefone','senha','sobre'].forEach(closeModal);
   });
 
   carregarDadosPerfil();
@@ -1236,7 +1230,6 @@
       intro: 'Aqui você confere e muda os dados da sua conta.',
       passos: [
         'Toque na sua <b>foto</b> (ou no ícone da câmera) para trocar a imagem do perfil.',
-        'Toque em <b>Clique para editar</b> para mudar seu nome.',
         'Toque em <b>Endereço</b> ou <b>Telefone</b> para corrigir. No endereço, digite o CEP e a rua é preenchida sozinha.',
         'Depois de mudar seus dados, toque em <b>Salvar Alterações</b> para guardar tudo.',
         'Em <b>Alterar Senha</b>, digite a senha atual e a nova senha duas vezes. A nova senha precisa ter pelo menos <b>8 caracteres, com letras e números</b>.'

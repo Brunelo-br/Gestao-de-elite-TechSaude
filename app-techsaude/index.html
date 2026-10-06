@@ -1006,7 +1006,7 @@
     const caminho = `${cpf}/perfil.jpg`;
     const { error } = await supabaseClient.storage
       .from('FOTOS-PERFIL')
-      .upload(caminho, blob, { upsert: true, contentType: 'image/jpeg' });
+      .upload(caminho, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '0' }); // '0' = sem cache, a troca de foto aparece na hora
     if(error) throw error;
     const { data } = supabaseClient.storage.from('FOTOS-PERFIL').getPublicUrl(caminho);
     return data.publicUrl + '?v=' + Date.now(); // ?v= evita mostrar foto antiga em cache
