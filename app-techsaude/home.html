@@ -224,7 +224,7 @@
 
   <!-- TOP BAR -->
   <div class="home-topbar">
-    <button class="topbar-btn emergencia" onclick="triggerEmergency()">
+    <button class="topbar-btn emergencia" onclick="window.location.href='emergencia.html'">
       <span class="icon-circle">
         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 3a5 5 0 0 0-5 5v3.5c0 1-.4 1.9-1.1 2.6L4 16h16l-1.9-1.9c-.7-.7-1.1-1.6-1.1-2.6V8a5 5 0 0 0-5-5Z"/>
@@ -429,30 +429,6 @@
       return;
     }
     alert(`Abrindo ${f.title}... (Em desenvolvimento)`);
-  }
-
-  // ---------- 5. BOTÃO SOS EMERGÊNCIA ----------
-  async function triggerEmergency(){
-    const el = document.getElementById('home-msg');
-    
-    if (usuario && usuario.id_usuario) {
-      const { data: contatos } = await supabaseClient
-        .from('contato_emergencia')
-        .select('*')
-        .eq('id_usuario', usuario.id_usuario);
-
-      if (contatos && contatos.length > 0) {
-        const c = contatos[0];
-        el.textContent = `🚨 Acionando emergência para: ${c.nome_contato} (${c.telefone})`;
-      } else {
-        el.textContent = '🚨 Serviço de emergência acionado! Contatando SAMU (192).';
-      }
-    } else {
-      el.textContent = '🚨 Serviço de emergência acionado!';
-    }
-
-    el.className = 'home-msg show';
-    setTimeout(() => { el.className = 'home-msg'; }, 6000);
   }
 
   // ---------- 6. LOGOUT ----------

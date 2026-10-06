@@ -696,7 +696,7 @@
 <div class="site">
 
   <header class="topbar">
-    <button type="button" class="nav-btn emergencia" id="btnEmergencia" onclick="dispararEmergencia()">
+    <button type="button" class="nav-btn emergencia" id="btnEmergencia" onclick="window.location.href='emergencia.html'">
       <span class="icon-circle">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v1.06A7.5 7.5 0 0 0 3 15v3a1 1 0 0 0 1 1h1.17a3.5 3.5 0 0 0 6.66 1h.34a3.5 3.5 0 0 0 6.66-1H20a1 1 0 0 0 1-1v-3a7.5 7.5 0 0 0-4-6.94V7a5 5 0 0 0-5-5Z"/></svg>
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v1.06A7.5 7.5 0 0 0 3 15v3a1 1 0 0 0 1 1h1.17a3.5 3.5 0 0 0 6.66 1h.34a3.5 3.5 0 0 0 6.66-1H20a1 1 0 0 0 1-1v-3a7.5 7.5 0 0 0-4-6.94V7a5 5 0 0 0-5-5Z"/></svg>
@@ -838,16 +838,6 @@ if (!rawUser) {
   } catch (e) {
     console.error('Erro ao ler sessão:', e);
     window.location.href = 'index.html';
-  }
-}
-
-function dispararEmergencia(){
-  if (usuarioLogado && usuarioLogado.contato_emergencia_tel) {
-    alert(`EMERGÊNCIA ACIONADA!\nLigando para: ${usuarioLogado.contato_emergencia_nome || 'Contato'} (${usuarioLogado.contato_emergencia_tel})`);
-    window.location.href = `tel:${usuarioLogado.contato_emergencia_tel}`;
-  } else {
-    alert('EMERGÊNCIA ACIONADA!\nLigando para o SAMU 192');
-    window.location.href = 'tel:192';
   }
 }
 

@@ -445,9 +445,9 @@
   atualizarDataHora();
   setInterval(atualizarDataHora, 30000);
 
-  // ---------- BOTÃO DE EMERGÊNCIA (ainda não conectado — será feito em outra etapa) ----------
+  // ---------- BOTÃO DE EMERGÊNCIA ----------
   document.getElementById('btnEmergencia').addEventListener('click', function(){
-    showToast('🚨 Botão de emergência ainda será conectado nesta tela.');
+    window.location.href = 'emergencia.html';
   });
 
   // Banco mestre de palavras (tema casa/cotidiano em sentido amplo). Mais de 500 palavras;

@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TechSaúde — Termos, Privacidade e Versão</title>
 
-<!-- SUPABASE JS (usado só pelo botão de Emergência) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <!-- Aplica o tamanho de letra salvo ANTES da tela aparecer (evita "piscar") -->
 <script>
   (function(){
@@ -581,24 +578,8 @@
   $('btnInicio').hidden = pendente || modalMode;
   $('btnInicio').addEventListener('click', function(){ window.location.href = 'home.html'; });
 
-  var SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
-  var SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
-  $('btnEmergencia').addEventListener('click', async function(){
-    var el = $('msgEmerg');
-    var texto = '🚨 Serviço de emergência acionado! Se for urgente, ligue 192 (SAMU) ou 193 (Bombeiros).';
-    try {
-      if (window.supabase && usuario.id_usuario) {
-        var cli = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        var r = await cli.from('contato_emergencia').select('*').eq('id_usuario', usuario.id_usuario);
-        if (r.data && r.data.length) {
-          texto = '🚨 Acionando emergência para: ' + r.data[0].nome_contato + ' (' + r.data[0].telefone + '). Se for urgente, ligue também 192 (SAMU).';
-        }
-      }
-    } catch (e) {}
-    el.textContent = texto;
-    el.className = 'msg-emerg show';
-    window.scrollTo(0, 0);
-    setTimeout(function(){ el.className = 'msg-emerg'; }, 7000);
+  $('btnEmergencia').addEventListener('click', function(){
+    window.top.location.href = 'emergencia.html';
   });
 
   // ---------- ACEITAR / RECUSAR ----------
