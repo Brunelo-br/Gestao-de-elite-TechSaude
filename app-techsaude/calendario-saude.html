@@ -536,8 +536,10 @@ function mostrarToast(msg){
 }
 
 (function init(){
-  viewYear = 2026;
-  viewMonth = 2;
+  const today = new Date();
+  viewYear = today.getFullYear();
+  viewMonth = today.getMonth();
+  selectedISO = toISO(viewYear, viewMonth, today.getDate());
   atualizarRelogio();
   setInterval(atualizarRelogio, 30000);
   renderCalendario();

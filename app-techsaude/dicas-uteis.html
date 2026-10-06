@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde — Dicas Úteis</title>
+<style>
+:root{
+  --cream:#f3efdc; --cream-deep:#ece5c9; --ink:#16301f; --ink-soft:#2e4a37;
+  --green-deep:#1b3a26; --green-mid:#2f6b46; --teal:#2f9e8f; --line:#cdbf95;
+  --text:#26332a; --text-soft:#55604f; --danger:#c0392b; --error:#a3402c;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{min-height:100vh;background:var(--cream);font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;color:var(--text);display:flex;flex-direction:column;}
+input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;}
+h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
+.wrap{flex:1;min-height:100vh;display:flex;flex-direction:column;background:var(--cream);}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;padding:18px 14px 14px;background:linear-gradient(160deg,#1d5b3a,#123a26);}
+.topbar-spacer{width:60px;}
+.logo-center{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:2px;}
+.logo-mark{width:200px;height:200px;object-fit:contain;}
+.topbar-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:var(--cream);text-decoration:none;font-size:0.64rem;font-weight:800;letter-spacing:0.3px;text-transform:uppercase;padding:2px;width:60px;}
+.topbar-btn .icon-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.topbar-btn.emergencia .icon-circle{background:#c0392b;}
+.topbar-btn.inicio .icon-circle{background:rgba(255,255,255,0.16);}
+.topbar-btn svg{width:20px;height:20px;color:#fff;}
+.topbar-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+.datetime{padding:9px 18px;font-size:0.85rem;color:var(--text-soft);background:var(--cream);border-bottom:1px solid var(--line);}
+.main-content{flex:1;padding:16px 16px 32px;}
+
+/* TÍTULOS */
+.page-title{margin:2px 0 6px;font-size:1.3rem;text-align:center;letter-spacing:.3px;line-height:1.25;}
+.page-title.danger{color:var(--danger);}
+.page-sub{margin:0 0 16px;text-align:center;color:var(--text-soft);font-size:.9rem;line-height:1.45;font-weight:600;}
+
+/* BOTÕES */
+.btn-block{display:block;width:100%;text-align:center;text-decoration:none;border:none;border-radius:999px;padding:.9rem 1rem;cursor:pointer;font-weight:800;font-size:.9rem;text-transform:uppercase;letter-spacing:.3px;color:var(--cream);background:linear-gradient(180deg,#234a34,var(--green-deep));box-shadow:0 4px 0 #0e2416;margin-bottom:4px;}
+.btn-block:active{transform:translateY(3px);box-shadow:0 1px 0 #0e2416;}
+.btn-block.danger{background:linear-gradient(180deg,#d04a3b,var(--danger));box-shadow:0 4px 0 #7f241b;color:#fff;}
+.btn-block.danger:active{box-shadow:0 1px 0 #7f241b;}
+.btn-block.on{background:linear-gradient(180deg,#3bb3a3,var(--teal));box-shadow:0 4px 0 #1f6f64;}
+.btn-block:disabled{opacity:.45;cursor:not-allowed;}
+.btn-block:focus-visible,.btn-ghost:focus-visible,.btn-sm:focus-visible,.chip:focus-within{outline:3px solid var(--teal);outline-offset:2px;}
+.btn-ghost{display:block;width:100%;margin-top:10px;text-align:center;text-decoration:none;border:2px solid var(--line);background:#fff;color:var(--green-deep);border-radius:999px;padding:.8rem;font-weight:800;font-size:.85rem;text-transform:uppercase;letter-spacing:.3px;cursor:pointer;}
+.btn-ghost:hover{border-color:var(--teal);}
+.btn-sm{border-radius:999px;padding:.4rem .8rem;font-size:.7rem;font-weight:800;text-transform:uppercase;cursor:pointer;background:#fff;}
+.btn-sm.outline{border:2px solid var(--green-mid);color:var(--green-mid);}
+.btn-sm.danger{border:2px solid var(--danger);color:var(--danger);}
+
+/* CARDS, ABAS, FORMULÁRIOS */
+.card{background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:14px;}
+.card h2,.card h3{margin:0 0 .4rem;color:var(--green-deep);}
+.card p{line-height:1.45;}
+.list{display:flex;flex-direction:column;gap:12px;}
+.empty{text-align:center;color:var(--text-soft);font-size:.9rem;padding:1.4rem .8rem;background:var(--cream-deep);border:2px dashed var(--line);border-radius:16px;font-weight:600;}
+.tabs,.nav-row{display:flex;gap:8px;margin-bottom:14px;}
+.tabs button,.nav-row button{flex:1;border:2px solid var(--green-deep);background:#fff;color:var(--green-deep);border-radius:999px;padding:.7rem .5rem;font-weight:800;text-transform:uppercase;cursor:pointer;font-size:.75rem;}
+.tabs button.on,.tabs button.active,.nav-row button.on,.nav-row button.active{background:var(--green-deep);color:var(--cream);}
+.form-group{margin-bottom:.8rem;}
+.field-label{display:block;margin-bottom:.35rem;font-size:.72rem;font-weight:800;color:var(--green-deep);text-transform:uppercase;letter-spacing:.4px;}
+.form-field{display:flex;align-items:center;gap:.6rem;background:#fff;padding:.75rem .9rem;border-radius:14px;border:2px solid var(--line);}
+.form-field:focus-within{border-color:var(--teal);}
+.form-field input,.form-field select,.form-field textarea{flex:1;border:none;background:transparent;font-size:.95rem;font-weight:600;color:var(--text);outline:none;min-width:0;}
+.form-field textarea{resize:vertical;min-height:4.4rem;}
+.row-2,.datetime-inputs{display:flex;gap:8px;} .row-2 .form-group,.datetime-inputs .form-group{flex:1;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:.5rem .8rem;font-size:.8rem;font-weight:800;color:var(--green-deep);cursor:pointer;}
+.chip input{display:none;}
+.chip.on{background:var(--green-deep);border-color:var(--green-deep);color:var(--cream);}
+.hint{font-size:.78rem;color:var(--text-soft);margin:0 0 .8rem;text-align:center;}
+
+/* POP-UPS E AVISOS */
+.popup-overlay,.overlay{position:fixed;inset:0;background:rgba(10,20,14,0.55);display:none;align-items:center;justify-content:center;padding:1rem;z-index:120;}
+.popup-overlay.show,.overlay.show{display:flex;}
+.popup-card{background:var(--cream);border:2px solid var(--line);border-radius:22px;padding:1.5rem 1.2rem 1.2rem;max-width:400px;width:100%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.35);max-height:90vh;overflow-y:auto;}
+.popup-card h2{margin:0 0 .6rem;font-size:1.1rem;}
+.popup-card p{margin:0 0 1rem;font-size:.95rem;font-weight:600;line-height:1.45;}
+.popup-actions{display:flex;flex-direction:column;gap:.5rem;}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(1rem);background:var(--green-deep);color:var(--cream);padding:.75rem 1.1rem;border-radius:999px;font-weight:800;font-size:.85rem;opacity:0;transition:.3s;z-index:200;pointer-events:none;max-width:90%;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.3);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* DESKTOP (>= 900px) */
+@media (min-width:900px){
+  body{background:radial-gradient(circle at 50% 0%,#0f5132 0%,#0b3e28 45%,#082a1c 100%);align-items:center;justify-content:center;padding:40px 24px;}
+  .wrap{flex:none;width:100%;max-width:1080px;min-height:660px;border-radius:32px;margin:auto;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,0.45),0 0 0 1px rgba(255,255,255,0.06);}
+  .wrap.narrow{max-width:720px;}
+  .topbar{padding:26px 32px 18px;}
+  .datetime{padding:10px 32px;}
+  .main-content{padding:22px 32px 32px;}
+  .page-title{font-size:1.55rem;}
+}
+@media (max-width:480px){ .row-2,.datetime-inputs{flex-wrap:wrap;} }
+
+.tip{background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:14px 14px 12px;margin-bottom:10px;}
+.tip h2{margin:0 0 6px;font-size:1rem;text-transform:none;font-weight:800;}
+.tip p{margin:0;font-size:.92rem;line-height:1.45;color:var(--text);font-weight:600;}
+.tag{display:inline-block;margin-bottom:8px;font-size:.7rem;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--green-mid);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:3px 9px;}
+.panel{display:none;} .panel.on{display:block;}
+.card{display:flex;align-items:center;gap:12px;}
+.card h2{margin:0 0 8px;font-size:1rem;text-transform:none;font-weight:800;}
+.thumb{width:64px;height:64px;flex-shrink:0;border-radius:18px;background:#fff;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--green-deep);}
+.thumb svg{width:2.2rem;height:2.2rem;}
+.btn-play{border:none;border-radius:999px;padding:.65rem 1rem;font-weight:800;font-size:.78rem;text-transform:uppercase;color:var(--cream);cursor:pointer;background:linear-gradient(180deg,#234a34,var(--green-deep));box-shadow:0 4px 0 #0e2416;}
+.btn-play:active{transform:translateY(3px);box-shadow:0 1px 0 #0e2416;}
+.btn-play:focus-visible{outline:3px solid var(--teal);outline-offset:2px;}
+.note{margin-top:12px;font-size:.85rem;color:var(--text-soft);line-height:1.4;font-weight:600;}
+.modal{background:var(--cream);border:2px solid var(--line);border-radius:22px;width:100%;max-width:560px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.35);}
+.modal header{background:linear-gradient(160deg,#1d5b3a,#123a26);color:var(--cream);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
+.modal header h3{margin:0;font-size:1rem;font-weight:800;}
+.modal header button{background:rgba(255,255,255,.16);border:none;color:#fff;width:2.2rem;height:2.2rem;border-radius:50%;font-size:1.2rem;cursor:pointer;}
+.player{background:#111;aspect-ratio:16/9;} .player iframe{width:100%;height:100%;border:0;}
+.steps{padding:14px 16px 16px;color:var(--text);font-size:.95rem;line-height:1.5;font-weight:600;}
+.steps ol{margin:8px 0 0;padding-left:18px;}
+@media (min-width:900px){ .tips,.list{display:grid;grid-template-columns:1fr 1fr;gap:12px;} .tip{margin:0;} }
+</style>
+<script>
+  /* PADRÃO TECHSAÚDE: aplica o tamanho de letra salvo ANTES da tela aparecer */
+  (function(){ try{ var f = parseFloat(localStorage.getItem('techsaude_fonte')); if(f >= 85 && f <= 150){ document.documentElement.style.fontSize = f + '%'; } }catch(e){} })();
+</script>
+<style>
+.toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin:0 0 22px; }
+.toolbar-acessibilidade .font-group{ display:inline-flex; border:2px solid #cdbf95; border-radius:999px; overflow:hidden; background:#fff; }
+.toolbar-acessibilidade .font-btn{ border:none; background:#fff; color:#1b3a26; font-weight:800; padding:9px 13px; cursor:pointer; font-size:.75rem; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; min-width:44px; min-height:40px; margin:0; }
+.toolbar-acessibilidade .font-btn + .font-btn{ border-left:1px solid #e4dbbd; }
+.toolbar-acessibilidade .font-btn.active{ background:#1b3a26; color:#f3efdc; }
+.toolbar-acessibilidade .font-btn:focus-visible,.toolbar-acessibilidade .chip-btn:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+.toolbar-acessibilidade .chip-btn{ background:#fff; border:2px solid #cdbf95; border-radius:999px; padding:9px 15px; font-size:.75rem; min-height:40px; margin:0; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:#1b3a26; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; }
+.toolbar-acessibilidade .chip-btn:hover{ border-color:#2f9e8f; }
+.ajuda-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:10000; }
+.ajuda-overlay[hidden]{ display:none !important; }
+.ajuda-modal{ background:#f3efdc; border:2px solid #cdbf95; border-radius:22px; padding:2rem 1.6rem 1.5rem; max-width:460px; width:100%; position:relative; box-shadow:0 30px 60px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto; text-align:left; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; color:#26332a; animation:ajudaPop .2s ease; }
+@keyframes ajudaPop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.ajuda-modal .ajuda-fechar{ position:absolute; top:.75rem; right:.75rem; background:#ece5c9; border:none; width:2.6rem; height:2.6rem; border-radius:50%; font-size:1.1rem; cursor:pointer; color:#1b3a26; margin:0; padding:0; }
+.ajuda-modal .ajuda-tag{ margin:0 0 .3rem; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#2f6b46; }
+.ajuda-modal h2{ margin:0 2.6rem .5rem 0; padding:0; font-size:1.3rem; line-height:1.2; color:#1b3a26; font-weight:900; text-transform:uppercase; text-align:left; font-family:inherit; }
+.ajuda-modal .ajuda-intro{ margin:0 0 1rem; font-size:.98rem; font-weight:600; color:#55604f; line-height:1.45; }
+.ajuda-modal .ajuda-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.7rem; counter-reset:passo; }
+.ajuda-modal .ajuda-lista li{ counter-increment:passo; position:relative; padding:0 0 0 2.5rem; margin:0; min-height:1.9rem; font-size:1rem; font-weight:600; line-height:1.45; color:#26332a; }
+.ajuda-modal .ajuda-lista li::before{ content:counter(passo); position:absolute; left:0; top:-.05rem; width:1.9rem; height:1.9rem; border-radius:50%; background:#1b3a26; color:#f3efdc; font-weight:800; font-size:.95rem; display:flex; align-items:center; justify-content:center; }
+.ajuda-modal .ajuda-lista b{ color:#1b3a26; }
+.ajuda-modal .ajuda-extra{ margin:1.1rem 0 0; padding:.8rem 1rem; background:#dcefdf; border:1.5px solid #a5d6a7; border-radius:14px; font-size:.95rem; font-weight:600; color:#1b4332; line-height:1.4; }
+.ajuda-modal .ajuda-ok{ display:block; width:100%; margin:1.2rem 0 0; padding:.9rem; border:none; border-radius:999px; cursor:pointer; background:linear-gradient(180deg,#234a34,#1b3a26); color:#f3efdc; font-weight:800; font-size:1rem; text-transform:uppercase; letter-spacing:.4px; font-family:inherit; box-shadow:0 5px 0 #0e2416; }
+.ajuda-modal .ajuda-ok:active{ transform:translateY(3px); box-shadow:0 2px 0 #0e2416; }
+.ajuda-modal button:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+</style>
+</head>
+<body>
+<div class="wrap ">
+  <div class="topbar">
+    <button type="button" class="topbar-btn emergencia" onclick="toast('Emergência: ligue 192 (SAMU) ou 193 se precisar.')" aria-label="Emergência"><span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a5 5 0 0 0-5 5v3.5c0 1-.4 1.9-1.1 2.6L4 16h16l-1.9-1.9c-.7-.7-1.1-1.6-1.1-2.6V8a5 5 0 0 0-5-5Z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></svg></span>Emergência</button>
+    <div class="logo-center"><img class="logo-mark" src="img/logo.png" alt="Logo TechSaúde"></div>
+    <a class="topbar-btn inicio" href="home.html" aria-label="Início"><span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span>Início</a>
+  </div>
+  <div class="datetime" id="datetime"></div>
+  <div class="main-content">
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho da letra">
+        <button type="button" class="font-btn" data-scale="100" aria-label="Letra tamanho normal">A</button>
+        <button type="button" class="font-btn" data-scale="115" aria-label="Letra grande">A+</button>
+        <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
+      </div>
+      <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
+    </div>
+
+    <h1 class="page-title">Dicas úteis</h1>
+    <p class="page-sub">Dica é um recado curto para o dia a dia. Tutorial é a aula, com vídeo e passo a passo, para aprender a fazer.</p>
+    <div class="tabs">
+      <button type="button" id="tab-dicas" class="on" onclick="aba('dicas')">Dicas úteis</button>
+      <button type="button" id="tab-tutoriais" onclick="aba('tutoriais')">Tutoriais</button>
+    </div>
+
+    <section class="panel on" id="panel-dicas">
+      <div class="tips">
+        <article class="tip"><span class="tag">Segurança</span><h2>Antes de confirmar um PIX</h2><p>Olhe o nome de quem vai receber e o valor. Se algo estiver estranho, não confirme. PIX não tem “desfazer”.</p></article>
+        <article class="tip"><span class="tag">Remédio</span><h2>Não pule a confirmação</h2><p>Quando o alarme tocar, toque em “Já tomei”. Assim o aplicativo sabe que a dose foi feita.</p></article>
+        <article class="tip"><span class="tag">Consulta</span><h2>Leve a ficha pronta</h2><p>Preencha a pré-consulta antes de sair de casa: motivo, remédios e o que você quer perguntar ao médico.</p></article>
+        <article class="tip"><span class="tag">Emergência</span><h2>O sino vermelho não substitui o 192</h2><p>Ele avisa o contato cadastrado. Em risco real, ligue também para o SAMU (192) ou Bombeiros (193).</p></article>
+        <article class="tip"><span class="tag">Celular</span><h2>Senha só sua</h2><p>Não passe a senha do TechSaúde nem do banco. Quem ajuda pode estar do lado, mas quem digita é você.</p></article>
+        <article class="tip"><span class="tag">Celular</span><h2>Som ligado no horário do remédio</h2><p>Se o celular estiver no mudo ou desligado, o lembrete não chega. Deixe o volume audível de dia.</p></article>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-tutoriais">
+      <div class="list" id="lista"></div>
+      <p class="note">Tutorial ensina o caminho. Dica só lembra o cuidado. Os vídeos ficam disponíveis o tempo todo.</p>
+    </section>
+  </div>
+</div>
+<div class="overlay" id="overlay" onclick="if(event.target===this) fechar()">
+  <div class="modal" role="dialog" aria-modal="true">
+    <header><h3 id="modal-title">Tutorial</h3><button type="button" onclick="fechar()" aria-label="Fechar">×</button></header>
+    <div class="player"><iframe id="player" allow="autoplay; encrypted-media" allowfullscreen title="Vídeo tutorial"></iframe></div>
+    <div class="steps" id="modal-steps"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<div id="modalAjuda" class="ajuda-overlay" hidden>
+  <div class="ajuda-modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button type="button" class="ajuda-fechar" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <p class="ajuda-tag">❔ Ajuda</p>
+    <h2 id="ajudaTitulo">Como usar esta tela</h2>
+    <p class="ajuda-intro" id="ajudaIntro"></p>
+    <ol class="ajuda-lista" id="ajudaLista"></ol>
+    <p class="ajuda-extra" id="ajudaExtra"></p>
+    <button type="button" class="ajuda-ok" id="ajudaOk">Entendi</button>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var AJUDA_TELA = [
+  {
+    "titulo": "Como usar os Tutoriais",
+    "intro": "Aqui você aprende fazendo, com vídeo e passo a passo.",
+    "passos": [
+      "Toque em um tutorial e depois em <b>▶ Ver vídeo</b>.",
+      "Assista ao vídeo e siga o <b>passo a passo</b> escrito logo abaixo.",
+      "Para fechar, toque no <b>×</b> no alto da janela.",
+      "Para voltar aos recados curtos, toque em <b>Dicas úteis</b>."
+    ],
+    "dica": "Em todas as telas existe o botão ❔ Ajuda. Toque nele sempre que tiver dúvida. 💚",
+    "quando": "#panel-tutoriais.on"
+  },
+  {
+    "titulo": "Como usar as Dicas Úteis",
+    "intro": "Dica é um recado curto para o dia a dia. Tutorial é a aula, com vídeo.",
+    "passos": [
+      "Leia os cartões de <b>dicas</b>: cada um traz um cuidado importante.",
+      "Toque em <b>Tutoriais</b> para aprender a fazer um PIX, uma vídeo chamada e muito mais."
+    ],
+    "dica": "Em todas as telas existe o botão ❔ Ajuda. Toque nele sempre que tiver dúvida. 💚"
+  }
+];
+  var PASSO_LETRA = 'Letra pequena? Toque em <b>A+</b> ou <b>A++</b>, logo acima, para aumentar. Sua escolha fica salva para todas as telas.';
+  var CHAVE_FONTE = 'techsaude_fonte';
+  var botoesFonte = document.querySelectorAll('.toolbar-acessibilidade .font-btn');
+  function escalaAtual(){ return parseFloat(document.documentElement.style.fontSize) || 100; }
+  function marcarBotaoFonte(){
+    var atual = escalaAtual();
+    botoesFonte.forEach(function(b){ var ativo = Number(b.dataset.scale) === atual; b.classList.toggle('active', ativo); b.setAttribute('aria-pressed', ativo ? 'true' : 'false'); });
+  }
+  function aplicarFonte(escala, salvar){
+    document.documentElement.style.fontSize = escala + '%';
+    if(salvar){ try{ localStorage.setItem(CHAVE_FONTE, String(escala)); }catch(e){} }
+    marcarBotaoFonte();
+    window.dispatchEvent(new Event('techsaude:fonte'));
+  }
+  window.aplicarFonteTechSaude = aplicarFonte;
+  botoesFonte.forEach(function(btn){ btn.addEventListener('click', function(){ aplicarFonte(Number(btn.dataset.scale), true); }); });
+  window.addEventListener('techsaude:fonte', marcarBotaoFonte);
+  window.addEventListener('storage', function(e){ if(e.key === CHAVE_FONTE && e.newValue){ aplicarFonte(parseFloat(e.newValue) || 100, false); } });
+  marcarBotaoFonte();
+
+  var modal = document.getElementById('modalAjuda');
+  var focoAnterior = null;
+  function conteudoAtual(){
+    for(var i = 0; i < AJUDA_TELA.length; i++){ var item = AJUDA_TELA[i]; if(!item.quando || document.querySelector(item.quando)) return item; }
+    return AJUDA_TELA[AJUDA_TELA.length - 1];
+  }
+  function abrirAjuda(){
+    var c = conteudoAtual();
+    document.getElementById('ajudaTitulo').textContent = c.titulo;
+    var intro = document.getElementById('ajudaIntro'); intro.innerHTML = c.intro || ''; intro.hidden = !c.intro;
+    document.getElementById('ajudaLista').innerHTML = c.passos.concat([PASSO_LETRA]).map(function(p){ return '<li>' + p + '</li>'; }).join('');
+    var extra = document.getElementById('ajudaExtra'); extra.innerHTML = c.dica || ''; extra.hidden = !c.dica;
+    focoAnterior = document.activeElement; modal.hidden = false;
+    document.getElementById('ajudaOk').focus({ preventScroll: true });
+    modal.querySelector('.ajuda-modal').scrollTop = 0;
+  }
+  function fecharAjuda(){ modal.hidden = true; if(focoAnterior && focoAnterior.focus){ focoAnterior.focus(); } }
+  document.getElementById('btnAjuda').addEventListener('click', abrirAjuda);
+  document.getElementById('fecharAjuda').addEventListener('click', fecharAjuda);
+  document.getElementById('ajudaOk').addEventListener('click', fecharAjuda);
+  modal.addEventListener('click', function(e){ if(e.target === modal) fecharAjuda(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.hidden) fecharAjuda(); });
+})();
+</script>
+<script>const IC = {"pix": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"2.5\" y=\"6\" width=\"19\" height=\"12\" rx=\"2\"/><circle cx=\"12\" cy=\"12\" r=\"2.8\"/><path d=\"M6 9.5v.01M18 14.5v.01\"/></svg>", "video": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"2.5\" y=\"6.5\" width=\"12.5\" height=\"11\" rx=\"2.5\"/><path d=\"M15 10.5l6-3.5v10l-6-3.5\"/></svg>", "download": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3v12\"/><path d=\"M7 11l5 5 5-5\"/><path d=\"M4 20h16\"/></svg>", "pill": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><g transform=\"rotate(-45 12 12)\"><rect x=\"2.5\" y=\"8.5\" width=\"19\" height=\"7\" rx=\"3.5\"/><line x1=\"12\" y1=\"8.5\" x2=\"12\" y2=\"15.5\"/></g></svg>", "calendar": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2.5\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/></svg>"};
+
+const TUTORIAIS = [
+  {id:'pix', titulo:'Aprenda a fazer um PIX', botao:'Ver vídeo', video:'https://www.youtube.com/embed/3oUQTG8Y1yg', icon:IC.pix, passos:'<ol><li>Abra o aplicativo do banco.</li><li>Toque em Pix.</li><li>Escolha chave, QR Code ou copiar e colar.</li><li>Confira nome e valor antes de confirmar.</li></ol>'},
+  {id:'video', titulo:'Como fazer uma vídeo chamada', botao:'Assistir', video:'https://www.youtube.com/embed/YYl3N3RNUu8', icon:IC.video, passos:'<ol><li>Abra a conversa no WhatsApp.</li><li>Toque no ícone de câmera.</li><li>Espere atender.</li><li>Para sair, toque no botão vermelho.</li></ol>'},
+  {id:'update', titulo:'Como atualizar seus aplicativos', botao:'Aprender', video:'https://www.youtube.com/embed/3oUQTG8Y1yg', icon:IC.download, passos:'<ol><li>Abra a Play Store ou a App Store.</li><li>Toque na sua foto ou em Gerenciar.</li><li>Escolha Atualizar.</li><li>Espere terminar.</li></ol>'},
+  {id:'medicamento', titulo:'Como usar o alarme de remédio', botao:'Ver vídeo', video:'https://www.youtube.com/embed/3oUQTG8Y1yg', icon:IC.pill, passos:'<ol><li>Na Home, toque em Alarme de Medicamento.</li><li>Adicione nome e horário.</li><li>Quando tocar, confirme “Já tomei”.</li></ol>'},
+  {id:'consulta', titulo:'Como incluir uma consulta', botao:'Assistir', video:'https://www.youtube.com/embed/3oUQTG8Y1yg', icon:IC.calendar, passos:'<ol><li>Na Home, toque em Lembrete de Consultas.</li><li>Preencha local, médico, data e hora.</li><li>Salve e configure o lembrete, se quiser.</li></ol>'}
+];
+function render(){
+  document.getElementById('lista').innerHTML = TUTORIAIS.map(t =>
+    `<article class="card" id="${t.id}"><div class="thumb">${t.icon}</div><div><h2>${t.titulo}</h2><button type="button" class="btn-play" onclick="abrir('${t.id}')">▶ ${t.botao}</button></div></article>`
+  ).join('');
+}
+function aba(nome){
+  document.getElementById('panel-dicas').classList.toggle('on', nome==='dicas');
+  document.getElementById('panel-tutoriais').classList.toggle('on', nome==='tutoriais');
+  document.getElementById('tab-dicas').classList.toggle('on', nome==='dicas');
+  document.getElementById('tab-tutoriais').classList.toggle('on', nome==='tutoriais');
+}
+function abrir(id){
+  const t = TUTORIAIS.find(x => x.id===id); if(!t) return;
+  aba('tutoriais');
+  document.getElementById('modal-title').textContent = t.titulo;
+  document.getElementById('modal-steps').innerHTML = t.passos;
+  document.getElementById('player').src = t.video+'?rel=0';
+  document.getElementById('overlay').classList.add('show');
+}
+function fechar(){ document.getElementById('overlay').classList.remove('show'); document.getElementById('player').src=''; }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 2600); }
+const dias=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function clock(){
+  const n=new Date();
+  document.getElementById('datetime').textContent = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' - '+dias[n.getDay()]+', '+n.getDate()+' de '+meses[n.getMonth()]+' de '+n.getFullYear();
+}
+render(); clock(); setInterval(clock,30000);
+if(location.hash.replace('#','')) aba('tutoriais');
+</script>
+</body>
+</html>
