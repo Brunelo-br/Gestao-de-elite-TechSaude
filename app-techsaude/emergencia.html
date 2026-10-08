@@ -296,7 +296,8 @@ async function carregar(){
     lista.replaceChildren(card);
   }
 
-  if(!usuario || !usuario.id_usuario || !supabaseClient){
+  const idUsuario = usuario ? (usuario.id ?? usuario.id_usuario) : null;
+  if(!idUsuario || !supabaseClient){
     mostrarSemContato('Não foi possível carregar os contatos. Entre na sua conta para consultar os números cadastrados.');
     return;
   }
@@ -304,7 +305,7 @@ async function carregar(){
   const { data, error } = await supabaseClient
     .from('contato_emergencia')
     .select('nome_contato, grau_parentesco, telefone, ordem')
-    .eq('id_usuario', usuario.id_usuario)
+    .eq('usuario_id', idUsuario)
     .order('ordem', { ascending: true });
   if(error){
     console.error('Erro ao carregar os contatos de confiança:', error);

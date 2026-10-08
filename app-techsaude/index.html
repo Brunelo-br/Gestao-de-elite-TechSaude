@@ -1410,7 +1410,7 @@
         email: email,
         senha_hash: senhaHash
       }])
-      .select('id_usuario')
+      .select('id')
       .single();
 
     if(error){
@@ -1444,24 +1444,24 @@
 
     const { error: erroEndereco } = await supabaseClient
       .from('endereco')
-      .upsert({ cpf_usuario: cpf, ...endereco }, { onConflict: 'cpf_usuario' });
+      .upsert({ usuario_id: usuarioCriado.id, ...endereco }, { onConflict: 'usuario_id' });
     if(erroEndereco){
       console.error('Erro ao salvar o endereço:', erroEndereco);
       naoSalvos.push('o endereço');
     }
 
     if(contatos.length){
-      const idUsuario = usuarioCriado && usuarioCriado.id_usuario;
+      const idUsuario = usuarioCriado && usuarioCriado.id;
       const { error: erroContatos } = idUsuario
         ? await supabaseClient.from('contato_emergencia').insert(contatos.map(c => ({
-            id_usuario: idUsuario,
+            usuario_id: idUsuario,
             nome_contato: c.nome,
             grau_parentesco: c.parentesco,
             telefone: c.telefone,
             email: c.email,
             ordem: c.ordem
           })))
-        : { error: new Error('id_usuario não retornado') };
+        : { error: new Error('id do usuário não retornado') };
       if(erroContatos){
         console.error('Erro ao salvar os contatos de emergência:', erroContatos);
         naoSalvos.push('os contatos de emergência');
@@ -1493,7 +1493,8 @@
   // ---------- 7. LOGIN REAL NO SUPABASE ----------
   const VERSAO_TERMOS_ACEITE = '1.0.0';
   function chaveAceiteTermos(usuario){
-    if(usuario.id_usuario != null) return 'techsaude_termos_aceite:usuario:' + usuario.id_usuario;
+    const idUsuarioTermos = usuario.id ?? usuario.id_usuario;
+    if(idUsuarioTermos != null) return 'techsaude_termos_aceite:usuario:' + idUsuarioTermos;
     const identificador = usuario.email || usuario.cpf;
     return identificador ? 'techsaude_termos_aceite:conta:' + String(identificador).trim().toLowerCase() : null;
   }
@@ -1539,6 +1540,11 @@
     }
 
     if(!senhaValida){
+      await supabaseClient.from('log_autenticacao').insert([{
+        usuario_id: data.id,
+        identificador_usado: user,
+        sucesso: false
+      }]);
       showMsg('login-msg', 'Senha incorreta. Tente novamente.', 'error');
       return;
     }
@@ -1549,7 +1555,7 @@
         const { error: erroMigracao } = await supabaseClient
           .from('usuario')
           .update({ senha_hash: senhaHash })
-          .eq('id_usuario', data.id_usuario);
+          .eq('id', data.id);
         if(erroMigracao) console.error('Não foi possível migrar o hash da senha:', erroMigracao);
         else data.senha_hash = senhaHash;
       } catch(error) {
@@ -1559,7 +1565,7 @@
 
     // Grava log de autenticação
     await supabaseClient.from('log_autenticacao').insert([{
-      id_usuario: data.id_usuario,
+      usuario_id: data.id,
       identificador_usado: user,
       sucesso: true
     }]);
@@ -1591,7 +1597,7 @@
 
     const { data: user, error } = await supabaseClient
       .from('usuario')
-      .select('id_usuario')
+      .select('id')
       .eq('email', cleanEmail)
       .maybeSingle();
 
@@ -1604,7 +1610,7 @@
     const expiraEm = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
     await supabaseClient.from('recuperacao_senha').insert([{
-      id_usuario: user.id_usuario,
+      usuario_id: user.id,
       codigo_verificacao: codigo,
       expira_em: expiraEm
     }]);

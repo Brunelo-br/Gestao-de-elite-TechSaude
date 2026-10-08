@@ -911,8 +911,8 @@ function obterIdUsuario(){
   try{
     const usuario = JSON.parse(rawUsuarioLogado);
     const candidatos = Array.isArray(usuario) ? usuario : [usuario];
-    const registro = candidatos.find(function(item){ return item && (item.id_usuario ?? item.id ?? item.usuario_id) != null; });
-    const id = Number(registro?.id_usuario ?? registro?.id ?? registro?.usuario_id);
+    const registro = candidatos.find(function(item){ return item && (item.id ?? item.id_usuario) != null; });
+    const id = Number(registro?.id ?? registro?.id_usuario);
     return Number.isFinite(id) && id > 0 ? id : 1;
   }catch(e){
     const id = Number(rawUsuarioLogado);
@@ -924,8 +924,8 @@ const userId = obterIdUsuario();
 
 function normalizarConsulta(c){
   return {
-    id_consulta: Number(c.id_consulta ?? c.id),
-    id_usuario: Number(c.id_usuario ?? userId),
+    id: Number(c.id ?? c.id_consulta),
+    usuario_id: Number(c.usuario_id ?? c.id_usuario ?? userId),
     medico: c.medico || '',
     especialidade: c.especialidade || '',
     data: c.data_consulta ?? c.data ?? '',
@@ -939,12 +939,12 @@ function normalizarConsulta(c){
 
 const STORAGE_KEY = 'techsaude_consultas_v2';
 let consultas = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || [
-  {id_consulta:1, id_usuario:userId, medico:'Doutor Arnaldo', especialidade:'Cardiologia', data:'2026-03-11', hora:'09:30', local_atendimento:'Clínica Vida Saudável, Av. Central, 455', obs:'', lembrete:'2h', confirmado:false},
-  {id_consulta:2, id_usuario:userId, medico:'Dra. Mariana Costa', especialidade:'Oftalmologia', data:'2026-03-18', hora:'14:00', local_atendimento:'Hospital de Olhos, Rua das Flores, 120', obs:'', lembrete:null, confirmado:false}
+  {id:1, usuario_id:userId, medico:'Doutor Arnaldo', especialidade:'Cardiologia', data:'2026-03-11', hora:'09:30', local_atendimento:'Clínica Vida Saudável, Av. Central, 455', obs:'', lembrete:'2h', confirmado:false},
+  {id:2, usuario_id:userId, medico:'Dra. Mariana Costa', especialidade:'Oftalmologia', data:'2026-03-18', hora:'14:00', local_atendimento:'Hospital de Olhos, Rua das Flores, 120', obs:'', lembrete:null, confirmado:false}
 ].map(normalizarConsulta);
 let atualId = null;
 consultas = consultas.map(normalizarConsulta);
-let nextId = (consultas.reduce((m,c)=>Math.max(m,c.id_consulta),0) || 0) + 1;
+let nextId = (consultas.reduce((m,c)=>Math.max(m,c.id),0) || 0) + 1;
 
 function salvarStorage(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(consultas));
@@ -956,14 +956,14 @@ async function carregarConsultasSupabase(){
     const { data, error } = await supabaseClient
       .from('consulta')
       .select('*')
-      .eq('id_usuario', userId);
+      .eq('usuario_id', userId);
     if(error) throw error;
     if(data) consultas = data.map(normalizarConsulta);
     salvarStorage();
   }catch(error){
     console.warn('Consultas disponíveis apenas localmente:', error);
   }
-  nextId = (consultas.reduce((m,c)=>Math.max(m,c.id_consulta),0) || 0) + 1;
+  nextId = (consultas.reduce((m,c)=>Math.max(m,c.id),0) || 0) + 1;
   renderConsultas();
   renderLembretes();
 }
@@ -1029,8 +1029,8 @@ function renderConsultas(){
       '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local_atendimento) + '</div>' +
       badge +
       '<div class="card-actions">' +
-      '<button type="button" class="btn-sm" onclick="abrirConfig(' + c.id_consulta + ')">Configurar Lembrete</button>' +
-      '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id_consulta + ')">Excluir</button>' +
+      '<button type="button" class="btn-sm" onclick="abrirConfig(' + c.id + ')">Configurar Lembrete</button>' +
+      '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id + ')">Excluir</button>' +
       '</div>' +
       '</article>';
   }).join('');
@@ -1050,29 +1050,29 @@ function renderLembretes(){
     '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local_atendimento) + '</div>' +
     '<span class="badge badge-ok">Avisar ' + textoLembrete(c.lembrete) + '</span>' +
     '<div class="card-actions">' +
-    '<button type="button" class="btn-sm outline" onclick="abrirConfig(' + c.id_consulta + ')">Alterar</button>' +
-    '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id_consulta + ')">Excluir</button>' +
+    '<button type="button" class="btn-sm outline" onclick="abrirConfig(' + c.id + ')">Alterar</button>' +
+    '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id + ')">Excluir</button>' +
     '</div>' +
     '</article>'
   ).join('');
 }
 
 async function removerConsulta(id){
-  const consulta = consultas.find(function(item){ return Number(item.id_consulta) === Number(id); });
+  const consulta = consultas.find(function(item){ return Number(item.id) === Number(id); });
   if(!consulta){ return; }
 
   const confirmar = window.confirm('Deseja excluir esta consulta de ' + consulta.medico + '?');
   if(!confirmar){ return; }
 
-  consultas = consultas.filter(function(item){ return Number(item.id_consulta) !== Number(id); });
+  consultas = consultas.filter(function(item){ return Number(item.id) !== Number(id); });
   salvarStorage();
 
   if(supabaseClient){
     const { error } = await supabaseClient
       .from('consulta')
       .delete()
-      .eq('id_consulta', Number(id))
-      .eq('id_usuario', userId);
+      .eq('id', Number(id))
+      .eq('usuario_id', userId);
 
     if(error){
       console.warn('Exclusão sincronizada apenas localmente:', error);
@@ -1106,7 +1106,7 @@ async function salvarConsulta(){
   if(!ok){ mostrarToast('Preencha todos os campos obrigatórios'); return; }
 
   const payload = {
-    id_usuario: userId,
+    usuario_id: userId,
     especialidade: especialidade,
     medico: medico,
     local_atendimento: local,
@@ -1135,8 +1135,8 @@ async function salvarConsulta(){
 
   const consulta = {
     ...(inserida || payload),
-    id_consulta: Number(inserida?.id_consulta ?? nextId++),
-    id_usuario: userId,
+    id: Number(inserida?.id ?? nextId++),
+    usuario_id: userId,
     data: data,
     hora: hora,
     local_atendimento: local,
@@ -1164,7 +1164,7 @@ function fecharSucesso(){
 
 function abrirConfig(id){
   atualId = id;
-  const c = consultas.find(function(x){ return x.id_consulta === id; });
+  const c = consultas.find(function(x){ return x.id === id; });
   if(!c) return;
   document.getElementById('dropdown-sub').textContent = c.medico + ' • ' + fmtData(c.data) + ' às ' + c.hora;
   const atual = c.lembrete || '2h';
@@ -1193,7 +1193,7 @@ async function salvarLembrete(){
   if(atualId == null) return;
   const sel = document.querySelector('.opcao.selected');
   const valor = sel ? sel.dataset.valor : '2h';
-  const c = consultas.find(function(x){ return x.id_consulta === atualId; });
+  const c = consultas.find(function(x){ return x.id === atualId; });
   if(c){
     c.lembrete = valor;
     salvarStorage();
@@ -1201,8 +1201,8 @@ async function salvarLembrete(){
       const { error } = await supabaseClient
         .from('consulta')
         .update({lembrete: valor})
-        .eq('id_consulta', c.id_consulta)
-        .eq('id_usuario', userId);
+        .eq('id', c.id)
+        .eq('usuario_id', userId);
       if(error) console.warn('Lembrete salvo apenas localmente:', error);
     }
     renderConsultas();
@@ -1214,22 +1214,22 @@ async function salvarLembrete(){
 
 function mostrarPopupPresenca(id){
   atualId = id;
-  const c = consultas.find(function(x){ return x.id_consulta === id; });
+  const c = consultas.find(function(x){ return x.id === id; });
   if(!c) return;
   document.getElementById('popup-texto').textContent =
     'Sua consulta com o ' + c.medico + ' é em ' + textoAntecedenciaPopup(c.lembrete || '2h') + '. Por favor, confirme sua presença.';
   document.getElementById('popup-presenca').classList.add('show');
 }
 function confirmarPresenca(){
-  const c = consultas.find(function(x){ return x.id_consulta === atualId; });
+  const c = consultas.find(function(x){ return x.id === atualId; });
   if(c){
     c.confirmado = true;
     salvarStorage();
     if(supabaseClient){
       supabaseClient.from('consulta')
         .update({confirmado:true})
-        .eq('id_consulta', c.id_consulta)
-        .eq('id_usuario', userId)
+        .eq('id', c.id)
+        .eq('usuario_id', userId)
         .then(function(result){ if(result.error) console.warn('Presença salva apenas localmente:', result.error); });
     }
     mostrarToast('Presença confirmada!');
@@ -1261,7 +1261,7 @@ function updateClock(){
 }
 
 document.addEventListener('keydown', function(e){
-  if((e.key === 'p' || e.key === 'P') && consultas.length) mostrarPopupPresenca(consultas[0].id_consulta);
+  if((e.key === 'p' || e.key === 'P') && consultas.length) mostrarPopupPresenca(consultas[0].id);
 });
 
 updateClock();

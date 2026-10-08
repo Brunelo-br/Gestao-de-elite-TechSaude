@@ -856,13 +856,21 @@ if (!rawUser) {
   var alarmes = [];
 
   // ---------- BANCO DE DADOS: CARREGAR, SALVAR E DELETAR ----------
+  // usuario_id no banco é número (FK para usuario.id). Aceita sessão antiga (id_usuario).
+  function idUsuarioBanco(){
+    var n = Number(usuarioLogado?.id ?? usuarioLogado?.id_usuario);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+
   async function carregarAlarmesSupabase(){
     const storageKey = 'medicamentos_' + (usuarioLogado?.id || usuarioLogado?.cpf || 'offline');
     try {
+      const uid = idUsuarioBanco();
+      if(uid === null) throw new Error('Usuário sem id na sessão');
       const { data, error } = await supabaseClient
         .from('medicamentos')
         .select('*')
-        .eq('usuario_id', String(usuarioLogado?.id_usuario || usuarioLogado?.id || usuarioLogado?.cpf || 'offline'));
+        .eq('usuario_id', uid);
 
       if(!error && data && data.length > 0){
         alarmes = data.map(d => ({
@@ -891,10 +899,10 @@ if (!rawUser) {
     const storageKey = 'medicamentos_' + (usuarioLogado?.id || usuarioLogado?.cpf || 'offline');
     localStorage.setItem(storageKey, JSON.stringify(alarmes));
 
-    // Garante que usuario_id seja sempre enviado como texto
-    const userId = String(usuarioLogado?.id_usuario || usuarioLogado?.id || usuarioLogado?.cpf || 'offline');
+    const userId = idUsuarioBanco();
 
     try {
+      if(userId === null) throw new Error('Usuário sem id na sessão');
       if(operacao === 'upsert'){
         const { error } = await supabaseClient.from('medicamentos').upsert({
           id: alarmeObj.id,

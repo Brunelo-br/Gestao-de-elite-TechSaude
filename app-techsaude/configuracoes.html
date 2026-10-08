@@ -1118,12 +1118,14 @@
 
     try {
       const telefone = document.getElementById('telefoneDisplay').textContent.trim();
-      const { error: erroUsuario } = await supabaseClient
+      const { data: usuarioAtualizado, error: erroUsuario } = await supabaseClient
         .from('usuario')
         .update({
           telefone: telefone === 'Não informado' ? null : telefone
         })
-        .eq('cpf', cpfDoUsuario);
+        .eq('cpf', cpfDoUsuario)
+        .select('id')
+        .single();
 
       if (erroUsuario) throw erroUsuario;
 
@@ -1132,7 +1134,7 @@
       );
       const { error: erroEndereco } = await supabaseClient
         .from('endereco')
-        .upsert({ cpf_usuario: cpfDoUsuario, ...dadosEndereco }, { onConflict: 'cpf_usuario' });
+        .upsert({ usuario_id: usuarioAtualizado.id, ...dadosEndereco }, { onConflict: 'usuario_id' });
 
       if (erroEndereco) throw erroEndereco;
       showToast('✅ Alterações salvas com sucesso!');

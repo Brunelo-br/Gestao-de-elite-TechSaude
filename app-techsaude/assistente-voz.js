@@ -73,16 +73,14 @@
       return Array.isArray(p) ? p[0] : p;
     } catch (e) { return null; }
   }
-  // medicamentos.html usa o id como TEXTO; lembretedeconsultas.html como NÚMERO
-  function idMedicamentos() {
+  // usuario_id é sempre número (FK para usuario.id). Aceita sessão antiga (id_usuario).
+  function idUsuario() {
     var u = usuarioObj() || {};
-    return String(u.id_usuario || u.id || u.cpf || 'offline');
+    var n = Number(u.id != null ? u.id : u.id_usuario);
+    return isFinite(n) && n > 0 ? n : null;
   }
-  function idNumerico() {
-    var u = usuarioObj() || {};
-    var n = Number(u.id_usuario != null ? u.id_usuario : (u.id != null ? u.id : u.usuario_id));
-    return isFinite(n) && n > 0 ? n : 1;
-  }
+  function idMedicamentos() { return idUsuario(); }
+  function idNumerico() { return idUsuario() || 1; }
 
   // ---------- Datas e números falados ----------
   function dataFalada(d) {
@@ -307,7 +305,7 @@
   async function carregarConsultas() {
     var c = await getSB();
     if (!c) return [];
-    var r = await c.from('consulta').select('*').eq('id_usuario', idNumerico());
+    var r = await c.from('consulta').select('*').eq('usuario_id', idNumerico());
     if (r.error) throw r.error;
     return (r.data || []).map(function (x) {
       var dia = x.data_consulta, hora = String(x.hora_consulta || '00:00').slice(0, 5);
@@ -331,8 +329,8 @@
     var nome = 'SAMU', tel = '192';
     try {
       var u = usuarioObj(), c = await getSB();
-      if (c && u && u.id_usuario) {
-        var r = await c.from('contato_emergencia').select('*').eq('id_usuario', u.id_usuario);
+      if (c && u && idUsuario()) {
+        var r = await c.from('contato_emergencia').select('*').eq('usuario_id', idUsuario()).order('ordem', { ascending: true });
         if (!r.error && r.data && r.data.length) { nome = r.data[0].nome_contato; tel = r.data[0].telefone; }
       }
     } catch (e) { /* usa SAMU */ }
@@ -343,7 +341,7 @@
   async function ligarContato() {
     try {
       var u = usuarioObj(), c = await getSB();
-      var r = await c.from('contato_emergencia').select('*').eq('id_usuario', u.id_usuario);
+      var r = await c.from('contato_emergencia').select('*').eq('usuario_id', idUsuario()).order('ordem', { ascending: true });
       if (r.error || !r.data || !r.data.length) return falar('Você ainda não cadastrou um contato de emergência. Posso abrir as configurações.');
       var ct = r.data[0];
       confirmar('Ligar para ' + ct.nome_contato + '?', function () {

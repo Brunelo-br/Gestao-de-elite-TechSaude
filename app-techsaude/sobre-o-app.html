@@ -456,7 +456,8 @@
 (function(){
   var VERSAO_TERMOS = '1.0.0';
   function chaveAceite(usuario){
-    if(usuario && usuario.id_usuario != null) return 'techsaude_termos_aceite:usuario:' + usuario.id_usuario;
+    var idUsuarioTermos = usuario ? (usuario.id != null ? usuario.id : usuario.id_usuario) : null;
+    if(idUsuarioTermos != null) return 'techsaude_termos_aceite:usuario:' + idUsuarioTermos;
     var identificador = usuario && (usuario.email || usuario.cpf);
     return identificador ? 'techsaude_termos_aceite:conta:' + String(identificador).trim().toLowerCase() : null;
   }

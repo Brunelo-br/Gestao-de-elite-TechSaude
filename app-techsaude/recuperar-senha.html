@@ -844,7 +844,7 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
         const { data: recuperacao, error: erroRecuperacao } = await supabaseClient
           .from('recuperacao_senha')
           .insert([{
-            id_usuario: data.id_usuario,
+            usuario_id: data.id,
             codigo_verificacao: codigoGerado,
             expira_em: expiraEm,
             utilizado: false
@@ -890,7 +890,7 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
       const { data: recuperacao, error: erroRecuperacao } = await supabaseClient
         .from('recuperacao_senha')
         .insert([{
-          id_usuario: usuarioEncontrado.id_usuario,
+          usuario_id: usuarioEncontrado.id,
           codigo_verificacao: codigoGerado,
           expira_em: expiraEm,
           utilizado: false
@@ -936,7 +936,7 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
       const { data, error } = await supabaseClient
         .from('recuperacao_senha')
         .select('*')
-        .eq('id_usuario', usuarioEncontrado.id_usuario)
+        .eq('usuario_id', usuarioEncontrado.id)
         .eq('codigo_verificacao', codigo)
         .eq('utilizado', false)
         .gt('expira_em', new Date().toISOString())
@@ -1023,8 +1023,8 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
       const { data: usuarioAtualizado, error } = await supabaseClient
         .from('usuario')
         .update({ senha_hash: senhaHash })
-        .eq('id_usuario', usuarioEncontrado.id_usuario)
-        .select('id_usuario')
+        .eq('id', usuarioEncontrado.id)
+        .select('id')
         .maybeSingle();
 
       if(error || !usuarioAtualizado){
@@ -1033,7 +1033,7 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
         const { error: erroToken } = await supabaseClient
           .from('recuperacao_senha')
           .update({ utilizado: true })
-          .eq('id_usuario', usuarioEncontrado.id_usuario)
+          .eq('usuario_id', usuarioEncontrado.id)
           .eq('codigo_verificacao', recuperacaoEncontrada.codigo_verificacao)
           .eq('utilizado', false);
 
