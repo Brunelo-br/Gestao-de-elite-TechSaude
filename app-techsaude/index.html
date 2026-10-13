@@ -1518,25 +1518,41 @@
 
     showMsg('login-msg', 'Verificando credenciais...', 'ok');
 
-    // Busca por e-mail ou CPF
-    const { data, error } = await supabaseClient
-      .from('usuario')
-      .select('*')
-      .or(`email.eq.${user},cpf.eq.${rawDigits}`)
-      .maybeSingle();
+    // Busca pelo campo certo: e-mail OU CPF (nunca os dois juntos).
+    // O CPF é procurado só com números e também com pontos/traço, para cobrir
+    // cadastros antigos que gravaram o CPF formatado.
+    const usandoEmail = user.includes('@');
+    let consulta = supabaseClient.from('usuario').select('*');
+    consulta = usandoEmail
+      ? consulta.eq('email', user)
+      : consulta.in('cpf', [rawDigits, formatarCPF(rawDigits)]);
+    const { data: encontrados, error } = await consulta.order('id', { ascending: false }).limit(10);
 
-    if(error || !data){
-      showMsg('login-msg', 'Usuário não encontrado.', 'error');
+    if(error){
+      console.error('Erro ao buscar o usuário no login:', error);
+      showMsg('login-msg', 'Não foi possível entrar agora. Verifique a internet e tente de novo.', 'error');
       return;
     }
+    if(!encontrados || !encontrados.length){
+      showMsg('login-msg', usandoEmail ? 'Não encontramos uma conta com este e-mail.' : 'Não encontramos uma conta com este CPF.', 'error');
+      return;
+    }
+    if(encontrados.length > 1){
+      console.warn('Login: ' + encontrados.length + ' cadastros com o mesmo ' + (usandoEmail ? 'e-mail' : 'CPF') + ' (ids ' + encontrados.map(u => u.id).join(', ') + '). Conferir duplicados na tabela usuario.');
+    }
 
-    let senhaValida;
+    // Confere a senha em cada cadastro encontrado (o mais recente primeiro).
+    let data = null;
     try {
-      senhaValida = await TechSaudePassword.verify(senha, data.senha_hash);
+      for(const candidato of encontrados){
+        if(await TechSaudePassword.verify(senha, candidato.senha_hash)){ data = candidato; break; }
+      }
     } catch(error) {
       showMsg('login-msg', 'Não foi possível validar a senha neste navegador.', 'error');
       return;
     }
+    const senhaValida = Boolean(data);
+    if(!data) data = encontrados[0];
 
     if(!senhaValida){
       await supabaseClient.from('log_autenticacao').insert([{

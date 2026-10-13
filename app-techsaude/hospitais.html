@@ -12,6 +12,7 @@
 <!-- Leaflet: biblioteca gratuita que desenha o mapa -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
   :root{
@@ -187,8 +188,12 @@
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--green-deep);color:#fff;padding:12px 18px;border-radius:999px;font-weight:700;font-size:13px;opacity:0;transition:all .3s;z-index:2000;pointer-events:none;max-width:90%;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.25);}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-  .aviso-192{margin-top:18px;background:#fde4e0;border:2px solid #f0a99b;border-radius:16px;padding:12px 14px;font-weight:700;color:var(--danger);text-align:center;}
-  .aviso-192 a{color:var(--danger);}
+  .aviso-emergencia{display:block;width:100%;margin-top:18px;background:#fde4e0;border:2px solid #f0a99b;border-radius:16px;padding:14px 16px;font:inherit;font-size:1rem;font-weight:700;line-height:1.4;color:var(--danger);text-align:center;cursor:pointer;}
+  .aviso-emergencia:hover{border-color:var(--danger);}
+  .aviso-emergencia:focus-visible{outline:3px solid var(--teal);outline-offset:3px;}
+  @keyframes piscaEmergencia{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(192,57,43,.7);}50%{transform:scale(1.18);box-shadow:0 0 0 12px rgba(192,57,43,0);}}
+  .nav-btn.emergencia.destaque .icon-circle{animation:piscaEmergencia .7s ease-in-out 4;}
+  @media (prefers-reduced-motion:reduce){.nav-btn.emergencia.destaque .icon-circle{animation:none;outline:4px solid #fff;outline-offset:3px;}}
 
   @media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important;} }
 </style>
@@ -245,13 +250,14 @@
         <h3 id="tituloOrigem" class="sr-only">De onde buscar</h3>
 
         <div id="boasVindas" class="boas-vindas hidden">
-          👋 Qual é o CEP da sua casa?
-          <p>Vamos guardar para mostrar sempre os hospitais perto de você. Você pode mudar quando quiser.</p>
+          <span id="boasVindasTitulo">👋 Qual é o CEP da sua casa?</span>
+          <p id="boasVindasTexto">Vamos guardar para mostrar sempre os hospitais perto de você. Você pode mudar quando quiser.</p>
         </div>
 
         <div class="origem-atual" id="origemAtual">
           <div class="origem-texto" id="origemTexto" aria-live="polite">Escolha de onde buscar</div>
           <button type="button" class="btn-link hidden" id="btnAlterarCasa">Alterar CEP de casa</button>
+          <a class="btn-link hidden" id="linkConfigEndereco" href="configuracoes.html">Mudar endereço em Configurações</a>
         </div>
 
         <div class="modos" role="group" aria-label="De onde buscar">
@@ -317,7 +323,7 @@
         </div>
       </section>
 
-      <div class="aviso-192">🚑 Em caso de emergência grave, ligue <a href="tel:192">192 (SAMU)</a>.</div>
+      <button type="button" class="aviso-emergencia" id="avisoEmergencia">🚨 Em caso de emergência, use nosso botão <strong>EMERGÊNCIA</strong> no topo da tela.</button>
     </main>
   </div>
 </div>
@@ -327,7 +333,7 @@
     <button class="modal-close" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
     <h2 id="ajudaTitulo">Como usar</h2>
     <ol class="ajuda-lista">
-      <li><strong>Minha casa</strong> mostra as unidades perto do CEP que você guardou.</li>
+      <li><strong>Minha casa</strong> mostra as unidades perto do endereço do seu cadastro. Para mudar o endereço, vá em <strong>Configurações</strong>.</li>
       <li><strong>Onde estou</strong> usa a localização do celular (o aparelho vai pedir permissão).</li>
       <li><strong>Outro CEP</strong> busca perto de qualquer endereço, sem mudar o CEP da sua casa.</li>
       <li>Toque em um <strong>pino no mapa</strong> ou em um <strong>cartão da lista</strong> para ver os detalhes.</li>
@@ -356,21 +362,29 @@
   /* =====================================================================
      USUÁRIO E ARMAZENAMENTO (localStorage agora, Supabase na integração)
      ===================================================================== */
+  var SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+  var supabaseClient = null;
+  try{ if(window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }catch(e){ console.error('Supabase não iniciou:', e); }
+
   function obterIdUsuario(){
-    // Tenta achar o usuário logado. Ajustar para a chave real do login na integração.
-    var chaves = ['usuario', 'usuarioLogado', 'techsaude_usuario', 'user'];
+    // Sessão gravada pelo login (index.html) em "usuario_logado". As outras chaves são de versões antigas.
+    var chaves = ['usuario_logado', 'usuarioLogado', 'usuario', 'techsaude_usuario', 'user'];
     try{
       for(var i=0;i<chaves.length;i++){
         var bruto = localStorage.getItem(chaves[i]);
         if(!bruto) continue;
         var obj = JSON.parse(bruto);
+        if(Array.isArray(obj)) obj = obj[0];
         var id = obj && (obj.id || obj.id_usuario || obj.user_id);
         if(id) return String(id);
       }
     }catch(e){}
     return 'visitante';
   }
-  var CHAVE_PREFS = 'techsaude_hospitais_' + obterIdUsuario();
+  var ID_USUARIO = obterIdUsuario();
+  var LOGADO = ID_USUARIO !== 'visitante';
+  var CHAVE_PREFS = 'techsaude_hospitais_' + ID_USUARIO;
 
   function lerPrefs(){
     try{ var p = JSON.parse(localStorage.getItem(CHAVE_PREFS) || 'null'); if(p && typeof p === 'object') return p; }catch(e){}
@@ -380,7 +394,7 @@
     try{ localStorage.setItem(CHAVE_PREFS, JSON.stringify(p)); }catch(e){}
   }
   var prefs = lerPrefs();
-  // prefs = { casa:{cep, rotulo, lat, lon}, raio, tipos:[...] }
+  // prefs = { casa:{cep, rotulo, lat, lon} (só visitante), casaCache:{chave, cep, rotulo, lat, lon} (cadastro), raio, tipos:[...] }
 
   /* =====================================================================
      ESTADO DA TELA
@@ -540,6 +554,52 @@
             if(!r) throw new Error('SEM_COORDENADAS');
             return { lat: r.lat, lon: r.lon, rotulo: rotulo, cep: formatarCep(d) };
           });
+      });
+  }
+
+  /* =====================================================================
+     ENDEREÇO DO CADASTRO (tabela endereco no Supabase) → COORDENADAS
+     ===================================================================== */
+  function carregarEnderecoCadastro(){
+    if(!supabaseClient) return Promise.reject(new Error('SEM_SUPABASE'));
+    return supabaseClient
+      .from('endereco')
+      .select('logradouro, numero, bairro, cidade, estado, cep')
+      .eq('usuario_id', Number(ID_USUARIO))
+      .limit(1)
+      .then(function(r){
+        if(r.error){ console.error('Erro ao ler o endereço do cadastro:', r.error); throw new Error('BANCO_FALHOU'); }
+        var end = r.data && r.data[0];
+        if(!end || soDigitos(end.cep).length !== 8) throw new Error('SEM_ENDERECO');
+        return end;
+      }, function(e){ if(e && /SEM_|BANCO_/.test(e.message)) throw e; throw new Error('BANCO_FALHOU'); });
+  }
+
+  function chaveEndereco(end){
+    return [end.logradouro, end.numero, end.cidade, end.estado, soDigitos(end.cep)].map(function(x){ return String(x || '').trim().toLowerCase(); }).join('|');
+  }
+  function rotuloEndereco(end){
+    return (end.logradouro ? end.logradouro + (end.numero ? ', ' + end.numero : '') + ' – ' : '') + (end.bairro ? end.bairro + ' – ' : '') + (end.cidade || '') + (end.estado ? '/' + end.estado : '');
+  }
+
+  // Rua + número dá um ponto mais preciso que só o CEP. Se não achar, usa o CEP.
+  function enderecoParaCoordenadas(end){
+    var cep = soDigitos(end.cep);
+    var rotulo = rotuloEndereco(end);
+    if(!end.logradouro || !end.cidade) return cepParaCoordenadas(cep);
+    var params = new URLSearchParams({
+      street: end.logradouro, postcode: cep, city: end.cidade, state: end.estado || '', country: 'Brazil',
+      filter: 'countrycode:br', lang: 'pt', limit: '1', format: 'json', apiKey: GEOAPIFY_KEY
+    });
+    if(end.numero) params.set('housenumber', String(end.numero));
+    return buscarJson('https://api.geoapify.com/v1/geocode/search?' + params.toString())
+      .then(function(geo){
+        var r = geo && geo.results && geo.results[0];
+        if(r) return { lat: r.lat, lon: r.lon, rotulo: rotulo, cep: formatarCep(cep) };
+        return cepParaCoordenadas(cep).then(function(o){ o.rotulo = rotulo; return o; });
+      }, function(err){
+        if(err.message === 'LIMITE') throw err;
+        return cepParaCoordenadas(cep).then(function(o){ o.rotulo = rotulo; return o; });
       });
   }
 
@@ -731,8 +791,9 @@
   }
 
   function atualizarTextoOrigem(){
-    var casa = prefs.casa;
-    elBtnAlterarCasa.classList.toggle('hidden', !casa);
+    // Logado: o endereço vem do cadastro e muda em Configurações. Visitante: CEP guardado no aparelho.
+    elBtnAlterarCasa.classList.toggle('hidden', LOGADO || !prefs.casa || estado.modo !== 'casa');
+    $('linkConfigEndereco').classList.toggle('hidden', !LOGADO || estado.modo !== 'casa');
     if(!estado.origem){ elOrigemTexto.innerHTML = 'Escolha de onde buscar'; return; }
     var icone = estado.modo === 'casa' ? '🏠' : (estado.modo === 'gps' ? '📍' : '🔎');
     var titulo = estado.modo === 'casa' ? 'Perto da sua casa' : (estado.modo === 'gps' ? 'Perto de onde você está' : 'Perto do CEP ' + escapar(estado.origem.cep || ''));
@@ -742,7 +803,7 @@
   function abrirFormCep(tipo){
     elForm.classList.remove('hidden');
     elForm.dataset.tipo = tipo;                // 'casa' | 'avulso'
-    elLinhaSalvar.classList.toggle('hidden', tipo === 'casa');
+    elLinhaSalvar.classList.toggle('hidden', tipo === 'casa' || LOGADO);
     elChkSalvar.checked = false;
     elLabelCep.textContent = tipo === 'casa' ? 'CEP da sua casa' : 'Digite o CEP';
     elInputCep.value = (tipo === 'casa' && prefs.casa) ? prefs.casa.cep : '';
@@ -750,9 +811,65 @@
   }
   function fecharFormCep(){ elForm.classList.add('hidden'); }
 
+  function avisoCasa(titulo, texto){
+    $('boasVindasTitulo').textContent = titulo;
+    $('boasVindasTexto').innerHTML = texto;
+    elBoasVindas.classList.remove('hidden');
+  }
+
+  function buscarPertoDaCasa(origem){
+    estado.origem = origem;
+    atualizarTextoOrigem();
+    buscarUnidades();
+  }
+
+  function usarCasaDoCadastro(){
+    marcarModo('casa');
+    fecharFormCep();
+    elBoasVindas.classList.add('hidden');
+    estado.origem = null;
+    atualizarTextoOrigem();
+    mostrarStatus('info', 'Buscando o endereço do seu cadastro…', true);
+    var cache = prefs.casaCache;
+    carregarEnderecoCadastro().then(function(end){
+      if(estado.modo !== 'casa') return;
+      var chave = chaveEndereco(end);
+      if(cache && cache.chave === chave){            // mesmo endereço: não gasta crédito do Geoapify
+        buscarPertoDaCasa({ lat: cache.lat, lon: cache.lon, rotulo: cache.rotulo, cep: cache.cep });
+        return;
+      }
+      mostrarStatus('info', 'Localizando seu endereço no mapa…', true);
+      return enderecoParaCoordenadas(end).then(function(o){
+        prefs.casaCache = { chave: chave, cep: o.cep, rotulo: o.rotulo, lat: o.lat, lon: o.lon };
+        salvarPrefs(prefs);
+        if(estado.modo === 'casa') buscarPertoDaCasa(o);
+      });
+    }).catch(function(err){
+      if(estado.modo !== 'casa') return;
+      var m = err && err.message;
+      if(m === 'SEM_ENDERECO'){
+        esconderStatus();
+        avisoCasa('🏠 Seu endereço ainda não está no cadastro',
+          'Complete o endereço em <a href="configuracoes.html">Configurações</a>. Enquanto isso, use <strong>Onde estou</strong> ou <strong>Outro CEP</strong>.');
+      } else if(cache){                                // banco fora do ar: usa a última casa conhecida
+        buscarPertoDaCasa({ lat: cache.lat, lon: cache.lon, rotulo: cache.rotulo, cep: cache.cep });
+        showToast('Sem conexão com o cadastro. Usando o último endereço conhecido.');
+      } else if(m === 'LIMITE'){
+        mostrarStatus('aviso', 'Muitas buscas hoje. Tente novamente mais tarde.');
+      } else if(m === 'CEP_NAO_ENCONTRADO' || m === 'SEM_COORDENADAS'){
+        mostrarStatus('erro', 'Não conseguimos marcar o endereço do seu cadastro no mapa. Confira o CEP em <a href="configuracoes.html">Configurações</a> ou use <strong>Outro CEP</strong>.');
+      } else {
+        mostrarStatus('erro', 'Não conseguimos carregar o endereço do seu cadastro agora. Verifique a internet ou use <strong>Onde estou</strong> / <strong>Outro CEP</strong>.');
+      }
+    });
+  }
+
   function usarCasa(){
+    if(LOGADO){ usarCasaDoCadastro(); return; }
     marcarModo('casa');
     if(!prefs.casa || estado.editandoCasa){
+      $('boasVindasTitulo').textContent = '👋 Qual é o CEP da sua casa?';
+      $('boasVindasTexto').innerHTML = 'Vamos guardar neste aparelho para mostrar sempre os hospitais perto de você. Entre na sua conta para usar o endereço do cadastro.';
       elBoasVindas.classList.toggle('hidden', !!prefs.casa);
       abrirFormCep('casa');
       return;
@@ -818,7 +935,7 @@
       return;
     }
     var ehCasa = elForm.dataset.tipo === 'casa';
-    var guardar = ehCasa || elChkSalvar.checked;
+    var guardar = !LOGADO && (ehCasa || elChkSalvar.checked);
     var btn = $('btnBuscarCep');
     btn.disabled = true;
     mostrarStatus('info', 'Procurando o endereço do CEP ' + formatarCep(cep) + '…', true);
@@ -893,6 +1010,15 @@
   $('btnEmergencia').addEventListener('click', function(){
     window.location.href = 'emergencia.html';
   });
+  // Aviso no fim da tela: sobe até o botão Emergência e faz ele piscar, para a pessoa aprender onde ele fica.
+  $('avisoEmergencia').addEventListener('click', function(){
+    var btn = $('btnEmergencia');
+    var suave = !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    window.scrollTo({ top: 0, behavior: suave ? 'smooth' : 'auto' });
+    btn.classList.remove('destaque'); void btn.offsetWidth; btn.classList.add('destaque');
+    setTimeout(function(){ btn.focus({ preventScroll: true }); }, suave ? 450 : 0);
+    setTimeout(function(){ btn.classList.remove('destaque'); }, 3200);
+  });
 
   var modalAjuda = $('modalAjuda');
   $('btnAjuda').addEventListener('click', function(){ modalAjuda.classList.remove('hidden'); $('fecharAjuda').focus(); });
@@ -933,7 +1059,7 @@
      ===================================================================== */
   iniciarMapa();
   aplicarFiltrosSalvos();
-  usarCasa();   // com CEP salvo: já busca perto de casa. Sem CEP: pede o CEP da casa.
+  usarCasa();   // logado: endereço do cadastro. Visitante: CEP guardado no aparelho (ou pede o CEP).
 
 })();
 </script>
