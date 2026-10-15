@@ -214,6 +214,18 @@
   @media (prefers-reduced-motion: reduce){
     .mem-card-inner{ transition:none; }
   }
+  .aviso-memorizar{
+    width:100%; max-width:420px; margin:0; padding:.75rem 1rem; border-radius:16px; text-align:center;
+    background:var(--success-bg); border:2px solid var(--green-mid); color:var(--green-deep);
+    font-size:1.05rem; font-weight:800; line-height:1.35;
+  }
+  .aviso-memorizar[hidden]{ display:none; }
+  .aviso-memorizar .contagem{
+    display:inline-flex; align-items:center; justify-content:center; min-width:2.2rem; height:2.2rem; margin-left:.35rem;
+    border-radius:50%; background:var(--green-deep); color:#fff; font-size:1.15rem; vertical-align:middle;
+  }
+  .aviso-memorizar.vez{ background:#fff; border-color:var(--teal); }
+  .mem-grid.memorizando .mem-card{ cursor:default; }
   .instrucao-rapida{ color:var(--text-soft); text-align:center; margin:0; font-size:.85rem; font-weight:600; }
 
   /* ===== MODAIS (padrão popup-card) ===== */
@@ -379,6 +391,7 @@
       <section class="painel-grade-memoria" aria-label="Grade do jogo da memória">
         <div class="mem-controls">
           <button id="btnEspiadela" class="btn-secundario">👀 Dar uma espiadela (1x por jogo)</button>
+          <p id="avisoMemorizar" class="aviso-memorizar" role="status" hidden></p>
         </div>
         <div class="mem-grid-scroll"><div id="gradeMemoria" class="mem-grid"></div></div>
         <p class="instrucao-rapida">Toque em duas cartas para tentar formar um par. Cartas iguais ficam viradas.</p>
@@ -449,10 +462,11 @@
 
   // "pairs" = quantos pares de cartas entram em cada partida; "cols" = colunas da grade.
   const LEVELS = {
-    facil: { label: "Fácil", pairs: 6, cols: 4 },
-    medio: { label: "Médio", pairs: 8, cols: 4 },
-    dificil: { label: "Difícil", pairs: 10, cols: 5 }
+    facil: { label: "Fácil", pairs: 6, cols: 4, memorizar: 3 },
+    medio: { label: "Médio", pairs: 8, cols: 4, memorizar: 4 },
+    dificil: { label: "Difícil", pairs: 10, cols: 5, memorizar: 5 }
   };
+  // "memorizar" = segundos em que todas as cartas ficam viradas para cima no início da partida.
 
   function shuffle(arr){
     const a = [...arr];
@@ -511,7 +525,8 @@
     toast: document.getElementById("toast"),
     liveRegion: document.getElementById("liveRegion"),
     btnSom: document.getElementById("btnSom"),
-    btnEspiadela: document.getElementById("btnEspiadela")
+    btnEspiadela: document.getElementById("btnEspiadela"),
+    avisoMemorizar: document.getElementById("avisoMemorizar")
   };
 
   function cardAt(i){ return el.gradeMemoria.querySelector(`.mem-card[data-i="${i}"]`); }
@@ -624,6 +639,42 @@
     pendingTimeouts.push(t);
   }
 
+  // ---------- MEMORIZAÇÃO: cartas viradas para cima no início ----------
+  function iniciarMemorizacao(){
+    let restante = currentLevel.memorizar;
+    lock = true;
+    el.btnEspiadela.disabled = true;
+    el.gradeMemoria.classList.add("memorizando");
+    deck.forEach((card, i) => cardAt(i).classList.add("peek"));
+    el.avisoMemorizar.classList.remove("vez");
+    el.avisoMemorizar.hidden = false;
+    announce("Memorize as cartas. Elas vão virar em " + restante + " segundos.");
+
+    function mostrarContagem(){
+      el.avisoMemorizar.innerHTML = '👀 Memorize as cartas! <span class="contagem" aria-hidden="true">' + restante + '</span>';
+    }
+    function passo(){
+      restante--;
+      if(restante > 0){
+        mostrarContagem();
+        pendingTimeouts.push(setTimeout(passo, 1000));
+        return;
+      }
+      // Fim da memorização: vira as cartas e libera o jogo.
+      deck.forEach((card, i) => cardAt(i).classList.remove("peek"));
+      el.gradeMemoria.classList.remove("memorizando");
+      el.btnEspiadela.disabled = false;
+      lock = false;
+      el.avisoMemorizar.classList.add("vez");
+      el.avisoMemorizar.textContent = "🃏 Agora é com você! Encontre os pares.";
+      announce("As cartas viraram. Agora encontre os pares.");
+      startTimer();
+      // O aviso continua no lugar (não some) para a grade não "pular" enquanto a pessoa toca nas cartas.
+    }
+    mostrarContagem();
+    pendingTimeouts.push(setTimeout(passo, 1000));
+  }
+
   function startTimer(){
     secondsElapsed = 0;
     updateTimerDisplay();
@@ -660,7 +711,10 @@
     deck = buildDeck(items);
     renderGrade();
     updateStats();
-    startTimer();
+    stopTimer();
+    secondsElapsed = 0;
+    updateTimerDisplay();          // o relógio só começa depois da memorização
+    iniciarMemorizacao();
   }
 
   function abrirNivel(levelKey){
@@ -770,7 +824,8 @@
     {
       titulo: 'Como jogar o Jogo da Memória',
       passos: [
-        'Escolha um dos três níveis. Todas as cartas começam viradas para baixo.',
+        'Escolha um dos três níveis. No começo, todas as cartas ficam <b>viradas para cima por alguns segundos</b> (3 no Fácil, 4 no Médio, 5 no Difícil). Aproveite para memorizar onde está cada figura.',
+        'Depois as cartas viram para baixo e o relógio começa.',
         'Toque em uma carta para virá-la, depois toque em outra.',
         'Se as duas forem iguais, elas ficam viradas e marcadas como encontradas.',
         'Se forem diferentes, elas viram de volta depois de um instante — tente lembrar onde estavam.',
