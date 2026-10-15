@@ -1,6 +1,10 @@
 (() => {
   const HASH_FORMAT = 'pbkdf2-sha256';
-  const ITERATIONS = 210000;
+  // 600.000 repetições = recomendação atual da OWASP para PBKDF2-HMAC-SHA256.
+  // Senhas antigas (210.000) continuam válidas e são atualizadas no próximo login (needsRehash).
+  const ITERATIONS = 600000;
+  const MIN_ITERATIONS = 100000;
+  const MAX_ITERATIONS = 2000000;
   const encoder = new TextEncoder();
 
   function toBase64(bytes) {
@@ -27,6 +31,12 @@
     return typeof storedValue === 'string' && storedValue.startsWith(`${HASH_FORMAT}$`);
   }
 
+  // true quando a senha está em texto puro ou com menos repetições que o padrão atual.
+  function needsRehash(storedValue) {
+    if (!isHashed(storedValue)) return true;
+    return Number(storedValue.split('$')[1]) < ITERATIONS;
+  }
+
   async function hash(password) {
     if (!globalThis.crypto?.subtle) throw new Error('Web Crypto não está disponível.');
     const salt = globalThis.crypto.getRandomValues(new Uint8Array(16));
@@ -41,7 +51,7 @@
 
     const [, iterationsText, saltText, expectedText] = storedValue.split('$');
     const iterations = Number(iterationsText);
-    if (!Number.isInteger(iterations) || iterations < 100000 || iterations > 500000) return false;
+    if (!Number.isInteger(iterations) || iterations < MIN_ITERATIONS || iterations > MAX_ITERATIONS) return false;
 
     try {
       const salt = fromBase64(saltText);
@@ -57,5 +67,5 @@
     }
   }
 
-  window.TechSaudePassword = { hash, verify, isHashed };
+  window.TechSaudePassword = { hash, verify, isHashed, needsRehash };
 })();

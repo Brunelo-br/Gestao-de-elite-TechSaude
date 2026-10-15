@@ -1564,7 +1564,8 @@
       return;
     }
 
-    if(!TechSaudePassword.isHashed(data.senha_hash)){
+    // Atualiza senhas em texto puro ou com hash antigo (menos repetições) para o padrão atual.
+    if(TechSaudePassword.needsRehash(data.senha_hash)){
       try {
         const senhaHash = await TechSaudePassword.hash(senha);
         const { error: erroMigracao } = await supabaseClient
