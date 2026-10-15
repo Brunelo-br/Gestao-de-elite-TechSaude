@@ -1533,8 +1533,9 @@
       showMsg('login-msg', 'Não foi possível entrar agora. Verifique a internet e tente de novo.', 'error');
       return;
     }
+    // Mesma mensagem para usuário inexistente e senha errada: não revela qual dos dois está errado.
     if(!encontrados || !encontrados.length){
-      showMsg('login-msg', usandoEmail ? 'Não encontramos uma conta com este e-mail.' : 'Não encontramos uma conta com este CPF.', 'error');
+      showMsg('login-msg', 'Usuário ou senha incorretos. Verifique e tente novamente.', 'error');
       return;
     }
     if(encontrados.length > 1){
@@ -1560,7 +1561,7 @@
         identificador_usado: user,
         sucesso: false
       }]);
-      showMsg('login-msg', 'Senha incorreta. Tente novamente.', 'error');
+      showMsg('login-msg', 'Usuário ou senha incorretos. Verifique e tente novamente.', 'error');
       return;
     }
 
