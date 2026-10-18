@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TechSaúde – Consultas e Lembretes</title>
+<script src="navegacao-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
@@ -115,7 +116,7 @@ body{
   display:flex;align-items:center;justify-content:center;
   font-size:1.125rem;flex-shrink:0;color:var(--green-mid);
 }
-.form-field input,.form-field textarea{
+.form-field input,.form-field textarea,.form-field select{
   flex:1;
   border:none;
   background:transparent;
@@ -125,6 +126,7 @@ body{
   outline:none;
   min-width:0;
 }
+.form-field select{cursor:pointer;}
 .form-field textarea{resize:vertical;min-height:72px;padding-top:2px;}
 .datetime-inputs{display:flex;gap:8px;}
 .datetime-inputs .form-field{flex:1;}
@@ -708,7 +710,7 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
         <div class="datetime" id="datetime"></div>
       </div>
       <div class="header-nav">
-      <button type="button" class="header-btn voltar" id="btnVoltarTela" onclick="voltarTela()" aria-label="Voltar para a tela anterior" hidden>
+      <button type="button" class="header-btn voltar" id="btnVoltarTela" onclick="voltarTela()" aria-label="Voltar para a tela anterior">
         <div class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
         </div>
@@ -756,7 +758,28 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
           <label class="field-label">Especialidade</label>
           <div class="form-field">
             <div class="field-icon">🩺</div>
-            <input type="text" id="c-especialidade" placeholder="Ex: Oftalmologia" autocomplete="off">
+            <select id="c-especialidade" aria-label="Especialidade da consulta">
+              <option value="">Selecione uma especialidade</option>
+              <option value="Cardiologia">Cardiologia</option>
+              <option value="Clínica Geral">Clínica Geral</option>
+              <option value="Dermatologia">Dermatologia</option>
+              <option value="Endocrinologia">Endocrinologia</option>
+              <option value="Ginecologia">Ginecologia</option>
+              <option value="Neurologia">Neurologia</option>
+              <option value="Oftalmologia">Oftalmologia</option>
+              <option value="Ortopedia">Ortopedia</option>
+              <option value="Pediatria">Pediatria</option>
+              <option value="Psiquiatria">Psiquiatria</option>
+              <option value="Urologia">Urologia</option>
+              <option value="__outra__">Outra especialidade</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id="grupo-outra-especialidade" hidden>
+          <label class="field-label" for="c-especialidade-outra">Informe a especialidade</label>
+          <div class="form-field">
+            <div class="field-icon">🩺</div>
+            <input type="text" id="c-especialidade-outra" placeholder="Digite a especialidade" autocomplete="off">
           </div>
         </div>
         <div class="form-group">
@@ -821,6 +844,7 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
     <!-- ========== TELA 2: MINHAS CONSULTAS ========== -->
     <section class="screen" id="screen-consultas">
       <h1 class="page-title">Minhas Consultas</h1>
+      <button type="button" class="btn-block outline" onclick="window.location.href='calendario-saude.html'">Ver no Calendário de Saúde</button>
       <div id="lista-consultas" class="cards-grid"></div>
       <a href="#" class="section-link" onclick="mostrarToast('Histórico de consultas anteriores (em breve)'); return false;">
         <span>🕒 Ver consultas anteriores</span>
@@ -971,16 +995,17 @@ async function carregarConsultasSupabase(){
 let telaHistorico = ['incluir'];
 
 function atualizarBotaoVoltar(telaAtual){
-  const temTelaAnterior = telaAtual === 'consultas' && telaHistorico.length > 1;
-  document.getElementById('btnVoltarTela').hidden = !temTelaAnterior;
-  document.querySelector('.header').classList.toggle('tem-voltar', temTelaAnterior);
+  document.getElementById('btnVoltarTela').hidden = false;
+  document.querySelector('.header').classList.add('tem-voltar');
 }
 
 function voltarTela(){
   if(telaHistorico.length > 1){
     telaHistorico.pop();
     goTo(telaHistorico[telaHistorico.length - 1], true);
+    return;
   }
+  window.voltarTelaApp();
 }
 
 function goTo(name, viaVoltar){
@@ -1090,7 +1115,10 @@ function escapeHtml(s){
 
 async function salvarConsulta(){
   const local = document.getElementById('c-local').value.trim();
-  const especialidade = document.getElementById('c-especialidade').value.trim();
+  const especialidadeSelecionada = document.getElementById('c-especialidade').value;
+  const especialidade = especialidadeSelecionada === '__outra__'
+    ? document.getElementById('c-especialidade-outra').value.trim()
+    : especialidadeSelecionada;
   const medico = document.getElementById('c-medico').value.trim();
   const data = document.getElementById('c-data').value;
   const hora = document.getElementById('c-hora').value;
@@ -1098,7 +1126,15 @@ async function salvarConsulta(){
   const alarmeAtivo = document.getElementById('alarmToggle').classList.contains('active');
 
   let ok = true;
-  [['c-local',local],['c-especialidade',especialidade],['c-medico',medico],['c-data',data],['c-hora',hora]].forEach(function(pair){
+  const camposObrigatorios = [
+    ['c-local',local],
+    ['c-especialidade',especialidadeSelecionada],
+    ['c-medico',medico],
+    ['c-data',data],
+    ['c-hora',hora]
+  ];
+  if(especialidadeSelecionada === '__outra__') camposObrigatorios.push(['c-especialidade-outra', especialidade]);
+  camposObrigatorios.forEach(function(pair){
     const field = document.getElementById(pair[0]).closest('.form-field');
     if(!pair[1]){ field.classList.add('error'); field.classList.remove('success'); ok = false; }
     else { field.classList.remove('error'); field.classList.add('success'); }
@@ -1151,12 +1187,22 @@ async function salvarConsulta(){
 }
 
 function limparFormulario(){
-  ['c-local','c-especialidade','c-medico','c-data','c-hora','c-obs'].forEach(function(id){
+  ['c-local','c-especialidade','c-especialidade-outra','c-medico','c-data','c-hora','c-obs'].forEach(function(id){
     document.getElementById(id).value = '';
     document.getElementById(id).closest('.form-field').classList.remove('error','success');
   });
+  document.getElementById('grupo-outra-especialidade').hidden = true;
   document.getElementById('alarmToggle').classList.add('active');
 }
+
+document.getElementById('c-especialidade').addEventListener('change', function(){
+  const grupo = document.getElementById('grupo-outra-especialidade');
+  grupo.hidden = this.value !== '__outra__';
+  if(this.value !== '__outra__'){
+    const campo = document.getElementById('c-especialidade-outra').closest('.form-field');
+    campo.classList.remove('error','success');
+  }
+});
 
 function fecharSucesso(){
   document.getElementById('popup-sucesso').classList.remove('show');
@@ -1297,6 +1343,7 @@ carregarConsultasSupabase();
       intro: 'Nesta parte você anota uma nova consulta médica na sua agenda.',
       passos: [
         'Escreva o <b>local</b> (clínica ou hospital), a <b>especialidade</b> e o nome do <b>médico</b>.',
+        'Escolha uma especialidade na lista. Se não encontrar, selecione <b>Outra especialidade</b> e informe o nome.',
         'Escolha o <b>dia</b> e a <b>hora</b> da consulta.',
         'Deixe a chave de <b>Alarme</b> ligada (verde) para ser lembrado.',
         'Se quiser, escreva uma observação, como “levar exames”.',
@@ -1310,6 +1357,7 @@ carregarConsultasSupabase();
       intro: 'Aqui aparecem todas as consultas que você salvou.',
       passos: [
         'Cada cartão mostra o médico, a especialidade, o dia, a hora e o local.',
+        'Toque em <b>Ver no Calendário de Saúde</b> para localizar consultas marcadas no calendário.',
         'Toque em <b>Configurar Lembrete</b> para escolher quando quer ser avisado: 1 dia, 2 horas ou 30 minutos antes.',
         'Toque em <b>Excluir</b> para apagar uma consulta.',
         'Para anotar outra consulta, toque em <b>Incluir Nova Consulta</b>.'

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TechSaúde - Alarme de Medicamento</title>
+<script src="navegacao-app.js"></script>
 
 <!-- SUPABASE JS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -84,9 +85,9 @@
   .topbar{
     background: linear-gradient(160deg, #12583a, #0b3423);
     padding:20px 20px 18px;
-    display:flex;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
     align-items:flex-start;
-    justify-content:space-between;
     gap:8px;
   }
 
@@ -117,6 +118,8 @@
 
   .nav-btn.emergencia .icon-circle{ background:#c0392b; }
   .nav-btn.inicio .icon-circle{ background:rgba(255,255,255,0.18); }
+  .nav-btn.voltar .icon-circle{ background:rgba(255,255,255,0.18); }
+  .nav-right{ grid-column:3; justify-self:end; display:flex; align-items:flex-start; gap:10px; flex-shrink:0; }
   .nav-btn .icon-circle svg{ width:20px;height:20px; color:#fff; }
   .nav-btn.emergencia .icon-circle svg:not(:last-child){ display:none; }
   .nav-btn.inicio .icon-circle svg{ stroke:#fff; }
@@ -124,6 +127,7 @@
   .nav-btn:focus-visible{ outline:3px solid var(--cream); outline-offset:3px; border-radius:8px; }
 
   .brand-top{
+    grid-column:2;
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -553,7 +557,12 @@
   @media (max-width:480px){
     body{ padding:0; }
     .site{ max-width:100%; min-height:100vh; border-radius:0; box-shadow:none; }
+    .topbar{padding:14px 8px 12px;}
+    .brand-top img{width:120px;height:120px;}
+    .nav-btn{font-size:.58rem;}
+    .nav-btn .icon-circle{width:36px;height:36px;}
   }
+  @media (max-width:440px){ .nav-right{ gap:4px; } }
 
   @media (min-width:901px){
     body{ padding:56px 32px; }
@@ -623,6 +632,53 @@
     font-weight:800;
     text-transform:uppercase;
     box-shadow:0 6px 0 #0e2416, 0 10px 18px rgba(0,0,0,0.25);
+  }
+  .modal-overlay{
+    overflow-y:auto;
+    align-items:flex-start;
+  }
+  .modal{
+    width:min(100%, 680px);
+    max-width:680px;
+    max-height:calc(100vh - 48px);
+    margin:auto;
+    padding:32px 36px;
+    overscroll-behavior:contain;
+  }
+  .modal h2{ margin-bottom:26px; }
+  .modal .field{ margin-bottom:26px; }
+  .meds-label{ margin-bottom:14px; }
+  .med-bloco{
+    padding:20px 20px 8px;
+    margin-bottom:16px;
+    border-radius:20px;
+  }
+  .med-bloco-header{ margin-bottom:16px; }
+  .med-bloco-titulo{ font-size:.875rem; }
+  .med-bloco .field{ margin-bottom:24px; }
+  .med-bloco .field:last-child{ margin-bottom:8px; }
+  .med-bloco .field-box{ min-height:64px; }
+  .btn-add-med{ margin:8px 0 24px; padding:15px; }
+  .modal #fieldPrimeiraDose,
+  .modal #fieldIntervalo{ margin-bottom:28px; }
+  .modal fieldset{ padding:18px 20px 20px; margin-bottom:24px; }
+  .modal .radio-row{ gap:16px 22px; margin-bottom:18px; }
+  .modal .radio-row label{ min-height:32px; }
+  @media (max-width:600px){
+    .modal-overlay{ padding:12px; }
+    .modal{
+      max-height:calc(100vh - 24px);
+      padding:28px 20px 24px;
+      border-radius:22px;
+    }
+    .modal h2{ font-size:1.2rem; margin-bottom:24px; }
+    .med-bloco{ padding:18px 16px 8px; }
+    .modal .field{ margin-bottom:24px; }
+    .modal .radio-row{ flex-direction:column; align-items:flex-start; gap:12px; }
+  }
+  @media (max-width:360px){
+    .modal-overlay{ padding:8px; }
+    .modal{ max-height:calc(100vh - 16px); padding:24px 16px 20px; }
   }
 </style>
 <!-- ===== PADRÃO TECHSAÚDE: ACESSIBILIDADE (tamanho da letra + Ajuda) ===== -->
@@ -709,12 +765,18 @@
       <img src="img/logo.png" alt="Logo TechSaúde">
     </div>
 
-    <a class="nav-btn inicio" href="home.html">
-      <span class="icon-circle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>
-      </span>
-      INÍCIO
-    </a>
+    <div class="nav-right">
+      <button type="button" class="nav-btn voltar" onclick="voltarTelaApp()" aria-label="Voltar">
+        <span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></span>
+        VOLTAR
+      </button>
+      <a class="nav-btn inicio" href="home.html">
+        <span class="icon-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>
+        </span>
+        INÍCIO
+      </a>
+    </div>
   </header>
 
   <div class="app">

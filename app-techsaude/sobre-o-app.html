@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TechSaúde — Termos, Privacidade e Versão</title>
+<script src="navegacao-app.js"></script>
 
 <!-- Aplica o tamanho de letra salvo ANTES da tela aparecer (evita "piscar") -->
 <script>
@@ -36,7 +37,7 @@
   /* ============ CABEÇALHO ============ */
   .wrap{ width:100%; flex:1; display:flex; flex-direction:column; background:var(--cream); }
   .topbar{
-    display:grid; grid-template-columns:70px 1fr 70px; align-items:start;
+    display:grid; grid-template-columns:70px 1fr 136px; align-items:start;
     padding:18px 14px 20px; color:var(--cream);
     background:linear-gradient(160deg,#1d5b3a,#123a26);
   }
@@ -47,9 +48,16 @@
   .topbar-btn .icon-circle{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
   .topbar-btn.emergencia .icon-circle{ background:#c0392b; }
   .topbar-btn.inicio .icon-circle{ background:rgba(255,255,255,.16); }
+  .topbar-btn.voltar .icon-circle{ background:rgba(255,255,255,.16); }
+  .topbar-right{display:flex;align-items:flex-start;gap:4px;}
   .topbar-btn svg{ width:20px; height:20px; }
   .topbar-btn:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
   .topbar-btn[hidden]{ display:none; }
+  @media (max-width:440px){
+    .topbar{grid-template-columns:56px 1fr 108px;padding-left:8px;padding-right:8px;}
+    .topbar-btn{width:50px;font-size:.58rem;}
+    .topbar-btn .icon-circle{width:36px;height:36px;}
+  }
   .topbar-center{ display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; }
   .topbar-center img{ width:130px; height:130px; object-fit:contain; }
   .topbar-center h1{ margin:0; font-size:1.05rem; font-weight:800; color:var(--cream); text-transform:none; }
@@ -69,9 +77,6 @@
   }
   .chip-btn:hover{ border-color:var(--teal); }
   .font-btn:focus-visible, .chip-btn:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
-
-  .voltar-row{ margin:0 0 14px; }
-  .voltar-row[hidden]{ display:none; }
 
   .view[hidden]{ display:none; }
   .view-title{ margin:4px 0 4px; text-align:center; font-size:1.3rem; font-weight:900; text-transform:uppercase; color:var(--green-deep); }
@@ -232,14 +237,20 @@
       <h1 id="tituloTela">Termos, Privacidade e Versão</h1>
     </div>
 
-    <button type="button" class="topbar-btn inicio" id="btnInicio">
-      <span class="icon-circle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>
-        </svg>
-      </span>
-      Início
-    </button>
+    <div class="topbar-right">
+      <button type="button" class="topbar-btn voltar" id="btnVoltarTopo" aria-label="Voltar">
+        <span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></span>
+        <span id="btnVoltarTopoLabel">Voltar</span>
+      </button>
+      <button type="button" class="topbar-btn inicio" id="btnInicio">
+        <span class="icon-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>
+          </svg>
+        </span>
+        Início
+      </button>
+    </div>
   </header>
 
   <main class="body">
@@ -253,10 +264,6 @@
         <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
       </div>
       <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
-    </div>
-
-    <div class="voltar-row" id="voltarRow" hidden>
-      <button type="button" class="chip-btn" id="btnVoltar">↩ Voltar</button>
     </div>
 
     <!-- ===== 1) ESCOLHA DO DOCUMENTO ===== -->
@@ -538,8 +545,10 @@
     Object.keys(views).forEach(function(k){ views[k].hidden = (k !== nome); });
     $('tituloTela').textContent = titulos[nome];
     document.title = 'TechSaúde — ' + titulos[nome];
-    $('voltarRow').hidden = (nome === 'menu' && pendente); // no 1º acesso o menu é a base
-    $('btnVoltar').textContent = nome === 'menu' && modalMode ? '✕ Fechar' : (nome === 'menu' ? '↩ Voltar' : '↩ Voltar ao menu');
+    $('btnVoltarTopo').hidden = (nome === 'menu' && pendente);
+    var rotuloVoltar = nome === 'menu' && modalMode ? 'Fechar' : (nome === 'menu' ? 'Voltar' : 'Voltar ao menu');
+    $('btnVoltarTopoLabel').textContent = rotuloVoltar;
+    $('btnVoltarTopo').setAttribute('aria-label', rotuloVoltar);
 
     if (nome === 'termos' || nome === 'privacidade') {
       lidos[nome] = true;
@@ -565,14 +574,15 @@
     b.addEventListener('click', function(){ mostrar(b.getAttribute('data-abrir')); });
   });
 
-  $('btnVoltar').addEventListener('click', function(){
+  function voltarSobre(){
     if (atual !== 'menu') { mostrar('menu'); return; }
     if (modalMode) {
       window.parent.postMessage('techsaude:fechar-sobre', window.location.origin);
       return;
     }
-    if (history.length > 1 && document.referrer) history.back(); else window.location.href = origem;
-  });
+    if (history.length > 1) history.back(); else window.location.href = origem;
+  }
+  $('btnVoltarTopo').addEventListener('click', voltarSobre);
 
   // ---------- INÍCIO / EMERGÊNCIA ----------
   // No primeiro acesso o usuário precisa decidir antes de ir para a Home.
