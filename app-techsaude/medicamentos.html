@@ -120,6 +120,8 @@
   .nav-btn.emergencia .icon-circle{ background:#c0392b; }
   .nav-btn.inicio .icon-circle{ background:rgba(255,255,255,0.18); }
   .nav-btn.voltar .icon-circle{ background:rgba(255,255,255,0.18); }
+  /* Emergência no canto superior esquerdo, como em todas as telas do app */
+  .topbar > .nav-btn.emergencia{ grid-column:1; justify-self:start; }
   .nav-right{ grid-column:3; justify-self:end; display:flex; align-items:flex-start; gap:10px; flex-shrink:0; }
   .nav-btn .icon-circle svg{ width:20px;height:20px; color:#fff; }
   .nav-btn.emergencia .icon-circle svg:not(:last-child){ display:none; }
@@ -712,6 +714,12 @@
   .alarm-progresso .barra span{ display:block; height:100%; background:var(--green-mid); border-radius:999px; }
   .btn-editar{ margin-top:12px; width:100%; min-height:48px; justify-content:center; align-items:center; gap:6px; border:2.5px solid var(--forest); border-radius:999px; background:#fff; font-weight:800; font-size:.95rem; text-transform:uppercase; letter-spacing:.3px; }
   .btn-editar:hover{ background:var(--success-bg); }
+  .alarm-botoes{ display:flex; gap:10px; margin-top:12px; }
+  .alarm-botoes .btn-editar{ margin-top:0; flex:1; }
+  .btn-excluir-card{ flex:1; min-height:48px; border:2.5px solid var(--error); border-radius:999px; background:#fff; color:var(--error); font-weight:800; font-size:.95rem; text-transform:uppercase; letter-spacing:.3px; cursor:pointer; font-family:inherit; }
+  .btn-excluir-card:hover{ background:var(--error-bg); }
+  .btn-excluir-concluidos{ width:100%; min-height:48px; border:2.5px dashed var(--error); border-radius:999px; background:#fff; color:var(--error); font-weight:800; font-size:.9rem; cursor:pointer; font-family:inherit; grid-column:1 / -1; }
+  .btn-excluir-card:focus-visible, .btn-excluir-concluidos:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
   .switch{ width:60px; height:34px; margin-top:2px; }
   .switch::before{ content:""; position:absolute; inset:-8px -6px; }
   .switch .slider::before{ height:24px; width:24px; top:3px; left:3px; }
@@ -1491,7 +1499,12 @@ if (!rawUser) {
       '<p class="alarm-meta">🔁 ' + textoIntervalo(a.intervaloHoras) + '</p>' +
       linhaProgresso +
       (a.pendente ? '<p class="alarm-meta pendente">⚠️ Ainda não salvo na sua conta (só neste aparelho)</p>' : '') +
-      '<button type="button" class="btn-editar" data-id="' + escapeAttr(a.id) + '" aria-label="Editar alarme de ' + escapeAttr(nome) + '">✏️ Editar</button>' +
+      (concluido
+        ? '<div class="alarm-botoes">' +
+            '<button type="button" class="btn-editar" data-id="' + escapeAttr(a.id) + '" aria-label="Editar alarme de ' + escapeAttr(nome) + '">✏️ Editar</button>' +
+            '<button type="button" class="btn-excluir-card" data-id="' + escapeAttr(a.id) + '" aria-label="Excluir alarme de ' + escapeAttr(nome) + '">🗑️ Excluir</button>' +
+          '</div>'
+        : '<button type="button" class="btn-editar" data-id="' + escapeAttr(a.id) + '" aria-label="Editar alarme de ' + escapeAttr(nome) + '">✏️ Editar</button>') +
     '</article>';
   }
 
@@ -1510,7 +1523,10 @@ if (!rawUser) {
 
     elBtnInativos.hidden = !outros.length;
     document.getElementById('qtdInativos').textContent = '(' + outros.length + ')';
-    elInativos.innerHTML = outros.map(cardAlarme).join('');
+    var concluidos = outros.filter(tratamentoConcluido);
+    elInativos.innerHTML = (concluidos.length > 1
+        ? '<button type="button" class="btn-excluir-concluidos" id="btnExcluirConcluidos">🗑️ Excluir todos os concluídos (' + concluidos.length + ')</button>'
+        : '') + outros.map(cardAlarme).join('');
     if(!outros.length){ elInativos.hidden = true; elBtnInativos.setAttribute('aria-expanded', 'false'); }
 
     var pendentes = alarmes.filter(function(a){ return a.pendente; }).length;
@@ -1536,10 +1552,36 @@ if (!rawUser) {
       renderizarTudo();
     });
     lista.addEventListener('click', function(e){
-      var btn = e.target.closest('.btn-editar'); if(!btn) return;
-      abrirModalEdicao(btn.dataset.id);
+      var btn = e.target.closest('.btn-editar');
+      if(btn){ abrirModalEdicao(btn.dataset.id); return; }
+      var exc = e.target.closest('.btn-excluir-card');
+      if(exc){ excluirConcluidos([acharAlarme(exc.dataset.id)].filter(Boolean)); return; }
+      if(e.target.closest('#btnExcluirConcluidos')) excluirConcluidos(alarmes.filter(tratamentoConcluido));
     });
   });
+
+  // Excluir direto pelo card: só para tratamentos já concluídos (os que continuam, só em Editar).
+  async function excluirConcluidos(lista){
+    if(!lista.length) return;
+    var um = lista.length === 1;
+    var ok = await confirmar(um ? 'Excluir este tratamento?' : 'Excluir ' + lista.length + ' tratamentos concluídos?',
+      um ? nomeAlarme(lista[0]) + ' já terminou. O alarme será apagado da sua conta.'
+         : 'Serão apagados: ' + lista.map(nomeAlarme).join(', ') + '. Todos já terminaram.',
+      um ? 'Sim, excluir' : 'Sim, excluir todos', 'Não');
+    if(!ok) return;
+    var apagados = 0;
+    for(var i = 0; i < lista.length; i++){
+      if(await apagarAlarme(lista[i])){
+        var id = lista[i].id;
+        alarmes = alarmes.filter(function(a){ return !mesmoId(a.id, id); });
+        delete confirmadas[String(id)];
+        apagados++;
+      }
+    }
+    salvarConfirmacoes(); guardarLocal(); renderizarTudo();
+    if(apagados === lista.length) mostrarToast(um ? '🗑️ Tratamento excluído' : '🗑️ ' + apagados + ' tratamentos excluídos');
+    else mostrarToast('Não foi possível excluir ' + (lista.length - apagados) + ' tratamento(s). Verifique a internet e tente de novo.', 'erro');
+  }
 
   function renderizarTudo(){
     renderizarProximoAlarme();
@@ -2076,7 +2118,8 @@ if (!rawUser) {
         'No quadro do alto aparece o <b>próximo remédio</b>, o horário e quanto falta.',
         'Para cadastrar um remédio, toque em <b>+ Adicionar novo alarme</b>.',
         'Escreva o nome e a dose, escolha o dia e a hora da 1ª dose e de quantas em quantas horas tomar (ou toque em <b>8 em 8h</b>, <b>1 vez ao dia</b>...). Depois toque em <b>Salvar alarme</b>.',
-        'Em <b>Remédios ativos</b>, cada cartão mostra a próxima dose e quantos dias ou doses faltam. Toque em <b>Editar</b> para mudar, ou na chavinha para ligar e desligar.',
+        'Em <b>Remédios ativos</b>, cada cartão mostra a próxima dose e quantos dias ou doses faltam. Toque em <b>Editar</b> para mudar ou excluir, ou na chavinha para ligar e desligar.',
+        'Tratamentos que já terminaram ficam em <b>Desligados e concluídos</b>. Ali dá para excluir direto, um por um ou todos de uma vez.',
         'Na hora do remédio aparece um aviso: toque em <b>Já tomei</b> ou em <b>Adiar 5 minutos</b>. Se passar do horário, aparece <b>Dose não confirmada</b> para você responder.'
       ],
       dica: 'O alerta toca enquanto esta tela estiver aberta. Ligue a chave Notificação no celular para receber também na barra de notificações.'
