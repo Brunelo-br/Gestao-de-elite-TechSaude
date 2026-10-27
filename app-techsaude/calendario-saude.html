@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TechSaúde — Calendário de Saúde</title>
 <script src="navegacao-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="lembretes-app.js"></script>
 <style>
 :root{
   --cream:#f3efdc; --cream-deep:#ece5c9; --ink:#16301f; --ink-soft:#2e4a37;
@@ -110,8 +112,21 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
 .day.muted{color:#b5aa84;font-weight:600;}
 .day.today{background:var(--green-deep);color:var(--cream);}
 .day.selected:not(.today){outline:2px solid var(--teal);outline-offset:-2px;background:#fff;}
-.day.has-event::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--teal);}
-.day.today.has-event::after{background:#8fe0cf;}
+.day{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;min-height:44px;line-height:1;}
+.day .num{display:block;}
+.day .marcas{display:flex;gap:2px;height:13px;align-items:center;justify-content:center;}
+.day .marcas svg{width:13px;height:13px;}
+.day .marca-consulta{color:#1f5fa8;}
+.day .marca-remedio{color:#b5651d;}
+.day .marca-outro{width:6px;height:6px;border-radius:50%;background:var(--teal);display:inline-block;}
+.day.today .marca-consulta,.day.today .marca-remedio{color:#f3efdc;}
+.day.today .marca-outro{background:#8fe0cf;}
+.cal-legenda{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;margin:12px 0 0;font-size:.8rem;font-weight:700;color:var(--text-soft);}
+.cal-legenda span{display:inline-flex;align-items:center;gap:5px;}
+.cal-legenda svg{width:16px;height:16px;}
+.cal-status{text-align:center;font-size:.8rem;font-weight:700;color:var(--text-soft);margin:8px 0 0;min-height:1em;}
+.event-icon.remedio{color:#b5651d;}
+.event-icon.consulta{color:#1f5fa8;}
 .section-title{font-size:.95rem;text-align:center;margin:0 0 .75rem;letter-spacing:.3px;}
 .event-list{display:flex;flex-direction:column;gap:10px;margin-bottom:1.1rem;}
 .event-card{display:flex;align-items:center;gap:.65rem;background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:.75rem;}
@@ -194,6 +209,12 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
         <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
       </div>
       <div class="days" id="cal-dias"></div>
+      <div class="cal-legenda" aria-hidden="true">
+        <span class="marca-consulta" id="leg-consulta"></span>
+        <span class="marca-remedio" id="leg-remedio"></span>
+        <span><i class="marca-outro" style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;"></i> Outro evento</span>
+      </div>
+      <p class="cal-status" id="cal-status" aria-live="polite"></p>
     </section>
 
     <div class="events-col">
@@ -351,13 +372,22 @@ const ICONS = {"consulta": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"cu
 
 let viewYear, viewMonth, selectedISO = null, excluirId = null;
 
-const seed = [
-  {id:1, tipo:'consulta', titulo:'Consulta com Dr. Silva', data:'2026-03-02', hora:'', obs:''},
-  {id:2, tipo:'medicamento', titulo:'Tomar Remédio (Pílula)', data:'2026-03-02', hora:'18:00', obs:''},
-  {id:3, tipo:'aniversario', titulo:'Aniversário da Ana', data:'2026-03-03', hora:'', obs:''},
-  {id:4, tipo:'consulta', titulo:'Retorno cardiologia', data:'2026-03-10', hora:'09:30', obs:''},
-  {id:5, tipo:'medicamento', titulo:'Tomar Remédio (Pílula)', data:'2026-03-15', hora:'08:00', obs:''}
-];
+// Eventos de exemplo das primeiras versões: são removidos de quem ainda os tem salvos.
+const EXEMPLOS_ANTIGOS = ['1|Consulta com Dr. Silva|2026-03-02','2|Tomar Remédio (Pílula)|2026-03-02','3|Aniversário da Ana|2026-03-03','4|Retorno cardiologia|2026-03-10','5|Tomar Remédio (Pílula)|2026-03-15'];
+const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+function idUsuario(){
+  try{
+    let u = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');
+    if(Array.isArray(u)) u = u[0];
+    const n = Number(u?.id ?? u?.id_usuario);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }catch(e){ return null; }
+}
+const USER_ID = idUsuario();
+if(!USER_ID) window.location.replace('index.html');
+let alarmesRemedio = [];
 
 function canUseStorage(){
   try{
@@ -374,12 +404,15 @@ function loadEventos(){
       const raw = localStorage.getItem(KEY);
       if(raw){
         const parsed = JSON.parse(raw);
-        if(Array.isArray(parsed) && parsed.length) return parsed;
+        if(Array.isArray(parsed)){
+          const limpos = parsed.filter(e => EXEMPLOS_ANTIGOS.indexOf(e.id + '|' + e.titulo + '|' + e.data) === -1);
+          if(limpos.length !== parsed.length) localStorage.setItem(KEY, JSON.stringify(limpos));
+          return limpos;
+        }
       }
-      localStorage.setItem(KEY, JSON.stringify(seed));
     }catch(e){}
   }
-  return seed.slice();
+  return [];
 }
 let eventosBase = loadEventos();
 let eventos = [];
@@ -392,7 +425,7 @@ function carregarConsultasDaAgenda(){
       console.warn('Consultas não sincronizadas com o calendário: formato local inválido.');
       return [];
     }
-    return dados.filter(c => c && (c.data_consulta || c.data)).map(c => {
+    return dados.filter(c => c && (c.data_consulta || c.data) && (c.usuario_id == null || Number(c.usuario_id) === USER_ID)).map(c => {
       const data = c.data_consulta || c.data;
       const hora = c.hora_consulta || c.hora || '';
       const medico = c.medico || 'Profissional não informado';
@@ -402,7 +435,7 @@ function carregarConsultasDaAgenda(){
         tipo: 'consulta',
         titulo: 'Consulta com ' + medico + (especialidade ? ' — ' + especialidade : ''),
         data: String(data).slice(0,10),
-        hora,
+        hora: String(hora).slice(0, 5),
         obs: c.local_atendimento || c.local || '',
         consultaVinculada: true
       };
@@ -414,6 +447,68 @@ function carregarConsultasDaAgenda(){
 }
 function sincronizarConsultas(){
   eventos = eventosBase.concat(carregarConsultasDaAgenda());
+}
+
+// ---------- DADOS DO BANCO: consultas e remédios ----------
+// Antes o calendário só lia a cópia local das consultas, por isso uma consulta nova
+// às vezes não aparecia. Agora ele busca direto no Supabase sempre que a tela abre.
+async function carregarDoBanco(){
+  const status = document.getElementById('cal-status');
+  if(!supabaseClient || !USER_ID){ carregarRemediosLocais(); return; }
+  let falhou = false;
+  try{
+    const r = await supabaseClient.from('consulta').select('*').eq('usuario_id', USER_ID);
+    if(r.error) throw r.error;
+    localStorage.setItem(CONSULTAS_KEY, JSON.stringify(r.data || []));
+  }catch(e){ falhou = true; console.warn('Consultas: usando cópia local.', e); }
+  try{
+    const r = await supabaseClient.from('medicamentos').select('*').eq('usuario_id', USER_ID);
+    if(r.error) throw r.error;
+    const locais = lerRemediosLocais().filter(a => typeof a.id === 'string' && a.id.indexOf('alarme-') === 0);
+    alarmesRemedio = (r.data || []).map(d => ({
+      id: d.id,
+      medicamentos: typeof d.medicamentos === 'string' ? JSON.parse(d.medicamentos) : (d.medicamentos || []),
+      primeiraDose: String(d.primeira_dose || '').slice(0, 16),
+      intervaloHoras: Number(d.intervalo_horas),
+      duracaoTipo: d.duracao_tipo,
+      duracaoValor: d.duracao_valor,
+      ativo: d.ativo !== false
+    })).concat(locais);
+  }catch(e){ falhou = true; carregarRemediosLocais(); console.warn('Remédios: usando cópia local.', e); }
+  status.textContent = falhou ? 'Sem conexão com o servidor: mostrando o que está salvo neste aparelho.' : '';
+}
+function lerRemediosLocais(){
+  try{ const l = JSON.parse(localStorage.getItem('medicamentos_' + USER_ID) || '[]'); return Array.isArray(l) ? l : []; }catch(e){ return []; }
+}
+function carregarRemediosLocais(){ alarmesRemedio = lerRemediosLocais(); }
+
+// Horários de remédio de cada dia, entre duas datas (mesmo cálculo da tela de Medicamentos).
+function dosesNoPeriodo(inicioPeriodo, fimPeriodo){
+  const porDia = {};
+  alarmesRemedio.forEach(a => {
+    if(!a.ativo) return;
+    const ini = new Date(a.primeiraDose);
+    const passo = Number(a.intervaloHoras) * 3600000;
+    if(isNaN(ini) || !(passo > 0)) return;
+    let limite = Infinity, maxDoses = Infinity;
+    if(a.duracaoTipo === 'dias') limite = ini.getTime() + Number(a.duracaoValor) * 86400000;
+    if(a.duracaoTipo === 'doses') maxDoses = Number(a.duracaoValor);
+    let k = Math.max(0, Math.ceil((inicioPeriodo - ini) / passo));
+    for(; k < maxDoses; k++){
+      const t = ini.getTime() + k * passo;
+      if(t >= limite || t > fimPeriodo.getTime()) break;
+      const d = new Date(t);
+      const iso = toISO(d.getFullYear(), d.getMonth(), d.getDate());
+      (porDia[iso] = porDia[iso] || []).push({ hora: pad(d.getHours()) + ':' + pad(d.getMinutes()), alarme: a });
+    }
+  });
+  return porDia;
+}
+let dosesMes = {};
+function calcularDosesDoMes(){
+  const ini = new Date(viewYear, viewMonth, 1); ini.setDate(ini.getDate() - 7);
+  const fim = new Date(viewYear, viewMonth + 1, 7, 23, 59);
+  dosesMes = dosesNoPeriodo(ini, fim);
 }
 function saveEventos(){
   if(!HAS_STORAGE) return;
@@ -444,7 +539,10 @@ function renderCalendario(){
   const prevDays = new Date(viewYear, viewMonth, 0).getDate();
   const today = new Date();
   const todayISO = toISO(today.getFullYear(), today.getMonth(), today.getDate());
-  const eventDays = new Set(eventos.map(e => e.data));
+  calcularDosesDoMes();
+  const consultaDias = new Set(eventos.filter(e => e.tipo === 'consulta').map(e => e.data));
+  const remedioDias = new Set(eventos.filter(e => e.tipo === 'medicamento').map(e => e.data));
+  const outrosDias = new Set(eventos.filter(e => e.tipo !== 'consulta' && e.tipo !== 'medicamento').map(e => e.data));
 
   const grid = document.getElementById('cal-dias');
   grid.innerHTML = '';
@@ -464,11 +562,22 @@ function renderCalendario(){
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'day';
-    btn.textContent = c.d;
+    const temConsulta = consultaDias.has(c.iso);
+    const temRemedio = Boolean(dosesMes[c.iso]) || remedioDias.has(c.iso);
+    const temOutro = outrosDias.has(c.iso);
+    btn.innerHTML = '<span class="num">' + c.d + '</span><span class="marcas" aria-hidden="true">' +
+      (temConsulta ? '<span class="marca-consulta">' + ICONS.consulta + '</span>' : '') +
+      (temRemedio ? '<span class="marca-remedio">' + ICONS.medicamento + '</span>' : '') +
+      (temOutro ? '<i class="marca-outro"></i>' : '') + '</span>';
+    const partes = [];
+    if(temConsulta) partes.push('tem consulta');
+    if(temRemedio) partes.push('tem remédio');
+    if(temOutro) partes.push('tem outro evento');
+    btn.setAttribute('aria-label', c.d + ' de ' + MESES_LONG[Number(c.iso.slice(5,7)) - 1] + (partes.length ? ': ' + partes.join(', ') : ''));
     if(c.muted) btn.classList.add('muted');
     if(c.iso === todayISO) btn.classList.add('today');
     if(c.iso === selectedISO) btn.classList.add('selected');
-    if(eventDays.has(c.iso)) btn.classList.add('has-event');
+    if(temConsulta || temRemedio || temOutro) btn.classList.add('has-event');
     btn.onclick = () => { selectedISO = (selectedISO === c.iso) ? null : c.iso; renderCalendario(); renderEventos(); };
     grid.appendChild(btn);
   });
@@ -477,28 +586,41 @@ function renderCalendario(){
 function renderEventos(){
   const el = document.getElementById('lista-eventos');
   let lista = eventos.slice().sort((a,b) => (a.data+(a.hora||'')).localeCompare(b.data+(b.hora||'')));
-  if(selectedISO) lista = lista.filter(e => e.data === selectedISO);
-  else {
+  if(selectedISO){
+    lista = lista.filter(e => e.data === selectedISO);
+    // Remédios do dia: um item por alarme, com todos os horários.
+    const doses = dosesMes[selectedISO] || dosesNoPeriodo(new Date(selectedISO + 'T00:00:00'), new Date(selectedISO + 'T23:59:00'))[selectedISO] || [];
+    const porAlarme = new Map();
+    doses.forEach(d => { const k = String(d.alarme.id); if(!porAlarme.has(k)) porAlarme.set(k, { a: d.alarme, horas: [] }); porAlarme.get(k).horas.push(d.hora); });
+    const remedios = Array.from(porAlarme.values()).map(x => ({
+      id: 'remedio-' + x.a.id, tipo: 'medicamento', remedioVinculado: true, data: selectedISO, hora: x.horas[0],
+      titulo: x.a.medicamentos.map(m => m.nome + (m.dose ? ' — ' + m.dose : '')).join(' + '),
+      horas: x.horas
+    }));
+    lista = lista.concat(remedios).sort((a,b) => (a.hora||'').localeCompare(b.hora||''));
+  } else {
     const prefix = viewYear + '-' + String(viewMonth+1).padStart(2,'0');
     lista = lista.filter(e => e.data.startsWith(prefix)).slice(0, 8);
   }
   if(!lista.length){
-    el.innerHTML = '<div class="empty" style="grid-column:1/-1">Nenhum evento neste período.</div>';
+    el.innerHTML = '<div class="empty" style="grid-column:1/-1">' + (selectedISO ? 'Nada marcado para ' + fmtDataBR(selectedISO) + '.' : 'Nenhum evento neste mês.') + '</div>';
     return;
   }
   el.innerHTML = lista.map(e => {
-    const hora = e.hora ? ' – ' + e.hora : '';
-    const acoes = e.consultaVinculada
-      ? '<p class="event-meta">Consulta da sua agenda</p>'
+    const hora = e.horas ? ' – ' + e.horas.join(', ') : (e.hora ? ' – ' + e.hora : '');
+    const acoes = e.remedioVinculado
+      ? '<button type="button" class="btn-sm outline" onclick="window.location.href=\'medicamentos.html\'">Ver remédio</button>'
+      : e.consultaVinculada
+      ? '<button type="button" class="btn-sm outline" onclick="window.location.href=\'lembretedeconsultas.html?editar=' + encodeURIComponent(String(e.id).replace('consulta-', '')) + '\'">Ver consulta</button>'
       : '<div class="event-actions">' +
           '<button type="button" class="btn-sm outline" onclick="editarEvento(' + e.id + ')">Editar</button>' +
           '<button type="button" class="btn-sm danger" onclick="pedirExclusao(' + e.id + ')">Excluir</button>' +
         '</div>';
     return '<article class="event-card">' +
-      '<div class="event-icon">' + (ICONS[e.tipo] || ICONS.outro) + '</div>' +
+      '<div class="event-icon' + (e.tipo === 'medicamento' ? ' remedio' : e.tipo === 'consulta' ? ' consulta' : '') + '">' + (ICONS[e.tipo] || ICONS.outro) + '</div>' +
       '<div class="event-body">' +
         '<p class="event-title">' + escapeHtml(e.titulo) + '</p>' +
-        '<p class="event-meta">' + fmtDataBR(e.data) + hora + '</p>' +
+        '<p class="event-meta">' + (e.remedioVinculado ? 'Remédio · ' : e.consultaVinculada ? 'Consulta · ' : '') + fmtDataBR(e.data) + hora + '</p>' +
       '</div>' +
       acoes + '</article>';
   }).join('');
@@ -591,10 +713,23 @@ function mostrarToast(msg){
   selectedISO = toISO(viewYear, viewMonth, today.getDate());
   atualizarRelogio();
   setInterval(atualizarRelogio, 30000);
+  document.getElementById('leg-consulta').innerHTML = ICONS.consulta + ' Consulta';
+  document.getElementById('leg-remedio').innerHTML = ICONS.medicamento + ' Remédio';
+  carregarRemediosLocais();
   sincronizarConsultas();
   renderCalendario();
   renderEventos();
+  atualizarDoBanco();
 })();
+async function atualizarDoBanco(){
+  await carregarDoBanco();
+  sincronizarConsultas();
+  renderCalendario();
+  renderEventos();
+}
+// Voltando para esta tela (botão Voltar do celular ou outra aba): busca de novo.
+window.addEventListener('pageshow', function(e){ if(e.persisted) atualizarDoBanco(); });
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) atualizarDoBanco(); });
 window.addEventListener('storage', function(event){
   if(event.key === CONSULTAS_KEY){
     sincronizarConsultas();

@@ -6,6 +6,7 @@
 <title>TechSaúde – Consultas e Lembretes</title>
 <script src="navegacao-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="lembretes-app.js"></script>
 <style>
 :root{
   --green-deep:#1e5631;
@@ -622,6 +623,49 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
   .container{max-width:100%;border-radius:0;min-height:100vh;box-shadow:none;}
   .main-content{padding:16px 14px 24px;}
 }
+
+/* ===== AJUSTES 2026-10 (testes de usabilidade) ===== */
+.datetime-bar{text-align:center;font-weight:800;font-size:.9rem;color:var(--green-deep);padding:4px 8px 12px;margin:0 0 16px;border-bottom:1px solid var(--border);}
+.datetime-inputs{flex-wrap:wrap;}
+.datetime-inputs .form-field{flex:1 1 210px;min-width:0;}
+.alarm-section .alarm-label{flex:1 1 180px;}
+.form-field input[type="date"],.form-field input[type="time"]{min-width:0;width:100%;}
+.campo-erro{display:none;margin:6px 4px 0 14px;font-size:.8125rem;font-weight:700;color:var(--danger);}
+.form-group.invalido .campo-erro{display:block;}
+.form-group.invalido .form-field{border-color:var(--danger);background:rgba(196,30,58,.05);}
+.toggle-switch{width:60px;height:34px;border-radius:17px;}
+.toggle-switch::after{width:28px;height:28px;top:3px;left:3px;}
+.toggle-switch.active::after{left:29px;}
+.toggle-switch:focus-visible{outline:3px solid var(--teal);outline-offset:3px;}
+.lembrete-opcoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.lembrete-opcoes[hidden]{display:none;}
+.chip-lembrete{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border:2px solid var(--border);border-radius:999px;background:#fff;font-weight:800;font-size:.875rem;color:var(--green-deep);cursor:pointer;user-select:none;}
+.chip-lembrete input{width:20px;height:20px;accent-color:var(--green-mid);margin:0;}
+.chip-lembrete:has(input:checked){background:var(--green-soft);border-color:var(--green-mid);}
+.lembrete-dica{width:100%;font-size:.8125rem;color:var(--text-soft);font-weight:600;margin:2px 4px 0;}
+.edicao-aviso{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#fff3e0;border:2px solid #ffcc80;border-radius:16px;padding:10px 14px;margin:0 0 16px;font-weight:700;color:#8a4b00;}
+.edicao-aviso[hidden]{display:none;}
+.btn-sm{min-height:44px;padding:10px 18px;}
+.btn-block,.btn-save,.btn-clear,.btn-ghost-block,.section-link,.btn{min-height:48px;}
+.cards-grid{margin-top:14px;}
+.secao-titulo{font-size:.9375rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:var(--green-deep);margin:22px 0 10px;}
+.card.passada{opacity:.75;background:#f1eee2;}
+.card .quando{font-size:1.05rem;font-weight:900;color:var(--green-deep);margin:2px 0 6px;}
+.badge-info{background:#e3f2fd;color:#0d47a1;border:1px solid #90caf9;}
+.badge + .badge{margin-left:6px;}
+.section-link[hidden]{display:none;}
+.section-link{width:100%;border:2px solid var(--border);cursor:pointer;font-family:inherit;text-align:left;}
+.section-link .arrow{transition:transform .2s;}
+.section-link[aria-expanded="true"] .arrow{transform:rotate(90deg);}
+.aviso-notif{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;background:#e8f5e9;border:2px solid #a5d6a7;border-radius:16px;padding:10px 14px;margin:0 0 16px;font-weight:700;font-size:.875rem;color:#1b4332;}
+.aviso-notif[hidden]{display:none;}
+.opcao input[type="checkbox"]{display:none;}
+.opcao .radio{border-radius:6px;}
+.opcao.selected .radio::after{content:'✓';width:auto;height:auto;background:none;color:#fff;font-size:.8rem;font-weight:900;border-radius:0;}
+/* Confirmação (substitui o confirm() do navegador) */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;display:flex;align-items:center;justify-content:center;padding:20px;}
+.confirm-overlay[hidden]{display:none;}
+@media (min-width:768px){ .cards-grid{margin-top:16px;} }
 </style>
 <!-- ===== PADRÃO TECHSAÚDE: ACESSIBILIDADE (tamanho da letra + Ajuda) ===== -->
 <script>
@@ -707,7 +751,6 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
         <div class="logo-section">
           <img class="logo-icon" src="img/logo.png" alt="TechSaúde">
         </div>
-        <div class="datetime" id="datetime"></div>
       </div>
       <div class="header-nav">
       <button type="button" class="header-btn voltar" id="btnVoltarTela" onclick="voltarTela()" aria-label="Voltar para a tela anterior">
@@ -731,6 +774,7 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
   </header>
 
   <div class="main-content">
+    <div class="datetime-bar" id="datetime" aria-live="off"></div>
     <!-- PADRÃO TECHSAÚDE: barra de acessibilidade -->
     <div class="toolbar-acessibilidade">
       <div class="font-group" role="group" aria-label="Tamanho da letra">
@@ -741,84 +785,111 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
       <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
     </div>
 
+    <div class="aviso-notif" id="avisoNotif" hidden>
+      <span>🔔 Quer receber os lembretes também como notificação do celular?</span>
+      <button type="button" class="btn-sm" id="btnAtivarNotif">Ativar avisos</button>
+    </div>
 
-    <!-- ========== TELA 1: INCLUIR CONSULTA ========== -->
-    <section class="screen active" id="screen-incluir">
-      <h1 class="page-title">Incluir Consulta em Agenda</h1>
+    <!-- ========== TELA 1: INCLUIR / EDITAR CONSULTA ========== -->
+    <section class="screen" id="screen-incluir">
+      <h1 class="page-title" id="tituloForm">Incluir Consulta em Agenda</h1>
+      <div class="edicao-aviso" id="avisoEdicao" hidden>
+        <span>✏️ Você está alterando uma consulta.</span>
+        <button type="button" class="btn-sm outline" onclick="cancelarEdicao()">Cancelar alteração</button>
+      </div>
+      <input type="hidden" id="c-id">
 
       <div class="form-grid">
-        <div class="form-group">
-          <label class="field-label">Local (Clínica/Hospital)</label>
+        <div class="form-group" id="g-local">
+          <label class="field-label" for="c-local">Local (Clínica/Hospital)</label>
           <div class="form-field">
-            <div class="field-icon">🏥</div>
+            <div class="field-icon" aria-hidden="true">🏥</div>
             <input type="text" id="c-local" placeholder="Ex: Hospital de Olhos" autocomplete="off">
           </div>
+          <p class="campo-erro">Escreva o nome da clínica ou do hospital.</p>
         </div>
-        <div class="form-group">
-          <label class="field-label">Especialidade</label>
+        <div class="form-group" id="g-especialidade">
+          <label class="field-label" for="c-especialidade">Especialidade</label>
           <div class="form-field">
-            <div class="field-icon">🩺</div>
-            <select id="c-especialidade" aria-label="Especialidade da consulta">
+            <div class="field-icon" aria-hidden="true">🩺</div>
+            <select id="c-especialidade">
               <option value="">Selecione uma especialidade</option>
-              <option value="Cardiologia">Cardiologia</option>
+              <option value="Angiologia / Vascular">Angiologia / Vascular (varizes, circulação)</option>
+              <option value="Cardiologia">Cardiologia (coração)</option>
               <option value="Clínica Geral">Clínica Geral</option>
-              <option value="Dermatologia">Dermatologia</option>
-              <option value="Endocrinologia">Endocrinologia</option>
+              <option value="Dermatologia">Dermatologia (pele)</option>
+              <option value="Endocrinologia">Endocrinologia (diabetes, tireoide)</option>
+              <option value="Fisioterapia">Fisioterapia</option>
+              <option value="Fonoaudiologia">Fonoaudiologia (audição, fala)</option>
+              <option value="Gastroenterologia">Gastroenterologia (estômago, intestino)</option>
+              <option value="Geriatria">Geriatria (saúde do idoso)</option>
               <option value="Ginecologia">Ginecologia</option>
-              <option value="Neurologia">Neurologia</option>
-              <option value="Oftalmologia">Oftalmologia</option>
-              <option value="Ortopedia">Ortopedia</option>
-              <option value="Pediatria">Pediatria</option>
+              <option value="Nefrologia">Nefrologia (rins)</option>
+              <option value="Neurologia">Neurologia (memória, nervos)</option>
+              <option value="Nutrição">Nutrição</option>
+              <option value="Odontologia">Odontologia (dentista)</option>
+              <option value="Oftalmologia">Oftalmologia (olhos)</option>
+              <option value="Oncologia">Oncologia</option>
+              <option value="Ortopedia">Ortopedia (ossos, articulações)</option>
+              <option value="Otorrinolaringologia">Otorrino (ouvido, nariz, garganta)</option>
+              <option value="Pneumologia">Pneumologia (pulmão)</option>
+              <option value="Psicologia">Psicologia</option>
               <option value="Psiquiatria">Psiquiatria</option>
-              <option value="Urologia">Urologia</option>
+              <option value="Reumatologia">Reumatologia (artrite, artrose)</option>
+              <option value="Urologia">Urologia (próstata, bexiga)</option>
               <option value="__outra__">Outra especialidade</option>
             </select>
           </div>
+          <p class="campo-erro">Escolha a especialidade.</p>
         </div>
-        <div class="form-group" id="grupo-outra-especialidade" hidden>
+        <div class="form-group" id="g-especialidade-outra" hidden>
           <label class="field-label" for="c-especialidade-outra">Informe a especialidade</label>
           <div class="form-field">
-            <div class="field-icon">🩺</div>
+            <div class="field-icon" aria-hidden="true">🩺</div>
             <input type="text" id="c-especialidade-outra" placeholder="Digite a especialidade" autocomplete="off">
           </div>
+          <p class="campo-erro">Escreva qual é a especialidade.</p>
         </div>
-        <div class="form-group">
-          <label class="field-label">Médico</label>
+        <div class="form-group" id="g-medico">
+          <label class="field-label" for="c-medico">Médico ou profissional</label>
           <div class="form-field">
-            <div class="field-icon">👨‍⚕️</div>
+            <div class="field-icon" aria-hidden="true">👨‍⚕️</div>
             <input type="text" id="c-medico" placeholder="Ex: Dra. Ana Silva" autocomplete="off">
           </div>
+          <p class="campo-erro">Escreva o nome do médico ou profissional.</p>
         </div>
-        <div class="form-group">
-          <label class="field-label">Dia e Hora</label>
-          <div class="datetime-inputs">
+        <div class="form-group" id="g-quando">
+          <span class="field-label" id="lbl-quando">Dia e Hora</span>
+          <div class="datetime-inputs" role="group" aria-labelledby="lbl-quando">
             <div class="form-field">
-              <div class="field-icon">📅</div>
-              <input type="date" id="c-data">
+              <div class="field-icon" aria-hidden="true">📅</div>
+              <input type="date" id="c-data" aria-label="Dia da consulta">
             </div>
             <div class="form-field">
-              <div class="field-icon">🕐</div>
-              <input type="time" id="c-hora">
+              <div class="field-icon" aria-hidden="true">🕐</div>
+              <input type="time" id="c-hora" aria-label="Hora da consulta">
             </div>
           </div>
+          <p class="campo-erro" id="erro-quando">Escolha o dia e a hora da consulta.</p>
         </div>
         <div class="form-group full">
-          <label class="field-label">Alarme e Notificações</label>
-          <div class="alarm-section">
+          <span class="field-label">Lembretes da consulta</span>
+          <div class="alarm-section" style="flex-wrap:wrap;">
             <div class="alarm-label">
-              <div class="field-icon">🔔</div>
+              <div class="field-icon" aria-hidden="true">🔔</div>
               <div>
-                <div class="alarm-title">Alarme e Notificações</div>
-                <div class="alarm-subtitle">(Criação Automática)</div>
+                <div class="alarm-title" id="lbl-alarme">Avisar antes da consulta</div>
+                <div class="alarm-subtitle">Escolha quando quer ser lembrado</div>
               </div>
             </div>
-            <button type="button" class="toggle-switch active" id="alarmToggle" onclick="this.classList.toggle('active')" aria-label="Ativar alarme"></button>
+            <button type="button" class="toggle-switch active" id="alarmToggle" aria-pressed="true" aria-labelledby="lbl-alarme"></button>
+            <div class="lembrete-opcoes" id="opcoesLembrete" role="group" aria-label="Quando avisar"></div>
           </div>
         </div>
         <div class="form-group full">
-          <label class="field-label">Observações (Opcional)</label>
+          <label class="field-label" for="c-obs">Observações (Opcional)</label>
           <div class="form-field" style="align-items:flex-start;">
-            <div class="field-icon">✏️</div>
+            <div class="field-icon" aria-hidden="true">✏️</div>
             <textarea id="c-obs" placeholder="Ex: Jejum de 8h, levar exames anteriores"></textarea>
           </div>
         </div>
@@ -826,12 +897,8 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
 
       <div class="buttons-section">
         <div class="primary-row">
-          <button type="button" class="btn-save" onclick="salvarConsulta()">➕ Salvar na Agenda</button>
-          <button type="button" class="btn-clear" onclick="limparFormulario()">🗑️ Limpar</button>
-        </div>
-        <div class="secondary-row">
-          <button type="button" class="btn-secondary" onclick="document.getElementById('c-local').focus()">⌨️ Digitar Consulta</button>
-          <button type="button" class="btn-secondary" onclick="mostrarToast('Scanner de encaminhamento (em breve)')">📷 Escanear</button>
+          <button type="button" class="btn-save" id="btnSalvar" onclick="salvarConsulta()">➕ Salvar na Agenda</button>
+          <button type="button" class="btn-clear" id="btnLimpar" onclick="limparFormulario()">🗑️ Limpar</button>
         </div>
       </div>
 
@@ -844,15 +911,17 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
     <!-- ========== TELA 2: MINHAS CONSULTAS ========== -->
     <section class="screen" id="screen-consultas">
       <h1 class="page-title">Minhas Consultas</h1>
-      <button type="button" class="btn-block outline" onclick="window.location.href='calendario-saude.html'">Ver no Calendário de Saúde</button>
+      <button type="button" class="btn-block" onclick="novaConsulta()">➕ Incluir Nova Consulta</button>
+      <button type="button" class="btn-block outline" onclick="window.location.href='calendario-saude.html'">📅 Ver no Calendário de Saúde</button>
+      <h2 class="secao-titulo" id="tituloProximas">Próximas consultas</h2>
       <div id="lista-consultas" class="cards-grid"></div>
-      <a href="#" class="section-link" onclick="mostrarToast('Histórico de consultas anteriores (em breve)'); return false;">
-        <span>🕒 Ver consultas anteriores</span>
-        <span class="arrow">›</span>
-      </a>
+      <button type="button" class="section-link" id="btnAnteriores" aria-expanded="false" aria-controls="lista-anteriores" onclick="alternarAnteriores()">
+        <span>🕒 Ver consultas anteriores <span id="qtdAnteriores"></span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </button>
+      <div id="lista-anteriores" class="cards-grid" hidden></div>
       <div class="footer-nav">
-        <button type="button" class="btn-block" onclick="goTo('incluir')">➕ Incluir Nova Consulta</button>
-        <button type="button" class="btn-block outline" onclick="goTo('lembretes')">Meus Lembretes</button>
+        <button type="button" class="btn-block outline" onclick="goTo('lembretes')">🔔 Meus Lembretes</button>
       </div>
     </section>
 
@@ -862,33 +931,19 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
       <div id="lista-lembretes" class="cards-grid"></div>
       <div class="footer-nav">
         <button type="button" class="btn-block outline" onclick="goTo('consultas')">Voltar para Minhas Consultas</button>
-        <button type="button" class="btn-ghost-block" onclick="goTo('incluir')">Incluir nova consulta</button>
+        <button type="button" class="btn-ghost-block" onclick="novaConsulta()">Incluir nova consulta</button>
       </div>
     </section>
 
   </div>
 </div>
 
-<!-- DROPDOWN CONFIGURAR LEMBRETE -->
+<!-- CONFIGURAR LEMBRETES (vários ao mesmo tempo) -->
 <div class="overlay" id="dropdown-lembrete" onclick="fecharDropdown(event)">
-  <div class="sheet" onclick="event.stopPropagation()">
-    <h3>Configurar Lembrete</h3>
-    <p class="sub" id="dropdown-sub">Escolha a antecedência</p>
-    <label class="opcao" data-valor="1d">
-      <input type="radio" name="ant" value="1d">
-      <span class="radio"></span>
-      <span class="texto">1 dia antes</span>
-    </label>
-    <label class="opcao selected" data-valor="2h">
-      <input type="radio" name="ant" value="2h" checked>
-      <span class="radio"></span>
-      <span class="texto">2 horas antes</span>
-    </label>
-    <label class="opcao" data-valor="30m">
-      <input type="radio" name="ant" value="30m">
-      <span class="radio"></span>
-      <span class="texto">30 minutos antes</span>
-    </label>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitulo" onclick="event.stopPropagation()">
+    <h3 id="sheetTitulo">Configurar Lembretes</h3>
+    <p class="sub" id="dropdown-sub">Escolha quando quer ser avisado (pode marcar mais de um)</p>
+    <div id="sheetOpcoes"></div>
     <div class="sheet-actions">
       <button type="button" class="btn btn-ghost" onclick="fecharDropdown()">Cancelar</button>
       <button type="button" class="btn btn-primary" onclick="salvarLembrete()">Salvar</button>
@@ -898,53 +953,50 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
 
 <!-- POP-UP SUCESSO -->
 <div class="popup-overlay" id="popup-sucesso">
-  <div class="popup-card">
-    <div class="icon-pop">✅</div>
-    <h2>Consulta salva!</h2>
-    <p>Sua consulta foi adicionada à agenda com sucesso.</p>
+  <div class="popup-card" role="dialog" aria-modal="true" aria-labelledby="sucessoTitulo">
+    <div class="icon-pop" aria-hidden="true">✅</div>
+    <h2 id="sucessoTitulo">Consulta salva!</h2>
+    <p id="sucessoTexto">Sua consulta foi adicionada à agenda com sucesso.</p>
     <div class="popup-actions">
       <button type="button" class="btn btn-primary" onclick="fecharSucesso(); goTo('consultas')">Visualizar consultas</button>
-      <button type="button" class="btn btn-ghost" onclick="fecharSucesso()">Continuar incluindo</button>
+      <button type="button" class="btn btn-ghost" onclick="fecharSucesso(); window.location.href='calendario-saude.html'">Ver no calendário</button>
+      <button type="button" class="btn btn-ghost" onclick="fecharSucesso()">Incluir outra consulta</button>
     </div>
   </div>
 </div>
 
-<!-- POP-UP CONFIRMAÇÃO DE PRESENÇA -->
-<div class="popup-overlay" id="popup-presenca">
-  <div class="popup-card">
-    <div class="icon-pop">📅</div>
-    <h2>Confirmação de Presença</h2>
-    <p id="popup-texto"></p>
+<!-- CONFIRMAÇÃO (excluir, data no passado) -->
+<div class="confirm-overlay" id="popup-confirmar" hidden>
+  <div class="popup-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmarTitulo" aria-describedby="confirmarTexto">
+    <div class="icon-pop" aria-hidden="true" id="confirmarIcone">⚠️</div>
+    <h2 id="confirmarTitulo">Tem certeza?</h2>
+    <p id="confirmarTexto"></p>
     <div class="popup-actions">
-      <button type="button" class="btn btn-primary" onclick="confirmarPresenca()">Confirmar Presença</button>
-      <button type="button" class="btn btn-danger" onclick="reagendar()">Reagendar</button>
+      <button type="button" class="btn btn-primary" id="confirmarSim">Sim</button>
+      <button type="button" class="btn btn-ghost" id="confirmarNao">Não, voltar</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-const rawUsuarioLogado = localStorage.getItem('usuario_logado');
+const L = window.TechSaudeLembretes;
 
+// ---------- SESSÃO: sem login, volta para a tela de entrada ----------
 function obterIdUsuario(){
-  if(!rawUsuarioLogado || rawUsuarioLogado === 'offline') return 1;
   try{
-    const usuario = JSON.parse(rawUsuarioLogado);
-    const candidatos = Array.isArray(usuario) ? usuario : [usuario];
-    const registro = candidatos.find(function(item){ return item && (item.id ?? item.id_usuario) != null; });
+    const usuario = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');
+    const registro = Array.isArray(usuario) ? usuario[0] : usuario;
     const id = Number(registro?.id ?? registro?.id_usuario);
-    return Number.isFinite(id) && id > 0 ? id : 1;
-  }catch(e){
-    const id = Number(rawUsuarioLogado);
-    return Number.isFinite(id) && id > 0 ? id : 1;
-  }
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }catch(e){ return null; }
 }
-
 const userId = obterIdUsuario();
+if(!userId) window.location.replace('index.html');
 
 function normalizarConsulta(c){
   return {
@@ -952,8 +1004,8 @@ function normalizarConsulta(c){
     usuario_id: Number(c.usuario_id ?? c.id_usuario ?? userId),
     medico: c.medico || '',
     especialidade: c.especialidade || '',
-    data: c.data_consulta ?? c.data ?? '',
-    hora: c.hora_consulta ?? c.hora ?? '',
+    data: String(c.data_consulta ?? c.data ?? '').slice(0, 10),
+    hora: String(c.hora_consulta ?? c.hora ?? '').slice(0, 5),
     local_atendimento: c.local_atendimento ?? c.local ?? '',
     obs: c.observacoes ?? c.obs ?? '',
     lembrete: c.lembrete || null,
@@ -962,42 +1014,49 @@ function normalizarConsulta(c){
 }
 
 const STORAGE_KEY = 'techsaude_consultas_v2';
-let consultas = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || [
-  {id:1, usuario_id:userId, medico:'Doutor Arnaldo', especialidade:'Cardiologia', data:'2026-03-11', hora:'09:30', local_atendimento:'Clínica Vida Saudável, Av. Central, 455', obs:'', lembrete:'2h', confirmado:false},
-  {id:2, usuario_id:userId, medico:'Dra. Mariana Costa', especialidade:'Oftalmologia', data:'2026-03-18', hora:'14:00', local_atendimento:'Hospital de Olhos, Rua das Flores, 120', obs:'', lembrete:null, confirmado:false}
-].map(normalizarConsulta);
+function lerCacheLocal(){
+  try{
+    const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    return Array.isArray(d) ? d.map(normalizarConsulta).filter(c => c.usuario_id === userId) : [];
+  }catch(e){ return []; }
+}
+let consultas = lerCacheLocal();
 let atualId = null;
-consultas = consultas.map(normalizarConsulta);
-let nextId = (consultas.reduce((m,c)=>Math.max(m,c.id),0) || 0) + 1;
+let carregado = false;
 
+// O cache usa os nomes das colunas do banco (o Calendário e os lembretes leem daqui).
 function salvarStorage(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(consultas));
+  const linhas = consultas.map(c => ({
+    id: c.id, usuario_id: c.usuario_id, medico: c.medico, especialidade: c.especialidade,
+    data_consulta: c.data, hora_consulta: c.hora, local_atendimento: c.local_atendimento,
+    observacoes: c.obs, lembrete: c.lembrete, confirmado: c.confirmado
+  }));
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(linhas)); }catch(e){}
+}
+
+function mensagemErroBanco(error){
+  console.error('Erro do Supabase:', error);
+  if(!navigator.onLine) return 'Sem internet. Verifique a conexão e tente de novo.';
+  return 'Não foi possível salvar agora. Tente de novo em instantes.';
 }
 
 async function carregarConsultasSupabase(){
-  if(!supabaseClient){ renderConsultas(); renderLembretes(); return; }
-  try{
-    const { data, error } = await supabaseClient
-      .from('consulta')
-      .select('*')
-      .eq('usuario_id', userId);
-    if(error) throw error;
-    if(data) consultas = data.map(normalizarConsulta);
-    salvarStorage();
-  }catch(error){
-    console.warn('Consultas disponíveis apenas localmente:', error);
+  if(supabaseClient && userId){
+    try{
+      const { data, error } = await supabaseClient.from('consulta').select('*').eq('usuario_id', userId);
+      if(error) throw error;
+      if(Array.isArray(data)){ consultas = data.map(normalizarConsulta); salvarStorage(); }
+    }catch(error){
+      console.warn('Consultas disponíveis apenas localmente:', error);
+    }
   }
-  nextId = (consultas.reduce((m,c)=>Math.max(m,c.id),0) || 0) + 1;
+  carregado = true;
   renderConsultas();
   renderLembretes();
 }
 
-let telaHistorico = ['incluir'];
-
-function atualizarBotaoVoltar(telaAtual){
-  document.getElementById('btnVoltarTela').hidden = false;
-  document.querySelector('.header').classList.add('tem-voltar');
-}
+// ---------- NAVEGAÇÃO ENTRE AS PARTES DA TELA ----------
+let telaHistorico = [];
 
 function voltarTela(){
   if(telaHistorico.length > 1){
@@ -1014,66 +1073,102 @@ function goTo(name, viaVoltar){
     if(posicaoExistente >= 0) telaHistorico = telaHistorico.slice(0, posicaoExistente + 1);
     else telaHistorico.push(name);
   }
-  atualizarBotaoVoltar(name);
+  document.querySelector('.header').classList.add('tem-voltar');
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById('screen-' + name);
   if(el) el.classList.add('active');
   if(name === 'consultas') renderConsultas();
   if(name === 'lembretes') renderLembretes();
   document.querySelector('.main-content').scrollTop = 0;
+  window.scrollTo(0, 0);
 }
 
+// ---------- FORMATOS ----------
+const DIAS_SEMANA = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
 function fmtData(iso){
   if(!iso) return '—';
   const p = iso.split('-');
   if(p.length !== 3) return iso;
   return p[2] + '/' + p[1] + '/' + p[0];
 }
-function textoLembrete(v){
-  return ({'1d':'1 dia antes','2h':'2 horas antes','30m':'30 minutos antes'})[v] || null;
+function dataHora(c){ return new Date(c.data + 'T' + (c.hora || '00:00') + ':00'); }
+function quandoTexto(c){
+  const d = dataHora(c);
+  if(isNaN(d)) return fmtData(c.data);
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const dia = new Date(d); dia.setHours(0,0,0,0);
+  const dif = Math.round((dia - hoje) / 86400000);
+  const rel = dif === 0 ? 'Hoje' : dif === 1 ? 'Amanhã' : dif === -1 ? 'Ontem' : DIAS_SEMANA[d.getDay()].replace(/^./, s => s.toUpperCase());
+  return rel + ', ' + fmtData(c.data) + ' às ' + (c.hora || '—');
 }
-/** Sem a palavra "antes" — só no pop-up de confirmação de presença */
-function textoAntecedenciaPopup(v){
-  return ({'1d':'1 dia','2h':'2 horas','30m':'30 minutos'})[v] || '2 horas';
+function ehPassada(c){ return dataHora(c) < new Date(); }
+
+function escapeHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+
+// ---------- LISTAS ----------
+function cardConsulta(c, passada){
+  const lemb = L.texto(c.lembrete);
+  const badges = (passada
+      ? '<span class="badge badge-info">Já aconteceu</span>'
+      : (lemb ? '<span class="badge badge-ok">🔔 Avisar ' + escapeHtml(lemb) + '</span>' : '<span class="badge badge-warn">Sem lembrete</span>')) +
+    (c.confirmado && !passada ? '<span class="badge badge-ok">✅ Presença confirmada</span>' : '');
+  return '<article class="card' + (passada ? ' passada' : '') + '" data-id="' + c.id + '">' +
+    '<div class="card-title">' + escapeHtml(c.medico) + (c.especialidade ? ' (' + escapeHtml(c.especialidade) + ')' : '') + '</div>' +
+    '<p class="quando">' + escapeHtml(quandoTexto(c)) + '</p>' +
+    '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local_atendimento) + '</div>' +
+    (c.obs ? '<div class="card-line"><span class="lbl">Obs.:</span> ' + escapeHtml(c.obs) + '</div>' : '') +
+    badges +
+    '<div class="card-actions">' +
+      '<button type="button" class="btn-sm outline" onclick="editarConsulta(' + c.id + ')">✏️ Editar</button>' +
+      (passada ? '' : '<button type="button" class="btn-sm" onclick="abrirConfig(' + c.id + ')">🔔 Lembretes</button>') +
+      '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id + ')">Excluir</button>' +
+    '</div>' +
+  '</article>';
+}
+
+function ordenadas(){ return consultas.slice().sort((a, b) => dataHora(a) - dataHora(b)); }
 
 function renderConsultas(){
   const el = document.getElementById('lista-consultas');
-  if(!consultas.length){
-    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">📋</div><p>Nenhuma consulta cadastrada ainda.</p><button type="button" class="btn-block" style="max-width:260px;margin:0 auto" onclick="goTo(\'incluir\')">Incluir Consulta</button></div>';
-    return;
+  const anteriores = ordenadas().filter(ehPassada).reverse();       // mais recente primeiro
+  const proximas = ordenadas().filter(c => !ehPassada(c));
+  if(!proximas.length){
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">📋</div><p>' +
+      (consultas.length ? 'Você não tem consultas marcadas daqui para frente.' : 'Nenhuma consulta cadastrada ainda.') +
+      '</p><button type="button" class="btn-block" style="max-width:260px;margin:0 auto" onclick="novaConsulta()">Incluir Consulta</button></div>';
+  } else {
+    el.innerHTML = proximas.map(c => cardConsulta(c, false)).join('');
   }
-  el.innerHTML = consultas.map(c => {
-    const badge = c.lembrete
-      ? '<span class="badge badge-ok">Lembrete: ' + textoLembrete(c.lembrete) + '</span>'
-      : '<span class="badge badge-warn">Sem lembrete</span>';
-    return '<article class="card">' +
-      '<div class="card-title">' + escapeHtml(c.medico) + ' (' + escapeHtml(c.especialidade) + ')</div>' +
-      '<div class="card-line"><span class="lbl">Data:</span> ' + fmtData(c.data) + '</div>' +
-      '<div class="card-line"><span class="lbl">Horário:</span> ' + escapeHtml(c.hora) + '</div>' +
-      '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local_atendimento) + '</div>' +
-      badge +
-      '<div class="card-actions">' +
-      '<button type="button" class="btn-sm" onclick="abrirConfig(' + c.id + ')">Configurar Lembrete</button>' +
-      '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id + ')">Excluir</button>' +
-      '</div>' +
-      '</article>';
-  }).join('');
+  const btn = document.getElementById('btnAnteriores');
+  btn.hidden = !anteriores.length;
+  document.getElementById('qtdAnteriores').textContent = anteriores.length ? '(' + anteriores.length + ')' : '';
+  const ant = document.getElementById('lista-anteriores');
+  ant.innerHTML = anteriores.map(c => cardConsulta(c, true)).join('');
+  if(!anteriores.length){ ant.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+}
+
+function alternarAnteriores(){
+  const ant = document.getElementById('lista-anteriores');
+  const btn = document.getElementById('btnAnteriores');
+  ant.hidden = !ant.hidden;
+  btn.setAttribute('aria-expanded', String(!ant.hidden));
 }
 
 function renderLembretes(){
   const el = document.getElementById('lista-lembretes');
-  const com = consultas.filter(c => c.lembrete);
+  const com = ordenadas().filter(c => !ehPassada(c) && L.ler(c.lembrete).length);
   if(!com.length){
-    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔔</div><p>Nenhum lembrete configurado ainda.<br>Vá em Minhas Consultas e configure um.</p><button type="button" class="btn-block" style="max-width:260px;margin:0 auto" onclick="goTo(\'consultas\')">Minhas Consultas</button></div>';
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔔</div><p>Nenhum lembrete para as próximas consultas.<br>Vá em Minhas Consultas e toque em Lembretes.</p><button type="button" class="btn-block" style="max-width:260px;margin:0 auto" onclick="goTo(\'consultas\')">Minhas Consultas</button></div>';
     return;
   }
   el.innerHTML = com.map(c =>
     '<article class="card">' +
-    '<div class="card-title">' + escapeHtml(c.medico) + ' (' + escapeHtml(c.especialidade) + ')</div>' +
-    '<div class="card-line"><span class="lbl">Data:</span> ' + fmtData(c.data) + ' às ' + escapeHtml(c.hora) + '</div>' +
+    '<div class="card-title">' + escapeHtml(c.medico) + (c.especialidade ? ' (' + escapeHtml(c.especialidade) + ')' : '') + '</div>' +
+    '<p class="quando">' + escapeHtml(quandoTexto(c)) + '</p>' +
     '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local_atendimento) + '</div>' +
-    '<span class="badge badge-ok">Avisar ' + textoLembrete(c.lembrete) + '</span>' +
+    '<span class="badge badge-ok">🔔 Avisar ' + escapeHtml(L.texto(c.lembrete)) + '</span>' +
     '<div class="card-actions">' +
     '<button type="button" class="btn-sm outline" onclick="abrirConfig(' + c.id + ')">Alterar</button>' +
     '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id + ')">Excluir</button>' +
@@ -1082,141 +1177,230 @@ function renderLembretes(){
   ).join('');
 }
 
+// ---------- CONFIRMAÇÃO (no lugar do confirm() do navegador) ----------
+function confirmar(titulo, texto, sim, icone){
+  return new Promise(resolve => {
+    const ov = document.getElementById('popup-confirmar');
+    document.getElementById('confirmarTitulo').textContent = titulo;
+    document.getElementById('confirmarTexto').textContent = texto;
+    document.getElementById('confirmarIcone').textContent = icone || '⚠️';
+    const bSim = document.getElementById('confirmarSim'), bNao = document.getElementById('confirmarNao');
+    bSim.textContent = sim || 'Sim';
+    const fechar = r => { ov.hidden = true; bSim.onclick = bNao.onclick = null; resolve(r); };
+    bSim.onclick = () => fechar(true);
+    bNao.onclick = () => fechar(false);
+    ov.hidden = false;
+    bNao.focus();
+  });
+}
+
 async function removerConsulta(id){
-  const consulta = consultas.find(function(item){ return Number(item.id) === Number(id); });
-  if(!consulta){ return; }
-
-  const confirmar = window.confirm('Deseja excluir esta consulta de ' + consulta.medico + '?');
-  if(!confirmar){ return; }
-
-  consultas = consultas.filter(function(item){ return Number(item.id) !== Number(id); });
-  salvarStorage();
-
+  const consulta = consultas.find(item => Number(item.id) === Number(id));
+  if(!consulta) return;
+  const ok = await confirmar('Excluir consulta?', 'A consulta com ' + consulta.medico + ' (' + quandoTexto(consulta) + ') será apagada.', 'Sim, excluir', '🗑️');
+  if(!ok) return;
   if(supabaseClient){
-    const { error } = await supabaseClient
-      .from('consulta')
-      .delete()
-      .eq('id', Number(id))
-      .eq('usuario_id', userId);
-
-    if(error){
-      console.warn('Exclusão sincronizada apenas localmente:', error);
-    }
+    const { error } = await supabaseClient.from('consulta').delete().eq('id', Number(id)).eq('usuario_id', userId);
+    if(error){ mostrarToast('Não foi possível excluir agora. Tente de novo.'); console.error(error); return; }
   }
-
+  consultas = consultas.filter(item => Number(item.id) !== Number(id));
+  salvarStorage();
   renderConsultas();
   renderLembretes();
   mostrarToast('Consulta excluída');
 }
 
-function escapeHtml(s){
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// ---------- FORMULÁRIO ----------
+const campos = ['c-local','c-especialidade','c-especialidade-outra','c-medico','c-data','c-hora','c-obs'];
+const ESPECIALIDADES = Array.from(document.querySelectorAll('#c-especialidade option')).map(o => o.value).filter(v => v && v !== '__outra__');
+
+function renderOpcoesLembrete(container, selecionados, nome){
+  container.innerHTML = L.OPCOES.map(o =>
+    '<label class="chip-lembrete"><input type="checkbox" name="' + nome + '" value="' + o.valor + '"' +
+    (selecionados.indexOf(o.valor) !== -1 ? ' checked' : '') + '> ' + o.texto + '</label>'
+  ).join('') + '<p class="lembrete-dica">Pode marcar mais de um.</p>';
+}
+function lembretesDoForm(){
+  if(!document.getElementById('alarmToggle').classList.contains('active')) return null;
+  return L.gravar(Array.from(document.querySelectorAll('input[name="lembreteForm"]:checked')).map(i => i.value));
+}
+function definirToggle(ativo){
+  const t = document.getElementById('alarmToggle');
+  t.classList.toggle('active', ativo);
+  t.setAttribute('aria-pressed', String(ativo));
+  document.getElementById('opcoesLembrete').hidden = !ativo;
+}
+document.getElementById('alarmToggle').addEventListener('click', function(){
+  const ativo = !this.classList.contains('active');
+  definirToggle(ativo);
+  if(ativo && !document.querySelector('input[name="lembreteForm"]:checked')){
+    renderOpcoesLembrete(document.getElementById('opcoesLembrete'), L.PADRAO, 'lembreteForm');
+  }
+});
+
+function marcarCampo(grupoId, invalido){
+  const g = document.getElementById(grupoId);
+  g.classList.toggle('invalido', invalido);
+  const f = g.querySelector('.form-field');
+  if(f){ f.classList.remove('error'); f.classList.toggle('success', !invalido); }
 }
 
-async function salvarConsulta(){
-  const local = document.getElementById('c-local').value.trim();
+function lerFormulario(){
   const especialidadeSelecionada = document.getElementById('c-especialidade').value;
-  const especialidade = especialidadeSelecionada === '__outra__'
-    ? document.getElementById('c-especialidade-outra').value.trim()
-    : especialidadeSelecionada;
-  const medico = document.getElementById('c-medico').value.trim();
-  const data = document.getElementById('c-data').value;
-  const hora = document.getElementById('c-hora').value;
-  const obs = document.getElementById('c-obs').value.trim();
-  const alarmeAtivo = document.getElementById('alarmToggle').classList.contains('active');
+  return {
+    local: document.getElementById('c-local').value.trim(),
+    especialidadeSelecionada,
+    especialidade: especialidadeSelecionada === '__outra__' ? document.getElementById('c-especialidade-outra').value.trim() : especialidadeSelecionada,
+    medico: document.getElementById('c-medico').value.trim(),
+    data: document.getElementById('c-data').value,
+    hora: document.getElementById('c-hora').value,
+    obs: document.getElementById('c-obs').value.trim(),
+    lembrete: lembretesDoForm()
+  };
+}
 
-  let ok = true;
-  const camposObrigatorios = [
-    ['c-local',local],
-    ['c-especialidade',especialidadeSelecionada],
-    ['c-medico',medico],
-    ['c-data',data],
-    ['c-hora',hora]
+function validar(f){
+  const erros = [];
+  const regra = [
+    ['g-local', !f.local],
+    ['g-especialidade', !f.especialidadeSelecionada],
+    ['g-especialidade-outra', f.especialidadeSelecionada === '__outra__' && !f.especialidade],
+    ['g-medico', !f.medico],
+    ['g-quando', !f.data || !f.hora]
   ];
-  if(especialidadeSelecionada === '__outra__') camposObrigatorios.push(['c-especialidade-outra', especialidade]);
-  camposObrigatorios.forEach(function(pair){
-    const field = document.getElementById(pair[0]).closest('.form-field');
-    if(!pair[1]){ field.classList.add('error'); field.classList.remove('success'); ok = false; }
-    else { field.classList.remove('error'); field.classList.add('success'); }
-  });
-  if(!ok){ mostrarToast('Preencha todos os campos obrigatórios'); return; }
+  regra.forEach(([g, invalido]) => { marcarCampo(g, invalido); if(invalido) erros.push(g); });
+  if(!f.data && f.hora) document.getElementById('erro-quando').textContent = 'Escolha o dia da consulta.';
+  else if(f.data && !f.hora) document.getElementById('erro-quando').textContent = 'Escolha a hora da consulta.';
+  else document.getElementById('erro-quando').textContent = 'Escolha o dia e a hora da consulta.';
+  return erros;
+}
 
+let salvando = false;
+async function salvarConsulta(){
+  if(salvando) return;
+  const f = lerFormulario();
+  const erros = validar(f);
+  if(erros.length){
+    const g = document.getElementById(erros[0]);
+    g.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const campo = g.querySelector('input, select');
+    if(campo) setTimeout(() => campo.focus({ preventScroll: true }), 300);
+    mostrarToast(erros.length === 1 ? 'Falta preencher 1 campo' : 'Faltam preencher ' + erros.length + ' campos');
+    return;
+  }
+  const quando = new Date(f.data + 'T' + f.hora + ':00');
+  if(quando < new Date()){
+    const ok = await confirmar('Essa data já passou', 'A consulta está marcada para ' + fmtData(f.data) + ' às ' + f.hora + ', que já passou. Quer salvar mesmo assim?', 'Sim, salvar', '📅');
+    if(!ok){ document.getElementById('c-data').focus(); return; }
+  }
+
+  const idEdicao = Number(document.getElementById('c-id').value) || null;
   const payload = {
     usuario_id: userId,
-    especialidade: especialidade,
-    medico: medico,
-    local_atendimento: local,
-    data_consulta: data,
-    hora_consulta: hora,
-    observacoes: obs || null
+    especialidade: f.especialidade,
+    medico: f.medico,
+    local_atendimento: f.local,
+    data_consulta: f.data,
+    hora_consulta: f.hora,
+    observacoes: f.obs || null,
+    lembrete: f.lembrete
   };
+  if(!supabaseClient){ mostrarToast('Sem conexão com o servidor. Verifique a internet.'); return; }
 
-  if(!supabaseClient){
-    const error = new Error('Cliente Supabase indisponível');
-    console.error('Erro completo Supabase:', error);
-    mostrarToast('Erro: ' + error.message);
-    return;
+  salvando = true;
+  const btn = document.getElementById('btnSalvar');
+  btn.disabled = true;
+  let resposta;
+  if(idEdicao){
+    const anterior = consultas.find(c => c.id === idEdicao);
+    // Se mudou o dia/hora, a presença confirmada deixa de valer.
+    if(anterior && (anterior.data !== f.data || anterior.hora !== f.hora)) payload.confirmado = false;
+    resposta = await supabaseClient.from('consulta').update(payload).eq('id', idEdicao).eq('usuario_id', userId).select().single();
+  } else {
+    resposta = await supabaseClient.from('consulta').insert(payload).select().single();
   }
+  salvando = false;
+  btn.disabled = false;
+  if(resposta.error){ mostrarToast(mensagemErroBanco(resposta.error)); return; }
 
-  const { data: inserida, error } = await supabaseClient
-    .from('consulta')
-    .insert(payload)
-    .select()
-    .single();
-  if(error){
-    console.error('Erro completo Supabase:', error);
-    mostrarToast('Erro: ' + error.message);
-    return;
-  }
-
-  const consulta = {
-    ...(inserida || payload),
-    id: Number(inserida?.id ?? nextId++),
-    usuario_id: userId,
-    data: data,
-    hora: hora,
-    local_atendimento: local,
-    obs: obs || '',
-    lembrete: alarmeAtivo ? '2h' : null,
-    confirmado: false
-  };
-  consultas.push(consulta);
+  const salva = normalizarConsulta({ ...payload, ...(resposta.data || {}), id: resposta.data?.id ?? idEdicao });
+  if(idEdicao) consultas = consultas.map(c => c.id === idEdicao ? salva : c);
+  else consultas.push(salva);
   salvarStorage();
+  L.marcarVencidos({ ...salva, data_consulta: salva.data, hora_consulta: salva.hora });
   limparFormulario();
+  document.getElementById('sucessoTitulo').textContent = idEdicao ? 'Consulta alterada!' : 'Consulta salva!';
+  document.getElementById('sucessoTexto').textContent = (idEdicao ? 'As alterações foram salvas. ' : 'Sua consulta foi adicionada à agenda. ') +
+    (L.ler(salva.lembrete).length ? 'Vamos avisar ' + L.texto(salva.lembrete) + '.' : 'Sem lembretes.');
   document.getElementById('popup-sucesso').classList.add('show');
 }
 
-function limparFormulario(){
-  ['c-local','c-especialidade','c-especialidade-outra','c-medico','c-data','c-hora','c-obs'].forEach(function(id){
-    document.getElementById(id).value = '';
-    document.getElementById(id).closest('.form-field').classList.remove('error','success');
+function preencherFormulario(c){
+  document.getElementById('c-id').value = c ? c.id : '';
+  document.getElementById('c-local').value = c ? c.local_atendimento : '';
+  const sel = document.getElementById('c-especialidade');
+  const outra = document.getElementById('c-especialidade-outra');
+  if(c && c.especialidade && ESPECIALIDADES.indexOf(c.especialidade) === -1){
+    sel.value = '__outra__'; outra.value = c.especialidade;
+  } else { sel.value = c ? c.especialidade : ''; outra.value = ''; }
+  document.getElementById('g-especialidade-outra').hidden = sel.value !== '__outra__';
+  document.getElementById('c-medico').value = c ? c.medico : '';
+  document.getElementById('c-data').value = c ? c.data : '';
+  document.getElementById('c-hora').value = c ? c.hora : '';
+  document.getElementById('c-obs').value = c ? c.obs : '';
+  const lemb = c ? L.ler(c.lembrete) : L.PADRAO;
+  definirToggle(!c || lemb.length > 0);
+  renderOpcoesLembrete(document.getElementById('opcoesLembrete'), lemb.length ? lemb : L.PADRAO, 'lembreteForm');
+  ['g-local','g-especialidade','g-especialidade-outra','g-medico','g-quando'].forEach(g => {
+    document.getElementById(g).classList.remove('invalido');
+    const ff = document.getElementById(g).querySelector('.form-field'); if(ff) ff.classList.remove('error','success');
   });
-  document.getElementById('grupo-outra-especialidade').hidden = true;
-  document.getElementById('alarmToggle').classList.add('active');
+  document.getElementById('tituloForm').textContent = c ? 'Alterar Consulta' : 'Incluir Consulta em Agenda';
+  document.getElementById('avisoEdicao').hidden = !c;
+  document.getElementById('btnSalvar').textContent = c ? '💾 Salvar alterações' : '➕ Salvar na Agenda';
+  document.getElementById('btnLimpar').hidden = Boolean(c);
 }
 
+function limparFormulario(){ preencherFormulario(null); }
+function novaConsulta(){ limparFormulario(); goTo('incluir'); }
+function editarConsulta(id){
+  const c = consultas.find(x => x.id === Number(id));
+  if(!c) return;
+  preencherFormulario(c);
+  goTo('incluir');
+  setTimeout(() => document.getElementById('c-local').focus({ preventScroll: true }), 200);
+}
+function cancelarEdicao(){ limparFormulario(); goTo('consultas'); }
+
 document.getElementById('c-especialidade').addEventListener('change', function(){
-  const grupo = document.getElementById('grupo-outra-especialidade');
+  const grupo = document.getElementById('g-especialidade-outra');
   grupo.hidden = this.value !== '__outra__';
-  if(this.value !== '__outra__'){
-    const campo = document.getElementById('c-especialidade-outra').closest('.form-field');
-    campo.classList.remove('error','success');
-  }
+  if(this.value === '__outra__') setTimeout(() => document.getElementById('c-especialidade-outra').focus(), 50);
+  else grupo.classList.remove('invalido');
+});
+// Corrigiu o campo: some o aviso de erro dele.
+document.querySelectorAll('.form-group input, .form-group select').forEach(el => {
+  el.addEventListener('input', () => { const g = el.closest('.form-group'); if(g && g.classList.contains('invalido')) g.classList.remove('invalido'); });
 });
 
 function fecharSucesso(){
   document.getElementById('popup-sucesso').classList.remove('show');
 }
 
+// ---------- CONFIGURAR LEMBRETES ----------
 function abrirConfig(id){
-  atualId = id;
-  const c = consultas.find(function(x){ return x.id === id; });
+  atualId = Number(id);
+  const c = consultas.find(x => x.id === atualId);
   if(!c) return;
-  document.getElementById('dropdown-sub').textContent = c.medico + ' • ' + fmtData(c.data) + ' às ' + c.hora;
-  const atual = c.lembrete || '2h';
-  document.querySelectorAll('.opcao').forEach(function(el){
-    el.classList.toggle('selected', el.dataset.valor === atual);
-    el.querySelector('input').checked = el.dataset.valor === atual;
+  document.getElementById('dropdown-sub').textContent = c.medico + ' • ' + fmtData(c.data) + ' às ' + c.hora + ' — pode marcar mais de um';
+  const atuais = L.ler(c.lembrete);
+  document.getElementById('sheetOpcoes').innerHTML = L.OPCOES.map(o =>
+    '<label class="opcao' + (atuais.indexOf(o.valor) !== -1 ? ' selected' : '') + '">' +
+      '<input type="checkbox" name="lembreteSheet" value="' + o.valor + '"' + (atuais.indexOf(o.valor) !== -1 ? ' checked' : '') + '>' +
+      '<span class="radio" aria-hidden="true"></span><span class="texto">' + o.texto + '</span></label>'
+  ).join('');
+  document.querySelectorAll('#sheetOpcoes input').forEach(inp => {
+    inp.addEventListener('change', () => inp.closest('.opcao').classList.toggle('selected', inp.checked));
   });
   document.getElementById('dropdown-lembrete').classList.add('show');
 }
@@ -1227,92 +1411,71 @@ function fecharDropdown(e){
   atualId = null;
 }
 
-document.querySelectorAll('.opcao').forEach(function(el){
-  el.addEventListener('click', function(){
-    document.querySelectorAll('.opcao').forEach(function(o){ o.classList.remove('selected'); });
-    el.classList.add('selected');
-    el.querySelector('input').checked = true;
-  });
-});
-
 async function salvarLembrete(){
   if(atualId == null) return;
-  const sel = document.querySelector('.opcao.selected');
-  const valor = sel ? sel.dataset.valor : '2h';
-  const c = consultas.find(function(x){ return x.id === atualId; });
+  const valor = L.gravar(Array.from(document.querySelectorAll('input[name="lembreteSheet"]:checked')).map(i => i.value));
+  const c = consultas.find(x => x.id === atualId);
   if(c){
+    if(supabaseClient){
+      const { error } = await supabaseClient.from('consulta').update({ lembrete: valor }).eq('id', c.id).eq('usuario_id', userId);
+      if(error){ mostrarToast(mensagemErroBanco(error)); return; }
+    }
     c.lembrete = valor;
     salvarStorage();
-    if(supabaseClient){
-      const { error } = await supabaseClient
-        .from('consulta')
-        .update({lembrete: valor})
-        .eq('id', c.id)
-        .eq('usuario_id', userId);
-      if(error) console.warn('Lembrete salvo apenas localmente:', error);
-    }
+    L.marcarVencidos({ ...c, data_consulta: c.data, hora_consulta: c.hora });
     renderConsultas();
     renderLembretes();
-    mostrarToast('Lembrete configurado!');
+    mostrarToast(valor ? 'Lembretes salvos: ' + L.texto(valor) : 'Lembretes desligados para esta consulta');
   }
   fecharDropdown();
 }
 
-function mostrarPopupPresenca(id){
-  atualId = id;
-  const c = consultas.find(function(x){ return x.id === id; });
-  if(!c) return;
-  document.getElementById('popup-texto').textContent =
-    'Sua consulta com o ' + c.medico + ' é em ' + textoAntecedenciaPopup(c.lembrete || '2h') + '. Por favor, confirme sua presença.';
-  document.getElementById('popup-presenca').classList.add('show');
-}
-function confirmarPresenca(){
-  const c = consultas.find(function(x){ return x.id === atualId; });
-  if(c){
-    c.confirmado = true;
-    salvarStorage();
-    if(supabaseClient){
-      supabaseClient.from('consulta')
-        .update({confirmado:true})
-        .eq('id', c.id)
-        .eq('usuario_id', userId)
-        .then(function(result){ if(result.error) console.warn('Presença salva apenas localmente:', result.error); });
-    }
-    mostrarToast('Presença confirmada!');
-  }
-  document.getElementById('popup-presenca').classList.remove('show');
-  atualId = null;
-}
-function reagendar(){
-  document.getElementById('popup-presenca').classList.remove('show');
-  mostrarToast('Reagendamento (em breve)');
-  atualId = null;
-}
+// Pop-up de lembrete (vem do lembretes-app.js) confirmou presença: atualiza a lista.
+window.addEventListener('techsaude:consultas-mudaram', () => { consultas = lerCacheLocal(); renderConsultas(); renderLembretes(); });
 
 function mostrarToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); }, 2800);
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.classList.remove('show'); }, 4000);
 }
 
 function updateClock(){
   const now = new Date();
-  const dias = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
   const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   const hh = String(now.getHours()).padStart(2,'0');
   const mm = String(now.getMinutes()).padStart(2,'0');
+  const dia = DIAS_SEMANA[now.getDay()].replace(/^./, s => s.toUpperCase());
   document.getElementById('datetime').textContent =
-    hh + ':' + mm + ' - ' + dias[now.getDay()] + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' de ' + now.getFullYear();
+    hh + ':' + mm + ' - ' + dia + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' de ' + now.getFullYear();
 }
 
-document.addEventListener('keydown', function(e){
-  if((e.key === 'p' || e.key === 'P') && consultas.length) mostrarPopupPresenca(consultas[0].id);
+// ---------- AVISO PARA ATIVAR NOTIFICAÇÕES ----------
+function atualizarAvisoNotif(){
+  document.getElementById('avisoNotif').hidden = L.estadoNotificacao() !== 'default';
+}
+document.getElementById('btnAtivarNotif').addEventListener('click', async () => {
+  const r = await L.pedirPermissao();
+  atualizarAvisoNotif();
+  mostrarToast(r === 'granted' ? 'Avisos ativados!' : 'Os avisos continuam aparecendo dentro do app.');
 });
 
+// ---------- INÍCIO ----------
 updateClock();
-setInterval(updateClock, 60000);
-carregarConsultasSupabase();
+setInterval(updateClock, 30000);
+atualizarAvisoNotif();
+limparFormulario();
+(async function iniciar(){
+  // Abre direto em "Minhas Consultas" quando a pessoa já tem consultas.
+  goTo(consultas.length ? 'consultas' : 'incluir');
+  await carregarConsultasSupabase();
+  const editar = new URLSearchParams(location.search).get('editar');
+  if(editar && consultas.some(c => c.id === Number(editar))){ telaHistorico = ['consultas']; editarConsulta(editar); return; }
+  if(document.getElementById('screen-incluir').classList.contains('active') && consultas.length && !document.getElementById('c-local').value){
+    telaHistorico = []; goTo('consultas');
+  }
+})();
 </script>
 <!-- ===== PADRÃO TECHSAÚDE: pop-up de Ajuda (o conteúdo vem de AJUDA_TELA, no script abaixo) ===== -->
 <div id="modalAjuda" class="ajuda-overlay" hidden>
@@ -1345,22 +1508,22 @@ carregarConsultasSupabase();
         'Escreva o <b>local</b> (clínica ou hospital), a <b>especialidade</b> e o nome do <b>médico</b>.',
         'Escolha uma especialidade na lista. Se não encontrar, selecione <b>Outra especialidade</b> e informe o nome.',
         'Escolha o <b>dia</b> e a <b>hora</b> da consulta.',
-        'Deixe a chave de <b>Alarme</b> ligada (verde) para ser lembrado.',
+        'Em <b>Lembretes</b>, deixe a chave ligada (verde) e marque quando quer ser avisado: 1 dia, 2 horas, 1 hora ou 30 minutos antes. Pode marcar mais de um.',
         'Se quiser, escreva uma observação, como “levar exames”.',
         'Toque em <b>Salvar na Agenda</b>. Para ver o que já foi salvo, toque em <b>Minhas Consultas</b>.'
       ],
-      dica: 'Errou algo? O botão Limpar apaga o que foi digitado para você começar de novo.'
+      dica: 'O aviso da consulta aparece em qualquer tela do app que estiver aberta, com som. Toque em Ativar avisos para receber também no celular.'
     },
     {
       quando: '#screen-consultas.active',
       titulo: 'Como ver suas consultas',
       intro: 'Aqui aparecem todas as consultas que você salvou.',
       passos: [
-        'Cada cartão mostra o médico, a especialidade, o dia, a hora e o local.',
-        'Toque em <b>Ver no Calendário de Saúde</b> para localizar consultas marcadas no calendário.',
-        'Toque em <b>Configurar Lembrete</b> para escolher quando quer ser avisado: 1 dia, 2 horas ou 30 minutos antes.',
+        'As próximas consultas aparecem em ordem: a mais perto primeiro.',
+        'Toque em <b>Editar</b> para corrigir ou remarcar uma consulta.',
+        'Toque em <b>Lembretes</b> para escolher quando quer ser avisado. Pode marcar mais de um.',
         'Toque em <b>Excluir</b> para apagar uma consulta.',
-        'Para anotar outra consulta, toque em <b>Incluir Nova Consulta</b>.'
+        'As consultas que já passaram ficam em <b>Ver consultas anteriores</b>, no fim da lista.'
       ],
       dica: 'Use o botão Voltar, no alto, para retornar à tela anterior.'
     },

@@ -8,6 +8,7 @@
 
 <!-- SUPABASE JS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="lembretes-app.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -680,6 +681,83 @@
     .modal-overlay{ padding:8px; }
     .modal{ max-height:calc(100vh - 16px); padding:24px 16px 20px; }
   }
+
+  /* ===== AJUSTES 2026-10 (testes de usabilidade) ===== */
+  .proximo-card{ text-align:center; }
+  .proximo-hora{ font-size:3rem; margin:4px 0 0; }
+  .proximo-falta{ margin:2px 0 14px; font-weight:800; color:var(--green-mid); font-size:.95rem; }
+  .proximo-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; text-align:left; }
+  .proximo-lista li{ display:flex; align-items:center; gap:12px; background:#fff; border:2px solid var(--border); border-radius:16px; padding:10px 12px; font-size:1rem; line-height:1.3; }
+  .proximo-lista .proximo-icon{ width:42px; height:42px; }
+  .proximo-lista .proximo-icon svg{ width:22px; height:22px; }
+  .section-title .qtd{ color:var(--muted); font-size:.95rem; }
+  #listaAlarmes, #listaInativos{ display:flex; flex-direction:column; gap:18px; }
+  #listaAlarmes .alarm-card, #listaInativos .alarm-card{ margin-bottom:0; }
+  #listaInativos{ margin-top:14px; }
+  .alarm-card{ display:block; padding:16px 18px; box-shadow:0 6px 16px rgba(27,58,38,.08); }
+  .alarm-card.inativo{ opacity:.7; background:#f1eee2; }
+  .alarm-topo{ display:flex; align-items:flex-start; gap:12px; }
+  .alarm-nome{ font-size:1.2rem; line-height:1.2; }
+  .alarm-dose{ font-size:.95rem; margin:2px 0 0; }
+  .alarm-proxima{ margin:14px 0 8px; padding:10px 14px; background:#fff; border:2px solid var(--border); border-radius:14px; display:flex; flex-direction:column; gap:2px; }
+  .alarm-proxima .rotulo{ font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); }
+  .alarm-proxima strong{ font-family:'Baloo 2', sans-serif; font-size:1.25rem; color:var(--forest); line-height:1.2; }
+  .alarm-meta{ font-size:.875rem; margin:4px 0; }
+  .alarm-meta.adiado{ color:var(--forest); font-weight:800; }
+  .alarm-meta.pendente{ color:var(--error); font-weight:800; }
+  .alarm-progresso{ margin:10px 0 4px; }
+  .alarm-progresso p{ margin:0 0 6px; font-size:.95rem; font-weight:700; color:var(--forest); }
+  .alarm-progresso .fim{ font-size:.82rem; color:var(--muted); margin:6px 0 0; }
+  .alarm-progresso .barra{ height:10px; border-radius:999px; background:#e4dbbd; overflow:hidden; }
+  .alarm-progresso .barra span{ display:block; height:100%; background:var(--green-mid); border-radius:999px; }
+  .btn-editar{ margin-top:12px; width:100%; min-height:48px; justify-content:center; align-items:center; gap:6px; border:2.5px solid var(--forest); border-radius:999px; background:#fff; font-weight:800; font-size:.95rem; text-transform:uppercase; letter-spacing:.3px; }
+  .btn-editar:hover{ background:var(--success-bg); }
+  .switch{ width:60px; height:34px; margin-top:2px; }
+  .switch::before{ content:""; position:absolute; inset:-8px -6px; }
+  .switch .slider::before{ height:24px; width:24px; top:3px; left:3px; }
+  .switch input:checked + .slider::before{ transform:translateX(25px); }
+  .btn-remover-med{ min-height:44px; padding:8px 12px; border:2px solid var(--error); border-radius:999px; text-decoration:none; background:#fff; }
+  .btn-excluir{ min-height:48px; }
+  .btn-excluir.armado{ background:var(--error); color:#fff; border-radius:999px; text-decoration:none; }
+  .btn-cancelar, .btn-salvar, .btn-tomei, .btn-adiar{ min-height:52px; }
+  .btn-salvar:disabled{ opacity:.6; cursor:wait; }
+  .chips-intervalo{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:10px 0 0; }
+  .chip-intervalo{ min-height:44px; padding:8px 14px; border:2px solid var(--forest); border-radius:999px; background:#fff; color:var(--forest); font-weight:800; font-size:.875rem; cursor:pointer; font-family:inherit; }
+  .chip-intervalo.on{ background:var(--forest); color:var(--cream); }
+  .chip-intervalo:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+  .avisos-dose{ display:flex; flex-direction:column; gap:12px; margin:0 0 18px; }
+  .avisos-dose:empty{ display:none; }
+  .aviso-dose{ background:#fff3e0; border:2.5px solid #e6a23c; border-radius:18px; padding:14px 16px; }
+  .aviso-dose-titulo{ margin:0 0 4px; font-weight:900; font-size:1rem; color:#8a4b00; text-transform:uppercase; letter-spacing:.3px; }
+  .aviso-dose-texto{ margin:0 0 12px; font-weight:700; color:var(--text); font-size:1rem; }
+  .aviso-dose-acoes{ display:flex; flex-wrap:wrap; gap:8px; }
+  .btn-aviso{ flex:1 1 150px; min-height:48px; border-radius:999px; font-weight:800; font-size:.9rem; cursor:pointer; font-family:inherit; border:2px solid var(--forest); }
+  .btn-aviso.sim{ background:var(--forest); color:var(--cream); }
+  .btn-aviso.nao{ background:#fff; color:var(--forest); }
+  .grupo-inativos{ width:100%; margin-top:18px; min-height:52px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 18px; background:#fff; border:2px solid var(--border); border-radius:999px; font-weight:800; font-size:.95rem; color:var(--forest); cursor:pointer; font-family:inherit; }
+  .grupo-inativos[hidden]{ display:none; }
+  .grupo-inativos .seta{ transition:transform .2s; }
+  .grupo-inativos[aria-expanded="true"] .seta{ transform:rotate(90deg); }
+  .status-alarmes.alerta{ color:var(--error); font-weight:800; }
+  .aviso-notif{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:#e8f5e9; border:2px solid #a5d6a7; border-radius:16px; padding:10px 14px; margin:0 0 18px; font-weight:700; font-size:.9rem; color:#1b4332; }
+  .aviso-notif[hidden]{ display:none; }
+  .aviso-notif button{ min-height:44px; padding:8px 16px; border-radius:999px; border:none; background:var(--forest); color:var(--cream); font-weight:800; cursor:pointer; font-family:inherit; }
+  .toast{ position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(16px); max-width:92%; background:var(--forest); color:#fff; padding:14px 20px; border-radius:18px; font-weight:800; font-size:.95rem; text-align:center; line-height:1.35; opacity:0; pointer-events:none; transition:all .3s; z-index:300; box-shadow:0 8px 22px rgba(0,0,0,.3); }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast.erro{ background:#8f2d1d; }
+  .confirm-overlay{ display:none; position:fixed; inset:0; background:rgba(10,20,14,.6); z-index:250; align-items:center; justify-content:center; padding:20px; }
+  .confirm-overlay.show{ display:flex; }
+  .confirm-card{ background:var(--cream); border:2px solid var(--line); border-radius:22px; max-width:380px; width:100%; padding:24px 20px 20px; text-align:center; box-shadow:var(--shadow-outer); }
+  .confirm-card h2{ margin:0 0 8px; font-size:1.2rem; }
+  .confirm-card p{ margin:0 0 18px; font-weight:600; line-height:1.45; }
+  .confirm-card .acoes{ display:flex; flex-direction:column; gap:10px; }
+  .confirm-card button{ min-height:50px; border-radius:999px; font-weight:800; font-size:.95rem; text-transform:uppercase; cursor:pointer; font-family:inherit; border:2.5px solid var(--forest); }
+  .confirm-card .sim{ background:#8f2d1d; border-color:#8f2d1d; color:#fff; }
+  .confirm-card .nao{ background:var(--forest); color:var(--cream); }
+  @media (min-width:901px){
+    #listaAlarmes, #listaInativos{ display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:18px; }
+    #listaAlarmes .lista-vazia{ grid-column:1 / -1; }
+  }
 </style>
 <!-- ===== PADRÃO TECHSAÚDE: ACESSIBILIDADE (tamanho da letra + Ajuda) ===== -->
 <script>
@@ -792,16 +870,26 @@
     </div>
 
 
+    <div class="aviso-notif" id="avisoNotif" hidden>
+      <span>🔔 Receber o aviso do remédio também como notificação?</span>
+      <button type="button" id="btnAtivarNotif">Ativar avisos</button>
+    </div>
+
     <div class="layout">
-      <div class="proximo-card" aria-live="polite">
-        <h1 class="proximo-titulo">ALARME DE MEDICAMENTO</h1>
+      <section class="proximo-card" aria-live="polite" aria-labelledby="tituloProximo">
+        <h1 class="proximo-titulo" id="tituloProximo">PRÓXIMO REMÉDIO</h1>
         <p class="proximo-data" id="proximoData">Carregando alarmes...</p>
         <div id="proximoConteudo"></div>
-      </div>
+      </section>
 
       <div class="main-col">
-        <h2 class="section-title">Seus alarmes</h2>
+        <div class="avisos-dose" id="avisosDose" aria-live="polite"></div>
+        <h2 class="section-title">Remédios ativos <span class="qtd" id="qtdAtivos"></span></h2>
         <div id="listaAlarmes"></div>
+        <button type="button" class="grupo-inativos" id="btnInativos" aria-expanded="false" aria-controls="listaInativos" hidden>
+          <span>🔕 Desligados e concluídos <span id="qtdInativos"></span></span><span class="seta" aria-hidden="true">›</span>
+        </button>
+        <div id="listaInativos" hidden></div>
       </div>
 
       <button type="button" class="btn-adicionar" id="btnAdicionar">+ ADICIONAR NOVO ALARME</button>
@@ -835,7 +923,13 @@
       <div class="field" id="fieldIntervalo">
         <div class="field-box">
           <label for="inputIntervalo">Intervalo entre doses (horas)</label>
-          <input type="number" id="inputIntervalo" min="1" max="48" step="1" placeholder="Ex: 8">
+          <input type="number" id="inputIntervalo" min="1" max="48" step="1" placeholder="Ex: 8" inputmode="numeric">
+        </div>
+        <div class="chips-intervalo" role="group" aria-label="Intervalos comuns">
+          <button type="button" class="chip-intervalo" data-horas="6" aria-pressed="false">6 em 6h</button>
+          <button type="button" class="chip-intervalo" data-horas="8" aria-pressed="false">8 em 8h</button>
+          <button type="button" class="chip-intervalo" data-horas="12" aria-pressed="false">12 em 12h</button>
+          <button type="button" class="chip-intervalo" data-horas="24" aria-pressed="false">1 vez ao dia</button>
         </div>
         <p class="helper-inline">O app vai programar os próximos alarmes automaticamente a partir da 1ª dose.</p>
         <p class="field-error" id="errorIntervalo">Informe um intervalo válido (1 a 48 horas).</p>
@@ -851,7 +945,7 @@
         <div class="field" id="fieldDuracaoValor" style="margin-bottom:0;">
           <div class="field-box">
             <label for="inputDuracaoValor" id="labelDuracaoValor">Nº de dias</label>
-            <input type="number" id="inputDuracaoValor" min="1" step="1" placeholder="Ex: 7">
+            <input type="number" id="inputDuracaoValor" min="1" step="1" placeholder="Ex: 7" inputmode="numeric">
           </div>
           <p class="field-error" id="errorDuracaoValor">Informe um valor válido (mínimo 1).</p>
         </div>
@@ -882,11 +976,25 @@
   </div>
 </div>
 
+<!-- Confirmação (sair sem salvar) -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitulo" aria-describedby="confirmTexto">
+    <h2 id="confirmTitulo">Tem certeza?</h2>
+    <p id="confirmTexto"></p>
+    <div class="acoes">
+      <button type="button" class="nao" id="confirmNao">Não</button>
+      <button type="button" class="sim" id="confirmSim">Sim</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script>
 // ---------- 1. CONFIGURAÇÃO SUPABASE & SESSÃO ----------
 const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const rawUser = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
 let usuarioLogado = null;
@@ -916,74 +1024,158 @@ if (!rawUser) {
   }
 
   var alarmes = [];
+  var DIA_MS = 24 * 60 * 60 * 1000;
 
-  // ---------- BANCO DE DADOS: CARREGAR, SALVAR E DELETAR ----------
+  // ---------- AVISOS NA TELA (toast) ----------
+  var elToast = document.getElementById('toast');
+  function mostrarToast(msg, tipo){
+    elToast.textContent = msg;
+    elToast.className = 'toast show' + (tipo === 'erro' ? ' erro' : '');
+    clearTimeout(elToast._t);
+    elToast._t = setTimeout(function(){ elToast.className = 'toast'; }, tipo === 'erro' ? 6000 : 3500);
+  }
+
+  // ---------- CONFIRMAÇÃO (no lugar do confirm() do navegador) ----------
+  function confirmar(titulo, texto, sim, nao){
+    return new Promise(function(resolve){
+      var ov = document.getElementById('confirmOverlay');
+      document.getElementById('confirmTitulo').textContent = titulo;
+      document.getElementById('confirmTexto').textContent = texto;
+      var bSim = document.getElementById('confirmSim'), bNao = document.getElementById('confirmNao');
+      bSim.textContent = sim || 'Sim'; bNao.textContent = nao || 'Não';
+      function fechar(r){ ov.classList.remove('show'); bSim.onclick = bNao.onclick = null; resolve(r); }
+      bSim.onclick = function(){ fechar(true); };
+      bNao.onclick = function(){ fechar(false); };
+      ov.classList.add('show');
+      bNao.focus();
+    });
+  }
+
+  // ---------- BANCO DE DADOS ----------
   // usuario_id no banco é número (FK para usuario.id). Aceita sessão antiga (id_usuario).
   function idUsuarioBanco(){
     var n = Number(usuarioLogado?.id ?? usuarioLogado?.id_usuario);
     return Number.isFinite(n) && n > 0 ? n : null;
   }
+  var storageKey = 'medicamentos_' + (usuarioLogado?.id || usuarioLogado?.cpf || 'offline');
+  var chaveDoses = 'techsaude_doses_confirmadas_' + (usuarioLogado?.id || 'offline');
 
-  async function carregarAlarmesSupabase(){
-    const storageKey = 'medicamentos_' + (usuarioLogado?.id || usuarioLogado?.cpf || 'offline');
-    try {
-      const uid = idUsuarioBanco();
-      if(uid === null) throw new Error('Usuário sem id na sessão');
-      const { data, error } = await supabaseClient
-        .from('medicamentos')
-        .select('*')
-        .eq('usuario_id', uid);
+  function guardarLocal(){
+    try{ localStorage.setItem(storageKey, JSON.stringify(alarmes)); }catch(e){}
+  }
+  function lerLocal(){
+    try{ var l = JSON.parse(localStorage.getItem(storageKey) || '[]'); return Array.isArray(l) ? l : []; }catch(e){ return []; }
+  }
+  // Alarme criado sem conseguir falar com o banco (id gerado aqui, em texto).
+  function ehLocal(a){ return a.pendente || (typeof a.id === 'string' && a.id.indexOf('alarme-') === 0); }
 
-      if(!error && data && data.length > 0){
-        alarmes = data.map(d => ({
-          id: d.id,
-          medicamentos: typeof d.medicamentos === 'string' ? JSON.parse(d.medicamentos) : d.medicamentos,
-          primeiraDose: d.primeira_dose,
-          intervaloHoras: d.intervalo_horas,
-          duracaoTipo: d.duracao_tipo,
-          duracaoValor: d.duracao_valor,
-          ativo: d.ativo,
-          ultimaAlertaEm: null
-        }));
-      } else {
-        const local = localStorage.getItem(storageKey);
-        alarmes = local ? JSON.parse(local) : [];
-      }
-    } catch(err) {
-      console.warn('Usando armazenamento local de segurança:', err);
-      const local = localStorage.getItem(storageKey);
-      alarmes = local ? JSON.parse(local) : [];
-    }
-    renderizarTudo();
+  function linhaBanco(a){
+    return {
+      usuario_id: idUsuarioBanco(),
+      medicamentos: a.medicamentos,
+      primeira_dose: a.primeiraDose,
+      intervalo_horas: a.intervaloHoras,
+      duracao_tipo: a.duracaoTipo,
+      duracao_valor: a.duracaoValor,
+      ativo: a.ativo
+    };
+  }
+  function deBanco(d){
+    return {
+      id: d.id,
+      medicamentos: typeof d.medicamentos === 'string' ? JSON.parse(d.medicamentos) : (d.medicamentos || []),
+      primeiraDose: String(d.primeira_dose || '').slice(0, 16),
+      intervaloHoras: Number(d.intervalo_horas),
+      duracaoTipo: d.duracao_tipo,
+      duracaoValor: d.duracao_valor,
+      ativo: d.ativo !== false,
+      ultimaAlertaEm: null
+    };
   }
 
-  async function sincronizarLocal(alarmeObj, operacao = 'upsert'){
-    const storageKey = 'medicamentos_' + (usuarioLogado?.id || usuarioLogado?.cpf || 'offline');
-    localStorage.setItem(storageKey, JSON.stringify(alarmes));
-
-    const userId = idUsuarioBanco();
-
-    try {
-      if(userId === null) throw new Error('Usuário sem id na sessão');
-      if(operacao === 'upsert'){
-        const { error } = await supabaseClient.from('medicamentos').upsert({
-          id: alarmeObj.id,
-          usuario_id: userId,
-          medicamentos: alarmeObj.medicamentos,
-          primeira_dose: alarmeObj.primeiraDose,
-          intervalo_horas: alarmeObj.intervaloHoras,
-          duracao_tipo: alarmeObj.duracaoTipo,
-          duracao_valor: alarmeObj.duracaoValor,
-          ativo: alarmeObj.ativo
-        });
-        if (error) console.error('Erro ao gravar no Supabase:', error);
-      } else if(operacao === 'delete'){
-        const { error } = await supabaseClient.from('medicamentos').delete().eq('id', alarmeObj.id);
-        if (error) console.error('Erro ao deletar no Supabase:', error);
+  // Cria no banco. O id é gerado pelo banco (sequencial); se a tabela ainda exigir
+  // o id vindo do app, tenta de novo enviando um id.
+  async function inserirNoBanco(a){
+    var r = await supabaseClient.from('medicamentos').insert(linhaBanco(a)).select().single();
+    if(r.error && r.error.code === '23502'){
+      var comId = Object.assign({ id: gerarId() }, linhaBanco(a));
+      r = await supabaseClient.from('medicamentos').insert(comId).select().single();
+      // Coluna numérica sem sequência: usa um número no lugar do texto.
+      if(r.error && r.error.code === '22P02'){
+        r = await supabaseClient.from('medicamentos').insert(Object.assign({ id: Date.now() }, linhaBanco(a))).select().single();
       }
-    } catch(err) {
-      console.log('Operação salva apenas localmente:', err);
     }
+    return r;
+  }
+
+  // Grava um alarme (novo ou alterado). Devolve true se o banco confirmou.
+  async function gravarAlarme(a){
+    var uid = idUsuarioBanco();
+    if(!supabaseClient || uid === null){ a.pendente = true; guardarLocal(); return false; }
+    try{
+      var r;
+      if(ehLocal(a)){
+        r = await inserirNoBanco(a);
+        if(!r.error && r.data){
+          var idAntigo = a.id;
+          a.id = r.data.id; a.pendente = false;
+          moverConfirmacao(idAntigo, a.id);
+        }
+      } else {
+        r = await supabaseClient.from('medicamentos').update(linhaBanco(a)).eq('id', a.id).eq('usuario_id', uid);
+      }
+      if(r.error) throw r.error;
+      a.pendente = false;
+      guardarLocal();
+      return true;
+    }catch(err){
+      console.error('Erro ao gravar no Supabase:', err);
+      if(ehLocal(a)) a.pendente = true;
+      guardarLocal();
+      return false;
+    }
+  }
+
+  async function apagarAlarme(a){
+    if(ehLocal(a)) return true;
+    var uid = idUsuarioBanco();
+    if(!supabaseClient || uid === null) return false;
+    var r = await supabaseClient.from('medicamentos').delete().eq('id', a.id).eq('usuario_id', uid);
+    if(r.error){ console.error('Erro ao excluir no Supabase:', r.error); return false; }
+    return true;
+  }
+
+  var elStatus = document.getElementById('statusAlarmes');
+  var avisoConexao = '';
+
+  async function carregarAlarmesSupabase(){
+    var locais = lerLocal();
+    var uid = idUsuarioBanco();
+    try {
+      if(uid === null || !supabaseClient) throw new Error('Sem sessão ou sem Supabase');
+      var r = await supabaseClient.from('medicamentos').select('*').eq('usuario_id', uid).order('id', { ascending: true });
+      if(r.error) throw r.error;
+      alarmes = (r.data || []).map(deBanco);
+      avisoConexao = '';
+      // Alarmes que ficaram só neste aparelho (o banco recusou antes): envia agora.
+      var pendentes = locais.filter(ehLocal);
+      if(pendentes.length){
+        var enviados = 0;
+        for(var i = 0; i < pendentes.length; i++){
+          var p = pendentes[i]; p.pendente = true;
+          alarmes.push(p);
+          if(await gravarAlarme(p)) enviados++;
+        }
+        if(enviados) mostrarToast('✅ ' + enviados + (enviados === 1 ? ' alarme que estava só neste aparelho foi salvo' : ' alarmes que estavam só neste aparelho foram salvos') + ' na sua conta.');
+      }
+      guardarLocal();
+    } catch(err) {
+      console.warn('Usando armazenamento local de segurança:', err);
+      alarmes = locais;
+      avisoConexao = 'Sem conexão com o servidor: mostrando os alarmes salvos neste aparelho.';
+    }
+    prepararConfirmacoes();
+    renderizarTudo();
   }
 
   function formatarParaInputLocal(date){
@@ -996,19 +1188,25 @@ if (!rawUser) {
     return 'alarme-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
   }
 
+  function mesmoId(a, b){ return String(a) === String(b); }
+  function acharAlarme(id){ return alarmes.find(function(a){ return mesmoId(a.id, id); }); }
+
+  // ---------- CÁLCULO DAS DOSES ----------
   function calcularOcorrencias(alarme){
     var inicio = new Date(alarme.primeiraDose);
     var intervaloMs = alarme.intervaloHoras * 60 * 60 * 1000;
     var ocorrencias = [];
+    if(isNaN(inicio) || !(intervaloMs > 0)) return ocorrencias;
 
     if(alarme.duracaoTipo === 'doses'){
       for(var i = 0; i < alarme.duracaoValor; i++){
         ocorrencias.push(new Date(inicio.getTime() + i * intervaloMs));
       }
     } else if(alarme.duracaoTipo === 'dias'){
-      var fim = new Date(inicio.getTime() + alarme.duracaoValor * 24 * 60 * 60 * 1000);
+      // "7 dias a cada 8h" = 21 doses: a última é antes de completar 7 dias.
+      var fim = new Date(inicio.getTime() + alarme.duracaoValor * DIA_MS);
       var atual = new Date(inicio.getTime());
-      while(atual <= fim){
+      while(atual < fim){
         ocorrencias.push(new Date(atual.getTime()));
         atual = new Date(atual.getTime() + intervaloMs);
       }
@@ -1065,39 +1263,123 @@ if (!rawUser) {
     return ocorrencias.length ? ocorrencias[ocorrencias.length - 1] : null;
   }
 
+  // Quanto falta para acabar o tratamento (dias e doses).
+  function progresso(alarme){
+    if(alarme.duracaoTipo === 'continuo') return null;
+    var oc = calcularOcorrencias(alarme);
+    if(!oc.length) return null;
+    var agora = new Date();
+    var restantes = oc.filter(function(d){ return d >= agora; });
+    // Dias até a última dose (arredonda para cima: 6 dias e 16 horas = "faltam 7 dias").
+    var diasRestantes = restantes.length ? Math.max(1, Math.ceil((restantes[restantes.length - 1] - agora) / DIA_MS)) : 0;
+    return {
+      total: oc.length,
+      feitas: oc.length - restantes.length,
+      restantes: restantes.length,
+      dias: diasRestantes,
+      fim: oc[oc.length - 1],
+      comecou: oc[0] <= agora
+    };
+  }
+
+  // ---------- FORMATOS ----------
   function formatarDiaCompleto(date){
     var diaSemana = date.toLocaleDateString('pt-BR', {weekday:'long'});
     diaSemana = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
     var dataFormatada = date.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
     return diaSemana + ', ' + dataFormatada;
   }
-
   function formatarHora(date){
     return date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
   }
-
   function formatarDataCurta(date){
     return date.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
   }
+  // "Hoje às 16:00", "Amanhã às 08:00", "Sexta, 31/10 às 08:00"
+  function quandoTexto(date){
+    var hoje = new Date(); hoje.setHours(0,0,0,0);
+    var dia = new Date(date); dia.setHours(0,0,0,0);
+    var dif = Math.round((dia - hoje) / DIA_MS);
+    var rotulo = dif === 0 ? 'Hoje' : dif === 1 ? 'Amanhã' : dif === -1 ? 'Ontem' :
+      (function(){ var s = date.toLocaleDateString('pt-BR', {weekday:'long'}).split('-')[0]; return s.charAt(0).toUpperCase() + s.slice(1) + ', ' + formatarDataCurta(date); })();
+    return rotulo + ' às ' + formatarHora(date);
+  }
+  function faltaTexto(date){
+    var min = Math.round((date - new Date()) / 60000);
+    if(min <= 0) return 'agora';
+    if(min < 60) return 'daqui a ' + min + ' min';
+    var h = Math.floor(min / 60), m = min % 60;
+    if(h < 24) return 'daqui a ' + h + 'h' + (m ? String(m).padStart(2, '0') : '');
+    var d = Math.round(min / 1440);
+    return 'daqui a ' + d + (d === 1 ? ' dia' : ' dias');
+  }
+  function plural(n, um, varios){ return n + ' ' + (n === 1 ? um : varios); }
+  function textoIntervalo(h){
+    if(h === 24) return 'Uma vez por dia';
+    if(h === 12) return 'A cada 12 horas (2 vezes por dia)';
+    if(h === 8) return 'A cada 8 horas (3 vezes por dia)';
+    if(h === 6) return 'A cada 6 horas (4 vezes por dia)';
+    return 'A cada ' + plural(h, 'hora', 'horas');
+  }
 
+  // ---------- DOSES CONFIRMADAS E DOSES PERDIDAS ----------
+  // Guarda, para cada alarme, a última dose que a pessoa confirmou ("Já tomei" ou "Pular").
+  var confirmadas = {};
+  try{ confirmadas = JSON.parse(localStorage.getItem(chaveDoses) || '{}') || {}; }catch(e){ confirmadas = {}; }
+  function salvarConfirmacoes(){ try{ localStorage.setItem(chaveDoses, JSON.stringify(confirmadas)); }catch(e){} }
+  function confirmarDose(id, data){
+    var atual = confirmadas[String(id)];
+    if(!atual || new Date(atual) < data){ confirmadas[String(id)] = data.toISOString(); salvarConfirmacoes(); }
+  }
+  function moverConfirmacao(de, para){
+    if(confirmadas[String(de)]){ confirmadas[String(para)] = confirmadas[String(de)]; delete confirmadas[String(de)]; salvarConfirmacoes(); }
+  }
+  // Alarme novo, alterado ou visto pela 1ª vez: doses que já passaram não contam como perdidas.
+  function marcarBase(a){
+    var oc = ocorrenciaMaisRecenteAte(a, new Date());
+    confirmadas[String(a.id)] = (oc || new Date(0)).toISOString();
+    salvarConfirmacoes();
+  }
+  function prepararConfirmacoes(){
+    alarmes.forEach(function(a){ if(!confirmadas[String(a.id)]) marcarBase(a); });
+  }
+  var TOLERANCIA_MS = 3 * 60 * 1000;
+  function dosesPerdidas(){
+    var agora = new Date();
+    var lista = [];
+    alarmes.forEach(function(a){
+      if(!a.ativo) return;
+      var oc = ocorrenciaMaisRecenteAte(a, agora);
+      if(!oc || agora - oc < TOLERANCIA_MS) return;
+      var conf = confirmadas[String(a.id)];
+      if(conf && new Date(conf) >= oc) return;
+      if(alertaAtual && mesmoId(alertaAtual.id, a.id)) return;
+      if(soneca.some(function(s){ return mesmoId(s.id, a.id); })) return;
+      lista.push({ alarme: a, data: oc });
+    });
+    return lista;
+  }
+
+  // ---------- TELA ----------
   var ICON_REMEDIO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="3"></rect><path d="M6 9h12"></path><path d="M9 13l1.8 1.8L15 11"></path></svg>';
-  var ICON_LAPIS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
 
   var elProximoData = document.getElementById('proximoData');
   var elProximoConteudo = document.getElementById('proximoConteudo');
   var elLista = document.getElementById('listaAlarmes');
-  var elStatus = document.getElementById('statusAlarmes');
+  var elInativos = document.getElementById('listaInativos');
+  var elBtnInativos = document.getElementById('btnInativos');
+  var elAvisos = document.getElementById('avisosDose');
+
+  function nomeAlarme(a){ return a.medicamentos.map(function(m){ return m.nome; }).join(' + '); }
 
   function renderizarProximoAlarme(){
     var proximo = null;
-
     alarmes.forEach(function(a){
       var data = proximaOcorrencia(a);
       if(data && (!proximo || data < proximo.data)){
         proximo = { medicamentos: a.medicamentos, data: data, adiado: false };
       }
     });
-
     soneca.forEach(function(s){
       if(!proximo || s.dispararEm < proximo.data){
         proximo = { medicamentos: s.medicamentos, data: s.dispararEm, adiado: true };
@@ -1105,129 +1387,160 @@ if (!rawUser) {
     });
 
     if(!proximo){
-      elProximoData.textContent = 'Nenhum alarme ativo no momento';
-      elProximoConteudo.innerHTML = '<p class="proximo-vazio">Adicione um alarme para começar a acompanhar seus remédios.</p>';
+      elProximoData.textContent = alarmes.length ? 'Nenhum remédio programado' : 'Nenhum alarme cadastrado';
+      elProximoConteudo.innerHTML = '<p class="proximo-vazio">' + (alarmes.length ? 'Ligue um alarme ou adicione um novo remédio.' : 'Toque em “+ Adicionar novo alarme” para cadastrar seu primeiro remédio.') + '</p>';
       return;
     }
 
-    var textoMeds = proximo.medicamentos.map(function(m){
-      return m.nome + ' — ' + m.dose;
-    }).join(' · ');
+    // Remédios que tocam no mesmo horário aparecem juntos.
+    var juntos = [];
+    alarmes.forEach(function(a){
+      var d = proximaOcorrencia(a);
+      if(d && Math.abs(d - proximo.data) < 60000) juntos = juntos.concat(a.medicamentos);
+    });
+    if(proximo.adiado || !juntos.length) juntos = proximo.medicamentos;
 
-    elProximoData.textContent = formatarDiaCompleto(proximo.data);
+    elProximoData.textContent = quandoTexto(proximo.data).split(' às ')[0] + (proximo.adiado ? ' · adiado' : '');
     elProximoConteudo.innerHTML =
-      '<div class="proximo-linha">' +
-        '<span class="proximo-icon">' + ICON_REMEDIO + '</span>' +
-        '<div class="proximo-texto">' +
-          '<p class="proximo-med">' + escapeHtml(textoMeds) + '</p>' +
-          '<p class="proximo-hora">' + formatarHora(proximo.data) + '</p>' +
-          '<p class="proximo-caption">' + (proximo.adiado ? 'Alarme adiado' : 'Próximo alarme') + '</p>' +
+      '<p class="proximo-hora">' + formatarHora(proximo.data) + '</p>' +
+      '<p class="proximo-falta">' + faltaTexto(proximo.data) + '</p>' +
+      '<ul class="proximo-lista">' + juntos.map(function(m){
+        return '<li><span class="proximo-icon" aria-hidden="true">' + ICON_REMEDIO + '</span><span><b>' + escapeHtml(m.nome) + '</b><br>' + escapeHtml(m.dose) + '</span></li>';
+      }).join('') + '</ul>';
+  }
+
+  function renderizarAvisos(){
+    var perdidas = dosesPerdidas();
+    elAvisos.innerHTML = perdidas.map(function(p){
+      return '<div class="aviso-dose" role="alert">' +
+        '<p class="aviso-dose-titulo">⚠️ Dose não confirmada</p>' +
+        '<p class="aviso-dose-texto"><b>' + escapeHtml(nomeAlarme(p.alarme)) + '</b> — ' + quandoTexto(p.data).replace('Hoje às', 'hoje às').replace('Ontem às', 'ontem às') + '</p>' +
+        '<div class="aviso-dose-acoes">' +
+          '<button type="button" class="btn-aviso sim" data-acao="tomei" data-id="' + escapeAttr(p.alarme.id) + '" data-quando="' + p.data.toISOString() + '">✅ Já tomei</button>' +
+          '<button type="button" class="btn-aviso nao" data-acao="pular" data-id="' + escapeAttr(p.alarme.id) + '" data-quando="' + p.data.toISOString() + '">Não tomei / pular</button>' +
+        '</div></div>';
+    }).join('');
+  }
+  elAvisos.addEventListener('click', function(e){
+    var b = e.target.closest('[data-acao]'); if(!b) return;
+    confirmarDose(b.dataset.id, new Date(b.dataset.quando));
+    mostrarToast(b.dataset.acao === 'tomei' ? '✅ Dose registrada. Muito bem!' : 'Tudo bem. A próxima dose continua no horário.');
+    renderizarTudo();
+  });
+
+  function cardAlarme(a){
+    var proxima = proximaOcorrencia(a);
+    var concluido = tratamentoConcluido(a);
+    var prog = progresso(a);
+    var nome = nomeAlarme(a);
+    var umSo = a.medicamentos.length === 1;
+
+    var doses = umSo
+      ? '<p class="alarm-dose">' + escapeHtml(a.medicamentos[0].dose) + '</p>'
+      : '<ul class="alarm-dose-lista">' + a.medicamentos.map(function(m){ return '<li>' + escapeHtml(m.nome) + ' — ' + escapeHtml(m.dose) + '</li>'; }).join('') + '</ul>';
+
+    var linhaProxima;
+    if(concluido) linhaProxima = '<span class="badge-concluido">✔ Tratamento concluído em ' + formatarDataCurta(dataFimTratamento(a)) + '</span>';
+    else if(!a.ativo) linhaProxima = '<span class="alarm-meta">🔕 Alarme desligado</span>';
+    else if(proxima) linhaProxima = '<span class="rotulo">Próxima dose</span><strong>' + quandoTexto(proxima) + '</strong>';
+    else linhaProxima = '<span class="alarm-meta">Sem próximas doses</span>';
+
+    var adiadoInfo = soneca.find(function(s){ return mesmoId(s.id, a.id); });
+
+    var linhaProgresso = '';
+    if(prog && !concluido){
+      var pct = Math.round(prog.feitas / prog.total * 100);
+      var texto = !prog.comecou
+        ? '⏳ Começa ' + quandoTexto(calcularOcorrencias(a)[0]).toLowerCase() + ' · ' + plural(prog.total, 'dose', 'doses') + ' no total'
+        : (a.duracaoTipo === 'doses'
+            ? '⏳ Faltam <b>' + prog.restantes + ' de ' + prog.total + ' doses</b>'
+            : '⏳ Faltam <b>' + plural(prog.dias, 'dia', 'dias') + '</b> · ' + plural(prog.restantes, 'dose', 'doses'));
+      linhaProgresso =
+        '<div class="alarm-progresso">' +
+          '<p>' + texto + '</p>' +
+          '<div class="barra" role="progressbar" aria-valuemin="0" aria-valuemax="' + prog.total + '" aria-valuenow="' + prog.feitas + '" aria-label="Doses do tratamento"><span style="width:' + pct + '%"></span></div>' +
+          '<p class="fim">Última dose: ' + quandoTexto(prog.fim).toLowerCase() + '</p>' +
+        '</div>';
+    } else if(a.duracaoTipo === 'continuo'){
+      linhaProgresso = '<div class="alarm-progresso continuo"><p>♾️ Uso contínuo (sem data para terminar)</p></div>';
+    }
+
+    return '<article class="alarm-card' + (a.ativo && !concluido ? '' : ' inativo') + '" data-id="' + escapeAttr(a.id) + '">' +
+      '<div class="alarm-topo">' +
+        '<span class="alarm-icon" aria-hidden="true">' + ICON_REMEDIO + '</span>' +
+        '<div class="alarm-info">' +
+          '<p class="alarm-nome">' + escapeHtml(nome) + '</p>' + doses +
         '</div>' +
-      '</div>';
+        (concluido ? '' :
+        '<label class="switch" title="Ligar ou desligar o alarme">' +
+          '<input type="checkbox" class="toggle-ativo" data-id="' + escapeAttr(a.id) + '" ' + (a.ativo ? 'checked' : '') + ' aria-label="Alarme de ' + escapeAttr(nome) + ' ' + (a.ativo ? 'ligado' : 'desligado') + '">' +
+          '<span class="slider"></span>' +
+        '</label>') +
+      '</div>' +
+      '<div class="alarm-proxima">' + linhaProxima + '</div>' +
+      (adiadoInfo ? '<p class="alarm-meta adiado">⏰ Adiado para ' + formatarHora(adiadoInfo.dispararEm) + '</p>' : '') +
+      '<p class="alarm-meta">🔁 ' + textoIntervalo(a.intervaloHoras) + '</p>' +
+      linhaProgresso +
+      (a.pendente ? '<p class="alarm-meta pendente">⚠️ Ainda não salvo na sua conta (só neste aparelho)</p>' : '') +
+      '<button type="button" class="btn-editar" data-id="' + escapeAttr(a.id) + '" aria-label="Editar alarme de ' + escapeAttr(nome) + '">✏️ Editar</button>' +
+    '</article>';
   }
 
   function renderizarLista(){
-    if(alarmes.length === 0){
-      elLista.innerHTML = '<p class="lista-vazia">Você ainda não tem alarmes de medicamento cadastrados.</p>';
-      elStatus.textContent = '';
-      return;
-    }
-
-    var html = '';
-    alarmes.forEach(function(a){
-      var proxima = proximaOcorrencia(a);
-      var concluido = tratamentoConcluido(a);
-      var fim = dataFimTratamento(a);
-
-      var linhaHorario;
-      if(concluido){
-        linhaHorario = '<span class="badge-concluido">Tratamento concluído</span>';
-      } else if(!a.ativo){
-        linhaHorario = '<span class="alarm-meta">Alarme desativado</span>';
-      } else if(proxima){
-        linhaHorario =
-          '<span class="alarm-horario">' + formatarHora(proxima) + '</span>' +
-          '<span class="alarm-meta">' + formatarDataCurta(proxima) + '</span>';
-      } else {
-        linhaHorario = '<span class="alarm-meta">Sem próximas doses</span>';
-      }
-
-      var metaDuracao;
-      if(a.duracaoTipo === 'dias'){
-        metaDuracao = 'A cada ' + a.intervaloHoras + 'h · ' + a.duracaoValor + ' dia(s)' + (fim ? ' · até ' + formatarDataCurta(fim) : '');
-      } else if(a.duracaoTipo === 'doses'){
-        metaDuracao = 'A cada ' + a.intervaloHoras + 'h · ' + a.duracaoValor + ' dose(s) no total';
-      } else {
-        metaDuracao = 'A cada ' + a.intervaloHoras + 'h · uso contínuo (sem data para terminar)';
-      }
-
-      var adiadoInfo = soneca.find(function(s){ return s.id === a.id; });
-      var linhaAdiado = adiadoInfo
-        ? '<p class="alarm-meta" style="color:var(--forest);font-weight:800;">⏰ Adiado para ' + formatarHora(adiadoInfo.dispararEm) + '</p>'
-        : '';
-
-      var nomesTitulo = a.medicamentos.map(function(m){ return m.nome; }).join(' + ');
-      var listaDoses = a.medicamentos.map(function(m){
-        return '<li>' + escapeHtml(m.nome) + ' — ' + escapeHtml(m.dose) + '</li>';
-      }).join('');
-
-      html +=
-        '<div class="alarm-card' + (a.ativo ? '' : ' inativo') + '" data-id="' + a.id + '">' +
-          '<span class="alarm-icon">' + ICON_REMEDIO + '</span>' +
-          '<div class="alarm-info">' +
-            '<p class="alarm-nome">' + escapeHtml(nomesTitulo) + '</p>' +
-            '<ul class="alarm-dose-lista">' + listaDoses + '</ul>' +
-            '<div class="alarm-horario-row">' + linhaHorario + '</div>' +
-            '<p class="alarm-meta">' + metaDuracao + '</p>' +
-            linhaAdiado +
-          '</div>' +
-          '<div class="alarm-actions">' +
-            '<label class="switch">' +
-              '<input type="checkbox" class="toggle-ativo" data-id="' + a.id + '" ' + (a.ativo ? 'checked' : '') + ' aria-label="Ativar ou desativar alarme de ' + escapeHtml(nomesTitulo) + '">' +
-              '<span class="slider"></span>' +
-            '</label>' +
-            '<button type="button" class="btn-editar" data-id="' + a.id + '" aria-label="Editar alarme de ' + escapeHtml(nomesTitulo) + '">' + ICON_LAPIS + '</button>' +
-          '</div>' +
-        '</div>';
+    var ordenados = alarmes.slice().sort(function(x, y){
+      var px = proximaOcorrencia(x), py = proximaOcorrencia(y);
+      return (px ? px.getTime() : Infinity) - (py ? py.getTime() : Infinity);
     });
+    var ativos = ordenados.filter(function(a){ return a.ativo && !tratamentoConcluido(a); });
+    var outros = ordenados.filter(function(a){ return !(a.ativo && !tratamentoConcluido(a)); });
 
-    elLista.innerHTML = html;
+    document.getElementById('qtdAtivos').textContent = ativos.length ? '(' + ativos.length + ')' : '';
+    elLista.innerHTML = ativos.length
+      ? ativos.map(cardAlarme).join('')
+      : '<p class="lista-vazia">' + (alarmes.length ? 'Nenhum alarme ligado no momento.' : 'Você ainda não tem alarmes de medicamento cadastrados.') + '</p>';
 
-    var ativos = alarmes.filter(function(a){ return a.ativo; }).length;
-    if(ativos === alarmes.length){
-      elStatus.textContent = 'Seus alarmes de medicamento estão ativos.';
-    } else if(ativos === 0){
-      elStatus.textContent = 'Nenhum alarme está ativo no momento.';
-    } else {
-      elStatus.textContent = ativos + ' de ' + alarmes.length + ' alarmes ativos.';
-    }
+    elBtnInativos.hidden = !outros.length;
+    document.getElementById('qtdInativos').textContent = '(' + outros.length + ')';
+    elInativos.innerHTML = outros.map(cardAlarme).join('');
+    if(!outros.length){ elInativos.hidden = true; elBtnInativos.setAttribute('aria-expanded', 'false'); }
 
-    elLista.querySelectorAll('.toggle-ativo').forEach(function(input){
-      input.addEventListener('change', function(){
-        var alarme = alarmes.find(function(a){ return a.id === input.dataset.id; });
-        if(alarme){
-          alarme.ativo = input.checked;
-          sincronizarLocal(alarme, 'upsert');
-          renderizarTudo();
-        }
-      });
-    });
-
-    elLista.querySelectorAll('.btn-editar').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        abrirModalEdicao(btn.dataset.id);
-      });
-    });
+    var pendentes = alarmes.filter(function(a){ return a.pendente; }).length;
+    elStatus.textContent = avisoConexao || (pendentes ? plural(pendentes, 'alarme ainda não foi salvo', 'alarmes ainda não foram salvos') + ' na sua conta. Vamos tentar de novo na próxima vez que você abrir esta tela.' : '');
+    elStatus.classList.toggle('alerta', Boolean(avisoConexao || pendentes));
   }
+
+  elBtnInativos.addEventListener('click', function(){
+    elInativos.hidden = !elInativos.hidden;
+    elBtnInativos.setAttribute('aria-expanded', String(!elInativos.hidden));
+  });
+
+  // Cliques nos cards (lista de ativos e de desligados)
+  [elLista, elInativos].forEach(function(lista){
+    lista.addEventListener('change', async function(e){
+      var input = e.target.closest('.toggle-ativo'); if(!input) return;
+      var alarme = acharAlarme(input.dataset.id); if(!alarme) return;
+      alarme.ativo = input.checked;
+      if(alarme.ativo) marcarBase(alarme);
+      renderizarTudo();
+      var ok = await gravarAlarme(alarme);
+      mostrarToast(ok ? (alarme.ativo ? '🔔 Alarme ligado' : '🔕 Alarme desligado') : 'Não foi possível salvar na sua conta agora. A mudança ficou neste aparelho.', ok ? '' : 'erro');
+      renderizarTudo();
+    });
+    lista.addEventListener('click', function(e){
+      var btn = e.target.closest('.btn-editar'); if(!btn) return;
+      abrirModalEdicao(btn.dataset.id);
+    });
+  });
 
   function renderizarTudo(){
     renderizarProximoAlarme();
+    renderizarAvisos();
     renderizarLista();
   }
 
   function escapeHtml(texto){
     var div = document.createElement('div');
-    div.textContent = texto;
+    div.textContent = texto == null ? '' : texto;
     return div.innerHTML;
   }
 
@@ -1239,6 +1552,7 @@ if (!rawUser) {
       .replace(/>/g, '&gt;');
   }
 
+  // ---------- FORMULÁRIO ----------
   var modalOverlay = document.getElementById('modalOverlay');
   var modalTitle = document.getElementById('modalTitle');
   var form = document.getElementById('formAlarme');
@@ -1249,10 +1563,12 @@ if (!rawUser) {
   var labelDuracaoValor = document.getElementById('labelDuracaoValor');
   var fieldDuracaoValor = document.getElementById('fieldDuracaoValor');
   var btnExcluir = document.getElementById('btnExcluir');
+  var btnSalvar = document.getElementById('btnSalvar');
 
   var medicamentosContainer = document.getElementById('medicamentosContainer');
   var btnAddMedicamento = document.getElementById('btnAddMedicamento');
   var medicamentosForm = [];
+  var estadoInicialForm = '';
 
   function renderMedicamentosForm(){
     medicamentosContainer.innerHTML = medicamentosForm.map(function(m, idx){
@@ -1261,7 +1577,7 @@ if (!rawUser) {
           '<div class="med-bloco-header">' +
             '<span class="med-bloco-titulo">Medicamento ' + (idx + 1) + '</span>' +
             (medicamentosForm.length > 1
-              ? '<button type="button" class="btn-remover-med" data-idx="' + idx + '">Remover</button>'
+              ? '<button type="button" class="btn-remover-med" data-idx="' + idx + '">🗑️ Remover</button>'
               : '') +
           '</div>' +
           '<div class="field">' +
@@ -1310,10 +1626,23 @@ if (!rawUser) {
   function radiosDuracao(){
     return Array.prototype.slice.call(document.querySelectorAll('input[name="duracaoTipo"]'));
   }
+  radiosDuracao().forEach(function(r){ r.addEventListener('change', atualizarLabelDuracao); });
 
-  radiosDuracao().forEach(function(r){
-    r.addEventListener('change', atualizarLabelDuracao);
+  // Atalhos de intervalo (6h, 8h, 12h, 1x ao dia)
+  document.querySelectorAll('.chip-intervalo').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      inputIntervalo.value = chip.dataset.horas;
+      marcarChipsIntervalo();
+      document.getElementById('fieldIntervalo').classList.remove('invalid');
+    });
   });
+  inputIntervalo.addEventListener('input', marcarChipsIntervalo);
+  function marcarChipsIntervalo(){
+    document.querySelectorAll('.chip-intervalo').forEach(function(c){
+      var on = c.dataset.horas === String(inputIntervalo.value);
+      c.classList.toggle('on', on); c.setAttribute('aria-pressed', String(on));
+    });
+  }
 
   function atualizarLabelDuracao(){
     var tipo = radiosDuracao().find(function(r){ return r.checked; }).value;
@@ -1343,13 +1672,27 @@ if (!rawUser) {
     document.getElementById(fieldId).classList.add('invalid');
   }
 
+  function fotoDoForm(){
+    return JSON.stringify([medicamentosForm, inputPrimeiraDose.value, inputIntervalo.value, inputDuracaoValor.value,
+      (radiosDuracao().find(function(r){ return r.checked; }) || {}).value]);
+  }
+
+  function abrirModal(){
+    desarmarExcluir();
+    marcarChipsIntervalo();
+    modalOverlay.classList.add('show');
+    document.querySelector('.modal').scrollTop = 0;
+    estadoInicialForm = fotoDoForm();
+    document.getElementById('medNome0').focus();
+  }
+
   function abrirModalNovo(){
     form.reset();
     inputId.value = '';
     limparErros();
     modalTitle.textContent = 'Novo alarme de medicamento';
     btnExcluir.style.display = 'none';
-    btnExcluir.textContent = 'Excluir este alarme';
+    btnSalvar.textContent = 'Salvar alarme';
 
     medicamentosForm = [{ nome: '', dose: '' }];
     renderMedicamentosForm();
@@ -1357,18 +1700,17 @@ if (!rawUser) {
     inputPrimeiraDose.value = formatarParaInputLocal(new Date());
     document.querySelector('input[name="duracaoTipo"][value="dias"]').checked = true;
     atualizarLabelDuracao();
-
-    modalOverlay.classList.add('show');
-    document.getElementById('medNome0').focus();
+    abrirModal();
   }
 
   function abrirModalEdicao(id){
-    var a = alarmes.find(function(x){ return x.id === id; });
+    var a = acharAlarme(id);
     if(!a) return;
 
     limparErros();
     modalTitle.textContent = 'Editar alarme de medicamento';
     inputId.value = a.id;
+    btnSalvar.textContent = 'Salvar alterações';
 
     medicamentosForm = a.medicamentos.map(function(m){ return { nome: m.nome, dose: m.dose }; });
     renderMedicamentosForm();
@@ -1380,23 +1722,34 @@ if (!rawUser) {
     atualizarLabelDuracao();
 
     btnExcluir.style.display = 'block';
-    btnExcluir.textContent = 'Excluir este alarme';
-
-    modalOverlay.classList.add('show');
-    document.getElementById('medNome0').focus();
+    abrirModal();
   }
 
   function fecharModal(){
+    desarmarExcluir();
     modalOverlay.classList.remove('show');
   }
 
+  // Cancelar / Esc: se a pessoa digitou algo, pergunta antes de descartar.
+  async function pedirFechar(){
+    if(fotoDoForm() !== estadoInicialForm){
+      var descartar = await confirmar('Sair sem salvar?', 'O que você digitou neste alarme vai ser perdido.', 'Sair sem salvar', 'Continuar editando');
+      if(!descartar) return;
+    }
+    fecharModal();
+  }
+
   document.getElementById('btnAdicionar').addEventListener('click', abrirModalNovo);
-  document.getElementById('btnCancelar').addEventListener('click', fecharModal);
-  modalOverlay.addEventListener('click', function(e){
-    if(e.target === modalOverlay) fecharModal();
+  document.getElementById('btnCancelar').addEventListener('click', pedirFechar);
+  // Tocar fora do formulário NÃO fecha mais (evita perder o que foi digitado por um toque sem querer).
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape') return;
+    if(document.getElementById('confirmOverlay').classList.contains('show')) return;
+    var ajuda = document.getElementById('modalAjuda');
+    if(modalOverlay.classList.contains('show') && (!ajuda || ajuda.hidden) && !elAlertaOverlay.classList.contains('show')) pedirFechar();
   });
 
-  form.addEventListener('submit', function(e){
+  form.addEventListener('submit', async function(e){
     e.preventDefault();
     limparErros();
 
@@ -1406,24 +1759,27 @@ if (!rawUser) {
     var duracaoValor = duracaoTipo === 'continuo' ? null : parseInt(inputDuracaoValor.value, 10);
 
     var valido = true;
-
     medicamentosForm.forEach(function(m, idx){
       var campoNome = document.getElementById('medNome' + idx).closest('.field');
       var campoDose = document.getElementById('medDose' + idx).closest('.field');
-      if(!m.nome || !m.nome.trim()){
-        campoNome.classList.add('invalid');
-        valido = false;
-      }
-      if(!m.dose || !m.dose.trim()){
-        campoDose.classList.add('invalid');
-        valido = false;
-      }
+      if(!m.nome || !m.nome.trim()){ campoNome.classList.add('invalid'); valido = false; }
+      if(!m.dose || !m.dose.trim()){ campoDose.classList.add('invalid'); valido = false; }
     });
-
     if(!primeiraDose){ marcarErro('fieldPrimeiraDose'); valido = false; }
     if(!intervalo || intervalo < 1 || intervalo > 48){ marcarErro('fieldIntervalo'); valido = false; }
     if(duracaoTipo !== 'continuo' && (!duracaoValor || duracaoValor < 1)){ marcarErro('fieldDuracaoValor'); valido = false; }
-    if(!valido) return;
+    if(!valido){
+      // Leva a pessoa até o primeiro campo com problema.
+      var primeiro = form.querySelector('.field.invalid, fieldset .field.invalid');
+      if(primeiro){
+        primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        var campo = primeiro.querySelector('input');
+        if(campo) setTimeout(function(){ campo.focus({ preventScroll: true }); }, 350);
+      }
+      var n = form.querySelectorAll('.field.invalid').length;
+      mostrarToast(n === 1 ? 'Falta corrigir 1 campo' : 'Faltam corrigir ' + n + ' campos', 'erro');
+      return;
+    }
 
     var medicamentosFinal = medicamentosForm.map(function(m){
       return { nome: m.nome.trim(), dose: m.dose.trim() };
@@ -1431,19 +1787,18 @@ if (!rawUser) {
 
     var id = inputId.value;
     var alarmeObjeto;
-
     if(id){
-      var alarme = alarmes.find(function(a){ return a.id === id; });
-      alarme.medicamentos = medicamentosFinal;
-      alarme.primeiraDose = primeiraDose;
-      alarme.intervaloHoras = intervalo;
-      alarme.duracaoTipo = duracaoTipo;
-      alarme.duracaoValor = duracaoValor;
-      alarme.ultimaAlertaEm = null;
-      alarmeObjeto = alarme;
+      alarmeObjeto = acharAlarme(id);
+      alarmeObjeto.medicamentos = medicamentosFinal;
+      alarmeObjeto.primeiraDose = primeiraDose;
+      alarmeObjeto.intervaloHoras = intervalo;
+      alarmeObjeto.duracaoTipo = duracaoTipo;
+      alarmeObjeto.duracaoValor = duracaoValor;
+      alarmeObjeto.ultimaAlertaEm = null;
     } else {
       alarmeObjeto = {
         id: gerarId(),
+        pendente: true,
         medicamentos: medicamentosFinal,
         primeiraDose: primeiraDose,
         intervaloHoras: intervalo,
@@ -1454,38 +1809,52 @@ if (!rawUser) {
       };
       alarmes.push(alarmeObjeto);
     }
+    marcarBase(alarmeObjeto);
 
-    sincronizarLocal(alarmeObjeto, 'upsert');
+    btnSalvar.disabled = true;
+    btnSalvar.textContent = 'Salvando...';
+    var ok = await gravarAlarme(alarmeObjeto);
+    btnSalvar.disabled = false;
     fecharModal();
     renderizarTudo();
+    if(ok) mostrarToast(id ? '✅ Alterações salvas!' : '✅ Alarme salvo!');
+    else mostrarToast('⚠️ Não foi possível salvar na sua conta agora. O alarme vai funcionar neste aparelho e vamos tentar salvar de novo depois.', 'erro');
   });
 
+  // Excluir: pede um segundo toque para confirmar.
   var excluirArmado = false;
   var excluirTimeout = null;
-
-  btnExcluir.addEventListener('click', function(){
-    if(!excluirArmado){
-      excluirArmado = true;
-      btnExcluir.textContent = 'Confirmar exclusão? Clique de novo';
-      excluirTimeout = setTimeout(function(){
-        excluirArmado = false;
-        btnExcluir.textContent = 'Excluir este alarme';
-      }, 4000);
-      return;
-    }
-
+  function desarmarExcluir(){
     clearTimeout(excluirTimeout);
     excluirArmado = false;
-    var id = inputId.value;
-    var alarmeParaExcluir = alarmes.find(function(a){ return a.id === id; });
-    alarmes = alarmes.filter(function(a){ return a.id !== id; });
-    
-    if(alarmeParaExcluir) sincronizarLocal(alarmeParaExcluir, 'delete');
-    
+    btnExcluir.textContent = 'Excluir este alarme';
+    btnExcluir.classList.remove('armado');
+  }
+
+  btnExcluir.addEventListener('click', async function(){
+    if(!excluirArmado){
+      excluirArmado = true;
+      btnExcluir.textContent = 'Toque de novo para confirmar a exclusão';
+      btnExcluir.classList.add('armado');
+      excluirTimeout = setTimeout(desarmarExcluir, 6000);
+      return;
+    }
+    desarmarExcluir();
+    var alarmeParaExcluir = acharAlarme(inputId.value);
+    if(!alarmeParaExcluir) return;
+    btnExcluir.disabled = true;
+    var ok = await apagarAlarme(alarmeParaExcluir);
+    btnExcluir.disabled = false;
+    if(!ok){ mostrarToast('Não foi possível excluir agora. Verifique a internet e tente de novo.', 'erro'); return; }
+    alarmes = alarmes.filter(function(a){ return !mesmoId(a.id, alarmeParaExcluir.id); });
+    delete confirmadas[String(alarmeParaExcluir.id)]; salvarConfirmacoes();
+    guardarLocal();
     fecharModal();
     renderizarTudo();
+    mostrarToast('🗑️ Alarme excluído');
   });
 
+  // ---------- ALERTA "HORA DO REMÉDIO" ----------
   var filaAlertas = [];
   var soneca = [];
   var alertaAtual = null;
@@ -1527,11 +1896,12 @@ if (!rawUser) {
   var elAlertaMedicamentos = document.getElementById('alertaMedicamentos');
   var elAlertaHora = document.getElementById('alertaHora');
 
-  function dispararAlerta(dadosAlarme, horario){
+  function dispararAlerta(dadosAlarme, horario, dose){
     filaAlertas.push({
       id: dadosAlarme.id,
       medicamentos: dadosAlarme.medicamentos,
-      horario: horario || new Date()
+      horario: horario || new Date(),
+      dose: dose || horario || new Date()
     });
     processarFilaAlertas();
   }
@@ -1543,12 +1913,17 @@ if (!rawUser) {
     elAlertaMedicamentos.innerHTML = alertaAtual.medicamentos.map(function(m){
       return '<p class="alerta-med">' + escapeHtml(m.nome) + '</p><p class="alerta-dose">' + escapeHtml(m.dose) + '</p>';
     }).join('');
-    elAlertaHora.textContent = 'Horário: ' + formatarHora(alertaAtual.horario);
+    elAlertaHora.textContent = 'Horário: ' + formatarHora(alertaAtual.dose);
     elAlertaOverlay.classList.add('show');
+    document.getElementById('btnJaTomei').focus();
 
     destravarAudio();
     tocarBeep();
     somIntervalId = setInterval(tocarBeep, 4000);
+    if(window.TechSaudeLembretes){
+      window.TechSaudeLembretes.notificar('💊 Hora do remédio — ' + formatarHora(alertaAtual.dose),
+        alertaAtual.medicamentos.map(function(m){ return m.nome + ' (' + m.dose + ')'; }).join('\n'), 'remedio-' + alertaAtual.id);
+    }
   }
 
   function fecharAlertaAtual(){
@@ -1560,19 +1935,23 @@ if (!rawUser) {
     renderizarTudo();
   }
 
-  document.getElementById('btnJaTomei').addEventListener('click', fecharAlertaAtual);
+  document.getElementById('btnJaTomei').addEventListener('click', function(){
+    if(alertaAtual) confirmarDose(alertaAtual.id, new Date(alertaAtual.dose));
+    fecharAlertaAtual();
+    mostrarToast('✅ Dose registrada. Muito bem!');
+  });
 
   document.getElementById('btnAdiar').addEventListener('click', function(){
     var item = alertaAtual;
-    fecharAlertaAtual();
     if(item){
       soneca.push({
         id: item.id,
         medicamentos: item.medicamentos,
-        dispararEm: new Date(Date.now() + 5 * 60 * 1000)
+        dispararEm: new Date(Date.now() + 5 * 60 * 1000),
+        dose: item.dose
       });
-      renderizarTudo();
     }
+    fecharAlertaAtual();
   });
 
   function verificarAlarmes(){
@@ -1581,7 +1960,7 @@ if (!rawUser) {
 
     soneca = soneca.filter(function(s){
       if(s.dispararEm <= agora){
-        dispararAlerta({ id: s.id, medicamentos: s.medicamentos }, s.dispararEm);
+        dispararAlerta({ id: s.id, medicamentos: s.medicamentos }, s.dispararEm, s.dose);
         mudou = true;
         return false;
       }
@@ -1597,9 +1976,11 @@ if (!rawUser) {
       if(a.ultimaAlertaEm !== ocIso){
         a.ultimaAlertaEm = ocIso;
         mudou = true;
+        var conf = confirmadas[String(a.id)];
+        var jaConfirmada = conf && new Date(conf) >= oc;
         var atrasoMs = agora - oc;
-        if(atrasoMs <= 3 * 60 * 1000){
-          dispararAlerta(a, oc);
+        if(atrasoMs <= TOLERANCIA_MS && !jaConfirmada){
+          dispararAlerta(a, oc, oc);
         }
       }
     });
@@ -1607,9 +1988,22 @@ if (!rawUser) {
     if(mudou) renderizarTudo();
   }
 
+  // ---------- AVISO PARA ATIVAR NOTIFICAÇÕES ----------
+  var elAvisoNotif = document.getElementById('avisoNotif');
+  function atualizarAvisoNotif(){
+    elAvisoNotif.hidden = !(window.TechSaudeLembretes && window.TechSaudeLembretes.estadoNotificacao() === 'default');
+  }
+  document.getElementById('btnAtivarNotif').addEventListener('click', function(){
+    window.TechSaudeLembretes.pedirPermissao().then(function(r){
+      atualizarAvisoNotif();
+      mostrarToast(r === 'granted' ? '🔔 Avisos ativados!' : 'Tudo bem. Os avisos continuam aparecendo dentro do app.');
+    });
+  });
+
   // Inicialização
+  atualizarAvisoNotif();
   atualizarDataHora();
-  carregarAlarmesSupabase();
+  carregarAlarmesSupabase().then(verificarAlarmes);
   setInterval(atualizarDataHora, 30000);
   setInterval(verificarAlarmes, 15000);
 
@@ -1642,13 +2036,13 @@ if (!rawUser) {
       titulo: 'Como usar o Alarme de Medicamento',
       intro: 'Aqui você cadastra seus remédios e o aplicativo avisa na hora de tomar.',
       passos: [
-        'No quadro do alto aparece o <b>próximo remédio</b> e o horário dele.',
+        'No quadro do alto aparece o <b>próximo remédio</b>, o horário e quanto falta.',
         'Para cadastrar um remédio, toque em <b>+ Adicionar novo alarme</b>.',
-        'Escreva o nome e a dose do remédio, escolha o dia e a hora da 1ª dose e de quantas em quantas horas tomar. Depois toque em <b>Salvar alarme</b>.',
-        'Em <b>Seus alarmes</b>, toque no lápis ✏️ para mudar um alarme, ou na chavinha para ligar e desligar.',
-        'Na hora do remédio aparece um aviso: toque em <b>Já tomei</b> ou em <b>Adiar 5 minutos</b>.'
+        'Escreva o nome e a dose, escolha o dia e a hora da 1ª dose e de quantas em quantas horas tomar (ou toque em <b>8 em 8h</b>, <b>1 vez ao dia</b>...). Depois toque em <b>Salvar alarme</b>.',
+        'Em <b>Remédios ativos</b>, cada cartão mostra a próxima dose e quantos dias ou doses faltam. Toque em <b>Editar</b> para mudar, ou na chavinha para ligar e desligar.',
+        'Na hora do remédio aparece um aviso: toque em <b>Já tomei</b> ou em <b>Adiar 5 minutos</b>. Se passar do horário, aparece <b>Dose não confirmada</b> para você responder.'
       ],
-      dica: 'Os avisos tocam enquanto o aplicativo estiver aberto. Para voltar ao menu, toque em Início, no alto à direita.'
+      dica: 'Os avisos tocam enquanto esta tela estiver aberta. Toque em Ativar avisos para receber também como notificação.'
     }
   ];
 
