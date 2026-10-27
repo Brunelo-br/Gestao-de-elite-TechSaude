@@ -1,10 +1,12 @@
 /* =====================================================================
    TechSaúde — LEMBRETES DE CONSULTA (vale para todas as telas do app)
    ---------------------------------------------------------------------
-   - A cada 30 s confere as consultas do usuário logado e mostra o aviso
-     quando chega a hora de cada lembrete (1 dia, 2 h, 1 h ou 30 min antes).
-   - O aviso aparece como pop-up dentro do app, com som, e também como
-     notificação do celular/computador (se a pessoa permitir).
+   - A cada 30 s confere as consultas do usuário logado e avisa quando chega
+     cada prazo escolhido (7 dias, 2 dias, 1 dia, 2 h, 1 h ou 30 min antes).
+   - Cada consulta tem duas chaves (colunas do banco):
+       aviso_popup       -> pop-up com som dentro do app
+       aviso_notificacao -> notificação do celular/computador
+     Os prazos (coluna "lembrete") valem para as duas.
    - Funciona em qualquer tela aberta do app. Com o app totalmente fechado,
      o navegador não executa nada (isso exigiria um servidor de push).
    - Lê as consultas direto do Supabase (REST) e guarda uma cópia local.
@@ -20,6 +22,8 @@
   var INTERVALO_BANCO = 5 * 60 * 1000;
 
   var OPCOES = [
+    { valor: '7d',  texto: '7 dias antes',      ms: 7 * 24 * 60 * 60 * 1000 },
+    { valor: '2d',  texto: '2 dias antes',      ms: 2 * 24 * 60 * 60 * 1000 },
     { valor: '1d',  texto: '1 dia antes',       ms: 24 * 60 * 60 * 1000 },
     { valor: '2h',  texto: '2 horas antes',     ms: 2 * 60 * 60 * 1000 },
     { valor: '1h',  texto: '1 hora antes',      ms: 60 * 60 * 1000 },
@@ -71,6 +75,8 @@
       hora: (c.hora_consulta || c.hora || '').slice(0, 5),
       local: c.local_atendimento || c.local || '',
       lembrete: c.lembrete || null,
+      popup: c.aviso_popup !== false,                 // padrão: ligado
+      notificacao: c.aviso_notificacao === true,      // padrão: desligado
       confirmado: Boolean(c.confirmado)
     };
   }
@@ -150,6 +156,7 @@
     lerCache().map(normalizar).forEach(function(c){
       var alvo = quando(c);
       if(!alvo || alvo <= agora) return;
+      if(!c.popup && !c.notificacao) return;
       var vencidos = lerLembretes(c.lembrete).filter(function(v){
         var op = OPCOES.filter(function(o){ return o.valor === v; })[0];
         return agora >= new Date(alvo - op.ms) && !mostrados[chaveLembrete(c, v)];
@@ -157,7 +164,8 @@
       if(!vencidos.length) return;
       // Vários lembretes vencidos de uma vez (app ficou fechado): mostra um só aviso.
       vencidos.forEach(function(v){ marcarMostrado(chaveLembrete(c, v)); });
-      if(!fila.some(function(f){ return f.id === c.id; }) && !(aberto && aberto.id === c.id)) fila.push(c);
+      if(c.notificacao) notificarConsulta(c);
+      if(c.popup && !fila.some(function(f){ return f.id === c.id; }) && !(aberto && aberto.id === c.id)) fila.push(c);
     });
     proximo();
   }
@@ -225,8 +233,13 @@
       if(acao === 'remarcar') window.location.href = 'lembretedeconsultas.html?editar=' + encodeURIComponent(c.id);
     });
     tocarSom();
-    notificar('Consulta ' + falta + ' — ' + horaBR(alvo), quem + (c.local ? '\n' + c.local : ''), 'consulta-' + c.id);
     window.dispatchEvent(new CustomEvent('techsaude:lembrete-consulta', { detail: c }));
+  }
+
+  function notificarConsulta(c){
+    var alvo = quando(c);
+    var quem = (c.medico || 'Consulta') + (c.especialidade ? ' — ' + c.especialidade : '');
+    notificar('🩺 Consulta ' + faltaTexto(alvo) + ' — ' + dataBR(alvo) + ' às ' + horaBR(alvo), quem + (c.local ? '\n📍 ' + c.local : ''), 'consulta-' + c.id);
   }
 
   function fecharPopup(ov){
@@ -308,6 +321,26 @@
     });
   }
 
+  // Liga a notificação: pede permissão se ainda não pediu. Devolve { ok, motivo }.
+  function ligarNotificacao(){
+    var est = estadoNotificacao();
+    if(est === 'granted') return Promise.resolve({ ok: true });
+    if(est === 'default'){
+      return pedirPermissao().then(function(p){
+        return p === 'granted' ? { ok: true } : { ok: false, motivo: motivoSemNotificacao(p) };
+      });
+    }
+    return Promise.resolve({ ok: false, motivo: motivoSemNotificacao(est) });
+  }
+  function motivoSemNotificacao(est){
+    est = est || estadoNotificacao();
+    if(est === 'denied') return 'As notificações estão bloqueadas neste aparelho. Para liberar, toque no cadeado ao lado do endereço do site e permita "Notificações".';
+    if(est === 'precisa-https') return 'As notificações só funcionam com o app aberto pela internet (endereço com https).';
+    if(est === 'indisponivel') return 'Este navegador não mostra notificações. O aviso continua aparecendo dentro do app.';
+    if(est === 'default') return 'Você não permitiu as notificações. Os avisos continuam aparecendo dentro do app.';
+    return '';
+  }
+
   // ---------- exporta ----------
   window.TechSaudeLembretes = {
     OPCOES: OPCOES,
@@ -320,7 +353,9 @@
     atualizarDoBanco: atualizarDoBanco,
     notificar: notificar,
     estadoNotificacao: estadoNotificacao,
-    pedirPermissao: pedirPermissao
+    pedirPermissao: pedirPermissao,
+    ligarNotificacao: ligarNotificacao,
+    motivoSemNotificacao: motivoSemNotificacao
   };
 
   function iniciar(){

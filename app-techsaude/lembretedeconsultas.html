@@ -662,6 +662,18 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
 .opcao input[type="checkbox"]{display:none;}
 .opcao .radio{border-radius:6px;}
 .opcao.selected .radio::after{content:'✓';width:auto;height:auto;background:none;color:#fff;font-size:.8rem;font-weight:900;border-radius:0;}
+/* Avisos: duas chaves + prazos */
+.avisos-box{flex-direction:column;align-items:stretch;gap:0;padding:6px 14px 14px;}
+.aviso-linha{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.aviso-linha .alarm-label{flex:1 1 auto;}
+.prazos{padding-top:12px;}
+.prazos[hidden]{display:none;}
+.prazos-titulo{margin:0;font-size:.8125rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:var(--green-deep);}
+.prazos-titulo span{font-weight:700;text-transform:none;letter-spacing:0;color:var(--text-soft);}
+.avisos-desligados{margin:12px 0 0;font-size:.875rem;font-weight:700;color:var(--text-soft);}
+.avisos-desligados[hidden]{display:none;}
+.form-group.invalido .avisos-box{border-color:var(--danger);}
+.sheet .avisos-box{background:#fff;border:2px solid var(--border);border-radius:18px;margin-bottom:6px;}
 /* Confirmação (substitui o confirm() do navegador) */
 .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;display:flex;align-items:center;justify-content:center;padding:20px;}
 .confirm-overlay[hidden]{display:none;}
@@ -785,11 +797,6 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
       <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
     </div>
 
-    <div class="aviso-notif" id="avisoNotif" hidden>
-      <span>🔔 Quer receber os lembretes também como notificação do celular?</span>
-      <button type="button" class="btn-sm" id="btnAtivarNotif">Ativar avisos</button>
-    </div>
-
     <!-- ========== TELA 1: INCLUIR / EDITAR CONSULTA ========== -->
     <section class="screen" id="screen-incluir">
       <h1 class="page-title" id="tituloForm">Incluir Consulta em Agenda</h1>
@@ -872,19 +879,10 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
           </div>
           <p class="campo-erro" id="erro-quando">Escolha o dia e a hora da consulta.</p>
         </div>
-        <div class="form-group full">
-          <span class="field-label">Lembretes da consulta</span>
-          <div class="alarm-section" style="flex-wrap:wrap;">
-            <div class="alarm-label">
-              <div class="field-icon" aria-hidden="true">🔔</div>
-              <div>
-                <div class="alarm-title" id="lbl-alarme">Avisar antes da consulta</div>
-                <div class="alarm-subtitle">Escolha quando quer ser lembrado</div>
-              </div>
-            </div>
-            <button type="button" class="toggle-switch active" id="alarmToggle" aria-pressed="true" aria-labelledby="lbl-alarme"></button>
-            <div class="lembrete-opcoes" id="opcoesLembrete" role="group" aria-label="Quando avisar"></div>
-          </div>
+        <div class="form-group full" id="g-avisos">
+          <span class="field-label">Avisos da consulta</span>
+          <div class="alarm-section avisos-box" id="avisosForm"></div>
+          <p class="campo-erro">Marque pelo menos um prazo, ou desligue os dois avisos.</p>
         </div>
         <div class="form-group full">
           <label class="field-label" for="c-obs">Observações (Opcional)</label>
@@ -941,9 +939,9 @@ input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-
 <!-- CONFIGURAR LEMBRETES (vários ao mesmo tempo) -->
 <div class="overlay" id="dropdown-lembrete" onclick="fecharDropdown(event)">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitulo" onclick="event.stopPropagation()">
-    <h3 id="sheetTitulo">Configurar Lembretes</h3>
-    <p class="sub" id="dropdown-sub">Escolha quando quer ser avisado (pode marcar mais de um)</p>
-    <div id="sheetOpcoes"></div>
+    <h3 id="sheetTitulo">Avisos da consulta</h3>
+    <p class="sub" id="dropdown-sub"></p>
+    <div class="alarm-section avisos-box" id="avisosSheet"></div>
     <div class="sheet-actions">
       <button type="button" class="btn btn-ghost" onclick="fecharDropdown()">Cancelar</button>
       <button type="button" class="btn btn-primary" onclick="salvarLembrete()">Salvar</button>
@@ -1009,6 +1007,8 @@ function normalizarConsulta(c){
     local_atendimento: c.local_atendimento ?? c.local ?? '',
     obs: c.observacoes ?? c.obs ?? '',
     lembrete: c.lembrete || null,
+    popup: c.aviso_popup ?? c.popup ?? true,
+    notificacao: c.aviso_notificacao ?? c.notificacao ?? false,
     confirmado: Boolean(c.confirmado)
   };
 }
@@ -1029,7 +1029,7 @@ function salvarStorage(){
   const linhas = consultas.map(c => ({
     id: c.id, usuario_id: c.usuario_id, medico: c.medico, especialidade: c.especialidade,
     data_consulta: c.data, hora_consulta: c.hora, local_atendimento: c.local_atendimento,
-    observacoes: c.obs, lembrete: c.lembrete, confirmado: c.confirmado
+    observacoes: c.obs, lembrete: c.lembrete, aviso_popup: c.popup, aviso_notificacao: c.notificacao, confirmado: c.confirmado
   }));
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(linhas)); }catch(e){}
 }
@@ -1108,11 +1108,20 @@ function escapeHtml(s){
 }
 
 // ---------- LISTAS ----------
+// "🔔 App e 📲 notificação · 1 dia e 2 horas antes"
+function textoAvisos(c){
+  const prazos = L.texto(c.lembrete);
+  if(!prazos || (!c.popup && !c.notificacao)) return '';
+  const canais = [c.popup ? '🔔 Aviso no app' : '', c.notificacao ? '📲 Notificação' : ''].filter(Boolean).join(' + ');
+  return canais + ' · ' + prazos;
+}
+function temAvisos(c){ return Boolean(textoAvisos(c)); }
+
 function cardConsulta(c, passada){
-  const lemb = L.texto(c.lembrete);
+  const lemb = textoAvisos(c);
   const badges = (passada
       ? '<span class="badge badge-info">Já aconteceu</span>'
-      : (lemb ? '<span class="badge badge-ok">🔔 Avisar ' + escapeHtml(lemb) + '</span>' : '<span class="badge badge-warn">Sem lembrete</span>')) +
+      : (lemb ? '<span class="badge badge-ok">' + escapeHtml(lemb) + '</span>' : '<span class="badge badge-warn">Sem avisos</span>')) +
     (c.confirmado && !passada ? '<span class="badge badge-ok">✅ Presença confirmada</span>' : '');
   return '<article class="card' + (passada ? ' passada' : '') + '" data-id="' + c.id + '">' +
     '<div class="card-title">' + escapeHtml(c.medico) + (c.especialidade ? ' (' + escapeHtml(c.especialidade) + ')' : '') + '</div>' +
@@ -1122,7 +1131,7 @@ function cardConsulta(c, passada){
     badges +
     '<div class="card-actions">' +
       '<button type="button" class="btn-sm outline" onclick="editarConsulta(' + c.id + ')">✏️ Editar</button>' +
-      (passada ? '' : '<button type="button" class="btn-sm" onclick="abrirConfig(' + c.id + ')">🔔 Lembretes</button>') +
+      (passada ? '' : '<button type="button" class="btn-sm" onclick="abrirConfig(' + c.id + ')">🔔 Avisos</button>') +
       '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id + ')">Excluir</button>' +
     '</div>' +
   '</article>';
@@ -1158,9 +1167,9 @@ function alternarAnteriores(){
 
 function renderLembretes(){
   const el = document.getElementById('lista-lembretes');
-  const com = ordenadas().filter(c => !ehPassada(c) && L.ler(c.lembrete).length);
+  const com = ordenadas().filter(c => !ehPassada(c) && temAvisos(c));
   if(!com.length){
-    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔔</div><p>Nenhum lembrete para as próximas consultas.<br>Vá em Minhas Consultas e toque em Lembretes.</p><button type="button" class="btn-block" style="max-width:260px;margin:0 auto" onclick="goTo(\'consultas\')">Minhas Consultas</button></div>';
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔔</div><p>Nenhum aviso para as próximas consultas.<br>Vá em Minhas Consultas e toque em Avisos.</p><button type="button" class="btn-block" style="max-width:260px;margin:0 auto" onclick="goTo(\'consultas\')">Minhas Consultas</button></div>';
     return;
   }
   el.innerHTML = com.map(c =>
@@ -1168,7 +1177,7 @@ function renderLembretes(){
     '<div class="card-title">' + escapeHtml(c.medico) + (c.especialidade ? ' (' + escapeHtml(c.especialidade) + ')' : '') + '</div>' +
     '<p class="quando">' + escapeHtml(quandoTexto(c)) + '</p>' +
     '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local_atendimento) + '</div>' +
-    '<span class="badge badge-ok">🔔 Avisar ' + escapeHtml(L.texto(c.lembrete)) + '</span>' +
+    '<span class="badge badge-ok">' + escapeHtml(textoAvisos(c)) + '</span>' +
     '<div class="card-actions">' +
     '<button type="button" class="btn-sm outline" onclick="abrirConfig(' + c.id + ')">Alterar</button>' +
     '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id + ')">Excluir</button>' +
@@ -1214,29 +1223,73 @@ async function removerConsulta(id){
 const campos = ['c-local','c-especialidade','c-especialidade-outra','c-medico','c-data','c-hora','c-obs'];
 const ESPECIALIDADES = Array.from(document.querySelectorAll('#c-especialidade option')).map(o => o.value).filter(v => v && v !== '__outra__');
 
-function renderOpcoesLembrete(container, selecionados, nome){
-  container.innerHTML = L.OPCOES.map(o =>
-    '<label class="chip-lembrete"><input type="checkbox" name="' + nome + '" value="' + o.valor + '"' +
-    (selecionados.indexOf(o.valor) !== -1 ? ' checked' : '') + '> ' + o.texto + '</label>'
-  ).join('') + '<p class="lembrete-dica">Pode marcar mais de um.</p>';
+// ---------- AVISOS: chave do app, chave da notificação e prazos (valem para as duas) ----------
+function montarAvisos(container, pref){
+  const p = container.id;
+  container.innerHTML =
+    '<div class="aviso-linha">' +
+      '<div class="alarm-label"><div class="field-icon" aria-hidden="true">🔔</div><div>' +
+        '<div class="alarm-title" id="' + p + '-lbl-popup">Aviso no app</div>' +
+        '<div class="alarm-subtitle">Janela com som, com o app aberto</div></div></div>' +
+      '<button type="button" class="toggle-switch" data-canal="popup" aria-labelledby="' + p + '-lbl-popup"></button>' +
+    '</div>' +
+    '<div class="aviso-linha">' +
+      '<div class="alarm-label"><div class="field-icon" aria-hidden="true">📲</div><div>' +
+        '<div class="alarm-title" id="' + p + '-lbl-notif">Notificação no celular</div>' +
+        '<div class="alarm-subtitle">Aparece na barra de notificações</div></div></div>' +
+      '<button type="button" class="toggle-switch" data-canal="notificacao" aria-labelledby="' + p + '-lbl-notif"></button>' +
+    '</div>' +
+    '<div class="prazos">' +
+      '<p class="prazos-titulo">Quando avisar? <span>(vale para o aviso no app e para a notificação)</span></p>' +
+      '<div class="lembrete-opcoes" role="group" aria-label="Quando avisar">' +
+        L.OPCOES.map(o => '<label class="chip-lembrete"><input type="checkbox" value="' + o.valor + '"' +
+          (pref.prazos.indexOf(o.valor) !== -1 ? ' checked' : '') + '> ' + o.texto + '</label>').join('') +
+        '<p class="lembrete-dica">Pode marcar mais de um.</p>' +
+      '</div>' +
+    '</div>' +
+    '<p class="avisos-desligados">Avisos desligados para esta consulta.</p>';
+  definirCanal(container, 'popup', pref.popup);
+  definirCanal(container, 'notificacao', pref.notificacao);
+  container.querySelectorAll('[data-canal]').forEach(btn => btn.addEventListener('click', () => alternarCanal(container, btn.dataset.canal)));
+  container.querySelectorAll('input[type="checkbox"]').forEach(i => i.addEventListener('change', () => {
+    const g = container.closest('.form-group'); if(g) g.classList.remove('invalido');
+  }));
 }
-function lembretesDoForm(){
-  if(!document.getElementById('alarmToggle').classList.contains('active')) return null;
-  return L.gravar(Array.from(document.querySelectorAll('input[name="lembreteForm"]:checked')).map(i => i.value));
+function definirCanal(container, canal, ativo){
+  const btn = container.querySelector('[data-canal="' + canal + '"]');
+  btn.classList.toggle('active', ativo);
+  btn.setAttribute('aria-pressed', String(ativo));
+  const algum = container.querySelectorAll('[data-canal].active').length > 0;
+  container.querySelector('.prazos').hidden = !algum;
+  container.querySelector('.avisos-desligados').hidden = algum;
 }
-function definirToggle(ativo){
-  const t = document.getElementById('alarmToggle');
-  t.classList.toggle('active', ativo);
-  t.setAttribute('aria-pressed', String(ativo));
-  document.getElementById('opcoesLembrete').hidden = !ativo;
-}
-document.getElementById('alarmToggle').addEventListener('click', function(){
-  const ativo = !this.classList.contains('active');
-  definirToggle(ativo);
-  if(ativo && !document.querySelector('input[name="lembreteForm"]:checked')){
-    renderOpcoesLembrete(document.getElementById('opcoesLembrete'), L.PADRAO, 'lembreteForm');
+async function alternarCanal(container, canal){
+  const btn = container.querySelector('[data-canal="' + canal + '"]');
+  const ligar = !btn.classList.contains('active');
+  if(canal === 'notificacao' && ligar){
+    btn.disabled = true;
+    const r = await L.ligarNotificacao();
+    btn.disabled = false;
+    if(!r.ok){ mostrarToast(r.motivo); return; }
   }
-});
+  definirCanal(container, canal, ligar);
+  if(ligar && !container.querySelector('input[type="checkbox"]:checked')){
+    container.querySelectorAll('input[type="checkbox"]').forEach(i => { i.checked = L.PADRAO.indexOf(i.value) !== -1; });
+  }
+}
+function lerAvisos(container){
+  const popup = container.querySelector('[data-canal="popup"]').classList.contains('active');
+  const notificacao = container.querySelector('[data-canal="notificacao"]').classList.contains('active');
+  const prazos = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(i => i.value);
+  return { popup, notificacao, prazos, lembrete: (popup || notificacao) ? L.gravar(prazos) : null };
+}
+function prefPadrao(){
+  return { popup: true, notificacao: L.estadoNotificacao() === 'granted', prazos: L.PADRAO };
+}
+function prefDaConsulta(c){
+  const prazos = L.ler(c.lembrete);
+  return { popup: prazos.length ? c.popup : false, notificacao: prazos.length ? c.notificacao : false, prazos: prazos.length ? prazos : L.PADRAO };
+}
 
 function marcarCampo(grupoId, invalido){
   const g = document.getElementById(grupoId);
@@ -1255,7 +1308,7 @@ function lerFormulario(){
     data: document.getElementById('c-data').value,
     hora: document.getElementById('c-hora').value,
     obs: document.getElementById('c-obs').value.trim(),
-    lembrete: lembretesDoForm()
+    avisos: lerAvisos(document.getElementById('avisosForm'))
   };
 }
 
@@ -1266,7 +1319,8 @@ function validar(f){
     ['g-especialidade', !f.especialidadeSelecionada],
     ['g-especialidade-outra', f.especialidadeSelecionada === '__outra__' && !f.especialidade],
     ['g-medico', !f.medico],
-    ['g-quando', !f.data || !f.hora]
+    ['g-quando', !f.data || !f.hora],
+    ['g-avisos', (f.avisos.popup || f.avisos.notificacao) && !f.avisos.prazos.length]
   ];
   regra.forEach(([g, invalido]) => { marcarCampo(g, invalido); if(invalido) erros.push(g); });
   if(!f.data && f.hora) document.getElementById('erro-quando').textContent = 'Escolha o dia da consulta.';
@@ -1303,7 +1357,9 @@ async function salvarConsulta(){
     data_consulta: f.data,
     hora_consulta: f.hora,
     observacoes: f.obs || null,
-    lembrete: f.lembrete
+    lembrete: f.avisos.lembrete,
+    aviso_popup: f.avisos.popup,
+    aviso_notificacao: f.avisos.notificacao
   };
   if(!supabaseClient){ mostrarToast('Sem conexão com o servidor. Verifique a internet.'); return; }
 
@@ -1331,7 +1387,7 @@ async function salvarConsulta(){
   limparFormulario();
   document.getElementById('sucessoTitulo').textContent = idEdicao ? 'Consulta alterada!' : 'Consulta salva!';
   document.getElementById('sucessoTexto').textContent = (idEdicao ? 'As alterações foram salvas. ' : 'Sua consulta foi adicionada à agenda. ') +
-    (L.ler(salva.lembrete).length ? 'Vamos avisar ' + L.texto(salva.lembrete) + '.' : 'Sem lembretes.');
+    (temAvisos(salva) ? 'Avisos: ' + textoAvisos(salva) + '.' : 'Sem avisos.');
   document.getElementById('popup-sucesso').classList.add('show');
 }
 
@@ -1348,10 +1404,8 @@ function preencherFormulario(c){
   document.getElementById('c-data').value = c ? c.data : '';
   document.getElementById('c-hora').value = c ? c.hora : '';
   document.getElementById('c-obs').value = c ? c.obs : '';
-  const lemb = c ? L.ler(c.lembrete) : L.PADRAO;
-  definirToggle(!c || lemb.length > 0);
-  renderOpcoesLembrete(document.getElementById('opcoesLembrete'), lemb.length ? lemb : L.PADRAO, 'lembreteForm');
-  ['g-local','g-especialidade','g-especialidade-outra','g-medico','g-quando'].forEach(g => {
+  montarAvisos(document.getElementById('avisosForm'), c ? prefDaConsulta(c) : prefPadrao());
+  ['g-local','g-especialidade','g-especialidade-outra','g-medico','g-quando','g-avisos'].forEach(g => {
     document.getElementById(g).classList.remove('invalido');
     const ff = document.getElementById(g).querySelector('.form-field'); if(ff) ff.classList.remove('error','success');
   });
@@ -1392,16 +1446,8 @@ function abrirConfig(id){
   atualId = Number(id);
   const c = consultas.find(x => x.id === atualId);
   if(!c) return;
-  document.getElementById('dropdown-sub').textContent = c.medico + ' • ' + fmtData(c.data) + ' às ' + c.hora + ' — pode marcar mais de um';
-  const atuais = L.ler(c.lembrete);
-  document.getElementById('sheetOpcoes').innerHTML = L.OPCOES.map(o =>
-    '<label class="opcao' + (atuais.indexOf(o.valor) !== -1 ? ' selected' : '') + '">' +
-      '<input type="checkbox" name="lembreteSheet" value="' + o.valor + '"' + (atuais.indexOf(o.valor) !== -1 ? ' checked' : '') + '>' +
-      '<span class="radio" aria-hidden="true"></span><span class="texto">' + o.texto + '</span></label>'
-  ).join('');
-  document.querySelectorAll('#sheetOpcoes input').forEach(inp => {
-    inp.addEventListener('change', () => inp.closest('.opcao').classList.toggle('selected', inp.checked));
-  });
+  document.getElementById('dropdown-sub').textContent = c.medico + ' • ' + fmtData(c.data) + ' às ' + c.hora;
+  montarAvisos(document.getElementById('avisosSheet'), prefDaConsulta(c));
   document.getElementById('dropdown-lembrete').classList.add('show');
 }
 
@@ -1413,19 +1459,21 @@ function fecharDropdown(e){
 
 async function salvarLembrete(){
   if(atualId == null) return;
-  const valor = L.gravar(Array.from(document.querySelectorAll('input[name="lembreteSheet"]:checked')).map(i => i.value));
+  const a = lerAvisos(document.getElementById('avisosSheet'));
+  if((a.popup || a.notificacao) && !a.prazos.length){ mostrarToast('Marque pelo menos um prazo, ou desligue os dois avisos.'); return; }
   const c = consultas.find(x => x.id === atualId);
   if(c){
+    const mudanca = { lembrete: a.lembrete, aviso_popup: a.popup, aviso_notificacao: a.notificacao };
     if(supabaseClient){
-      const { error } = await supabaseClient.from('consulta').update({ lembrete: valor }).eq('id', c.id).eq('usuario_id', userId);
+      const { error } = await supabaseClient.from('consulta').update(mudanca).eq('id', c.id).eq('usuario_id', userId);
       if(error){ mostrarToast(mensagemErroBanco(error)); return; }
     }
-    c.lembrete = valor;
+    c.lembrete = a.lembrete; c.popup = a.popup; c.notificacao = a.notificacao;
     salvarStorage();
     L.marcarVencidos({ ...c, data_consulta: c.data, hora_consulta: c.hora });
     renderConsultas();
     renderLembretes();
-    mostrarToast(valor ? 'Lembretes salvos: ' + L.texto(valor) : 'Lembretes desligados para esta consulta');
+    mostrarToast(temAvisos(c) ? 'Avisos salvos: ' + textoAvisos(c) : 'Avisos desligados para esta consulta');
   }
   fecharDropdown();
 }
@@ -1451,20 +1499,9 @@ function updateClock(){
     hh + ':' + mm + ' - ' + dia + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' de ' + now.getFullYear();
 }
 
-// ---------- AVISO PARA ATIVAR NOTIFICAÇÕES ----------
-function atualizarAvisoNotif(){
-  document.getElementById('avisoNotif').hidden = L.estadoNotificacao() !== 'default';
-}
-document.getElementById('btnAtivarNotif').addEventListener('click', async () => {
-  const r = await L.pedirPermissao();
-  atualizarAvisoNotif();
-  mostrarToast(r === 'granted' ? 'Avisos ativados!' : 'Os avisos continuam aparecendo dentro do app.');
-});
-
 // ---------- INÍCIO ----------
 updateClock();
 setInterval(updateClock, 30000);
-atualizarAvisoNotif();
 limparFormulario();
 (async function iniciar(){
   // Abre direto em "Minhas Consultas" quando a pessoa já tem consultas.
@@ -1508,11 +1545,11 @@ limparFormulario();
         'Escreva o <b>local</b> (clínica ou hospital), a <b>especialidade</b> e o nome do <b>médico</b>.',
         'Escolha uma especialidade na lista. Se não encontrar, selecione <b>Outra especialidade</b> e informe o nome.',
         'Escolha o <b>dia</b> e a <b>hora</b> da consulta.',
-        'Em <b>Lembretes</b>, deixe a chave ligada (verde) e marque quando quer ser avisado: 1 dia, 2 horas, 1 hora ou 30 minutos antes. Pode marcar mais de um.',
+        'Em <b>Avisos da consulta</b>, ligue o <b>Aviso no app</b> (janela com som) e/ou a <b>Notificação no celular</b>. Depois marque quando quer ser avisado: 7 dias, 2 dias, 1 dia, 2 horas, 1 hora ou 30 minutos antes. Pode marcar mais de um.',
         'Se quiser, escreva uma observação, como “levar exames”.',
         'Toque em <b>Salvar na Agenda</b>. Para ver o que já foi salvo, toque em <b>Minhas Consultas</b>.'
       ],
-      dica: 'O aviso da consulta aparece em qualquer tela do app que estiver aberta, com som. Toque em Ativar avisos para receber também no celular.'
+      dica: 'O aviso no app aparece em qualquer tela do TechSaúde que estiver aberta. A notificação aparece na barra do celular enquanto o app estiver aberto ou em segundo plano.'
     },
     {
       quando: '#screen-consultas.active',
@@ -1521,7 +1558,7 @@ limparFormulario();
       passos: [
         'As próximas consultas aparecem em ordem: a mais perto primeiro.',
         'Toque em <b>Editar</b> para corrigir ou remarcar uma consulta.',
-        'Toque em <b>Lembretes</b> para escolher quando quer ser avisado. Pode marcar mais de um.',
+        'Toque em <b>Avisos</b> para ligar o aviso no app, a notificação e escolher quando quer ser avisado.',
         'Toque em <b>Excluir</b> para apagar uma consulta.',
         'As consultas que já passaram ficam em <b>Ver consultas anteriores</b>, no fim da lista.'
       ],

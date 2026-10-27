@@ -741,7 +741,8 @@
   .status-alarmes.alerta{ color:var(--error); font-weight:800; }
   .aviso-notif{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:#e8f5e9; border:2px solid #a5d6a7; border-radius:16px; padding:10px 14px; margin:0 0 18px; font-weight:700; font-size:.9rem; color:#1b4332; }
   .aviso-notif[hidden]{ display:none; }
-  .aviso-notif button{ min-height:44px; padding:8px 16px; border-radius:999px; border:none; background:var(--forest); color:var(--cream); font-weight:800; cursor:pointer; font-family:inherit; }
+  .aviso-notif-texto{ display:flex; flex-direction:column; gap:2px; flex:1 1 200px; }
+  .aviso-notif-texto small{ font-weight:600; color:var(--muted); font-size:.82rem; }
   .toast{ position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(16px); max-width:92%; background:var(--forest); color:#fff; padding:14px 20px; border-radius:18px; font-weight:800; font-size:.95rem; text-align:center; line-height:1.35; opacity:0; pointer-events:none; transition:all .3s; z-index:300; box-shadow:0 8px 22px rgba(0,0,0,.3); }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
   .toast.erro{ background:#8f2d1d; }
@@ -870,9 +871,13 @@
     </div>
 
 
-    <div class="aviso-notif" id="avisoNotif" hidden>
-      <span>🔔 Receber o aviso do remédio também como notificação?</span>
-      <button type="button" id="btnAtivarNotif">Ativar avisos</button>
+    <div class="aviso-notif" id="avisoNotif">
+      <span class="aviso-notif-texto"><b id="lblNotif">📲 Notificação no celular na hora do remédio</b>
+        <small id="subNotif">O alerta com som na tela continua funcionando sempre.</small></span>
+      <label class="switch" title="Ligar ou desligar a notificação">
+        <input type="checkbox" id="chkNotif" aria-labelledby="lblNotif" aria-describedby="subNotif">
+        <span class="slider"></span>
+      </label>
     </div>
 
     <div class="layout">
@@ -1066,8 +1071,10 @@ if (!rawUser) {
   function lerLocal(){
     try{ var l = JSON.parse(localStorage.getItem(storageKey) || '[]'); return Array.isArray(l) ? l : []; }catch(e){ return []; }
   }
-  // Alarme criado sem conseguir falar com o banco (id gerado aqui, em texto).
-  function ehLocal(a){ return a.pendente || (typeof a.id === 'string' && a.id.indexOf('alarme-') === 0); }
+  // Alarme criado quando o banco recusou a gravação: só esses ficam marcados como "pendente".
+  // (Antes o app também tratava como pendente qualquer id em texto "alarme-...". Como o banco
+  //  guardava os ids nesse formato, todo alarme era reenviado ao abrir a tela e duplicava.)
+  function ehLocal(a){ return a.pendente === true; }
 
   function linhaBanco(a){
     return {
@@ -1089,6 +1096,7 @@ if (!rawUser) {
       duracaoTipo: d.duracao_tipo,
       duracaoValor: d.duracao_valor,
       ativo: d.ativo !== false,
+      pendente: false,
       ultimaAlertaEm: null
     };
   }
@@ -1157,8 +1165,9 @@ if (!rawUser) {
       if(r.error) throw r.error;
       alarmes = (r.data || []).map(deBanco);
       avisoConexao = '';
-      // Alarmes que ficaram só neste aparelho (o banco recusou antes): envia agora.
-      var pendentes = locais.filter(ehLocal);
+      // Alarmes que ficaram só neste aparelho (o banco recusou antes): envia agora, uma vez só.
+      var noBanco = new Set(alarmes.map(function(a){ return String(a.id); }));
+      var pendentes = locais.filter(function(a){ return ehLocal(a) && !noBanco.has(String(a.id)); });
       if(pendentes.length){
         var enviados = 0;
         for(var i = 0; i < pendentes.length; i++){
@@ -1920,7 +1929,7 @@ if (!rawUser) {
     destravarAudio();
     tocarBeep();
     somIntervalId = setInterval(tocarBeep, 4000);
-    if(window.TechSaudeLembretes){
+    if(window.TechSaudeLembretes && notificarRemedios){
       window.TechSaudeLembretes.notificar('💊 Hora do remédio — ' + formatarHora(alertaAtual.dose),
         alertaAtual.medicamentos.map(function(m){ return m.nome + ' (' + m.dose + ')'; }).join('\n'), 'remedio-' + alertaAtual.id);
     }
@@ -1988,20 +1997,48 @@ if (!rawUser) {
     if(mudou) renderizarTudo();
   }
 
-  // ---------- AVISO PARA ATIVAR NOTIFICAÇÕES ----------
-  var elAvisoNotif = document.getElementById('avisoNotif');
-  function atualizarAvisoNotif(){
-    elAvisoNotif.hidden = !(window.TechSaudeLembretes && window.TechSaudeLembretes.estadoNotificacao() === 'default');
+  // ---------- CHAVE "NOTIFICAÇÃO NO CELULAR" (salva no banco: usuario.notificar_remedios) ----------
+  var notificarRemedios = false;
+  var chkNotif = document.getElementById('chkNotif');
+  var chaveNotifLocal = 'techsaude_notificar_remedios_' + (usuarioLogado?.id || 'offline');
+  function mostrarChaveNotif(){
+    var permitido = window.TechSaudeLembretes && window.TechSaudeLembretes.estadoNotificacao() === 'granted';
+    chkNotif.checked = notificarRemedios && permitido;
   }
-  document.getElementById('btnAtivarNotif').addEventListener('click', function(){
-    window.TechSaudeLembretes.pedirPermissao().then(function(r){
-      atualizarAvisoNotif();
-      mostrarToast(r === 'granted' ? '🔔 Avisos ativados!' : 'Tudo bem. Os avisos continuam aparecendo dentro do app.');
-    });
+  async function carregarPreferenciaNotif(){
+    try{ notificarRemedios = localStorage.getItem(chaveNotifLocal) === '1'; }catch(e){}
+    var uid = idUsuarioBanco();
+    if(supabaseClient && uid !== null){
+      var r = await supabaseClient.from('usuario').select('notificar_remedios').eq('id', uid).maybeSingle();
+      if(!r.error && r.data) notificarRemedios = r.data.notificar_remedios === true;
+    }
+    mostrarChaveNotif();
+  }
+  async function salvarPreferenciaNotif(valor){
+    notificarRemedios = valor;
+    try{ localStorage.setItem(chaveNotifLocal, valor ? '1' : '0'); }catch(e){}
+    var uid = idUsuarioBanco();
+    if(supabaseClient && uid !== null){
+      var r = await supabaseClient.from('usuario').update({ notificar_remedios: valor }).eq('id', uid);
+      if(r.error) console.error('Não foi possível salvar a preferência de notificação:', r.error);
+    }
+  }
+  chkNotif.addEventListener('change', async function(){
+    if(chkNotif.checked){
+      chkNotif.disabled = true;
+      var r = await window.TechSaudeLembretes.ligarNotificacao();
+      chkNotif.disabled = false;
+      if(!r.ok){ chkNotif.checked = false; mostrarToast(r.motivo, 'erro'); return; }
+      await salvarPreferenciaNotif(true);
+      mostrarToast('📲 Notificação ligada: vamos avisar também na barra do celular.');
+    } else {
+      await salvarPreferenciaNotif(false);
+      mostrarToast('Notificação desligada. O alerta na tela continua.');
+    }
   });
 
   // Inicialização
-  atualizarAvisoNotif();
+  carregarPreferenciaNotif();
   atualizarDataHora();
   carregarAlarmesSupabase().then(verificarAlarmes);
   setInterval(atualizarDataHora, 30000);
@@ -2042,7 +2079,7 @@ if (!rawUser) {
         'Em <b>Remédios ativos</b>, cada cartão mostra a próxima dose e quantos dias ou doses faltam. Toque em <b>Editar</b> para mudar, ou na chavinha para ligar e desligar.',
         'Na hora do remédio aparece um aviso: toque em <b>Já tomei</b> ou em <b>Adiar 5 minutos</b>. Se passar do horário, aparece <b>Dose não confirmada</b> para você responder.'
       ],
-      dica: 'Os avisos tocam enquanto esta tela estiver aberta. Toque em Ativar avisos para receber também como notificação.'
+      dica: 'O alerta toca enquanto esta tela estiver aberta. Ligue a chave Notificação no celular para receber também na barra de notificações.'
     }
   ];
 

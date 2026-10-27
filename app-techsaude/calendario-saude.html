@@ -110,8 +110,9 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
 .day{position:relative;aspect-ratio:1;border:none;background:transparent;border-radius:50%;cursor:pointer;font-weight:800;font-size:.9rem;color:var(--green-deep);}
 .day:focus-visible{outline:3px solid var(--teal);outline-offset:2px;}
 .day.muted{color:#b5aa84;font-weight:600;}
-.day.today{background:var(--green-deep);color:var(--cream);}
-.day.selected:not(.today){outline:2px solid var(--teal);outline-offset:-2px;background:#fff;}
+.day.today{box-shadow:inset 0 0 0 2.5px var(--teal);color:var(--green-deep);}
+.day.selected{background:var(--green-deep);color:var(--cream);}
+.day.selected.today{box-shadow:inset 0 0 0 2.5px var(--teal),0 0 0 2px #8fe0cf;}
 .day{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;min-height:44px;line-height:1;}
 .day .num{display:block;}
 .day .marcas{display:flex;gap:2px;height:13px;align-items:center;justify-content:center;}
@@ -119,8 +120,12 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
 .day .marca-consulta{color:#1f5fa8;}
 .day .marca-remedio{color:#b5651d;}
 .day .marca-outro{width:6px;height:6px;border-radius:50%;background:var(--teal);display:inline-block;}
-.day.today .marca-consulta,.day.today .marca-remedio{color:#f3efdc;}
-.day.today .marca-outro{background:#8fe0cf;}
+.day.selected .marca-consulta,.day.selected .marca-remedio{color:#f3efdc;}
+.day.selected .marca-outro{background:#8fe0cf;}
+.lista-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 10px;}
+.lista-topo .section-title{margin:0;}
+.lista-topo .btn-sm{min-height:44px;}
+.lista-sub{margin:-4px 0 10px;font-size:.8rem;font-weight:700;color:var(--text-soft);}
 .cal-legenda{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;margin:12px 0 0;font-size:.8rem;font-weight:700;color:var(--text-soft);}
 .cal-legenda span{display:inline-flex;align-items:center;gap:5px;}
 .cal-legenda svg{width:16px;height:16px;}
@@ -213,12 +218,18 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
         <span class="marca-consulta" id="leg-consulta"></span>
         <span class="marca-remedio" id="leg-remedio"></span>
         <span><i class="marca-outro" style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;"></i> Outro evento</span>
+        <span><i style="width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 2.5px var(--teal);display:inline-block;"></i> Hoje</span>
+        <span><i style="width:16px;height:16px;border-radius:50%;background:var(--green-deep);display:inline-block;"></i> Dia escolhido</span>
       </div>
       <p class="cal-status" id="cal-status" aria-live="polite"></p>
     </section>
 
     <div class="events-col">
-    <h2 class="section-title">Próximos Eventos</h2>
+    <div class="lista-topo">
+      <h2 class="section-title" id="titulo-lista" aria-live="polite">Eventos do dia</h2>
+      <button type="button" class="btn-sm outline" id="btn-ver-mes" onclick="alternarVisao()">Ver o mês todo</button>
+    </div>
+    <p class="lista-sub" id="sub-lista">Toque em um dia do calendário para ver o que está marcado.</p>
     <div class="event-list" id="lista-eventos"></div>
     </div>
     </div>
@@ -309,9 +320,10 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
     "titulo": "Como usar o Calendário de Saúde",
     "intro": "Aqui ficam suas consultas, remédios e compromissos, todos num só lugar.",
     "passos": [
-      "As consultas cadastradas em <b>Lembrete de Consultas</b> aparecem automaticamente neste calendário.",
+      "As consultas e os remédios cadastrados no app aparecem sozinhos: o <b>estetoscópio</b> marca dia de consulta e o <b>comprimido</b>, dia de remédio.",
+      "O dia de <b>hoje</b> tem um anel verde-claro. O <b>dia escolhido</b> fica todo verde-escuro, e a lista ao lado mostra o que tem nele.",
+      "Toque em um <b>dia</b> para ver o que está marcado. Para ver o mês inteiro, toque em <b>Ver o mês todo</b>.",
       "Use as setas <b>‹ ›</b> para trocar de mês.",
-      "Toque em um <b>dia</b> para ver só os eventos dele. Os dias com um pontinho têm algo marcado. Toque de novo para ver o mês todo.",
       "Toque em <b>+ Incluir novo evento</b>, escolha o tipo, escreva a descrição, a data e a hora, e toque em <b>Salvar</b>.",
       "Em cada evento, toque em <b>Editar</b> para mudar ou em <b>Excluir</b> para apagar."
     ],
@@ -578,12 +590,50 @@ function renderCalendario(){
     if(c.iso === todayISO) btn.classList.add('today');
     if(c.iso === selectedISO) btn.classList.add('selected');
     if(temConsulta || temRemedio || temOutro) btn.classList.add('has-event');
-    btn.onclick = () => { selectedISO = (selectedISO === c.iso) ? null : c.iso; renderCalendario(); renderEventos(); };
+    if(c.iso === selectedISO) btn.setAttribute('aria-pressed', 'true');
+    btn.onclick = () => {
+      selectedISO = c.iso;
+      // Tocou num dia de outro mês (cinza): o calendário vai para aquele mês.
+      const [y, m] = c.iso.split('-').map(Number);
+      if(y !== viewYear || m - 1 !== viewMonth){ viewYear = y; viewMonth = m - 1; }
+      renderCalendario(); renderEventos();
+    };
     grid.appendChild(btn);
   });
 }
 
+const SEMANA_CURTA = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+function atualizarTituloLista(){
+  const titulo = document.getElementById('titulo-lista');
+  const sub = document.getElementById('sub-lista');
+  const btn = document.getElementById('btn-ver-mes');
+  if(selectedISO){
+    const d = new Date(selectedISO + 'T12:00:00');
+    const hoje = new Date();
+    const ehHoje = selectedISO === toISO(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const amanha = new Date(hoje); amanha.setDate(hoje.getDate() + 1);
+    const ehAmanha = selectedISO === toISO(amanha.getFullYear(), amanha.getMonth(), amanha.getDate());
+    const nome = SEMANA_CURTA[d.getDay()];
+    titulo.textContent = (ehHoje ? 'Hoje' : ehAmanha ? 'Amanhã' : nome.charAt(0).toUpperCase() + nome.slice(1)) + ', ' + fmtDataBR(selectedISO).slice(0, 5);
+    sub.textContent = 'Mostrando o que está marcado neste dia. Toque em outro dia para mudar.';
+    btn.textContent = 'Ver o mês todo';
+  } else {
+    titulo.textContent = 'Eventos de ' + MESES_LONG[viewMonth] + ' de ' + viewYear;
+    sub.textContent = 'Consultas e eventos do mês. Toque em um dia para ver também os remédios.';
+    btn.textContent = 'Ver só hoje';
+  }
+}
+function alternarVisao(){
+  if(selectedISO){ selectedISO = null; }
+  else {
+    const h = new Date(); viewYear = h.getFullYear(); viewMonth = h.getMonth();
+    selectedISO = toISO(viewYear, viewMonth, h.getDate());
+  }
+  renderCalendario(); renderEventos();
+}
+
 function renderEventos(){
+  atualizarTituloLista();
   const el = document.getElementById('lista-eventos');
   let lista = eventos.slice().sort((a,b) => (a.data+(a.hora||'')).localeCompare(b.data+(b.hora||'')));
   if(selectedISO){
@@ -600,7 +650,7 @@ function renderEventos(){
     lista = lista.concat(remedios).sort((a,b) => (a.hora||'').localeCompare(b.hora||''));
   } else {
     const prefix = viewYear + '-' + String(viewMonth+1).padStart(2,'0');
-    lista = lista.filter(e => e.data.startsWith(prefix)).slice(0, 8);
+    lista = lista.filter(e => e.data.startsWith(prefix));
   }
   if(!lista.length){
     el.innerHTML = '<div class="empty" style="grid-column:1/-1">' + (selectedISO ? 'Nada marcado para ' + fmtDataBR(selectedISO) + '.' : 'Nenhum evento neste mês.') + '</div>';
