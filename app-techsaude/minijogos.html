@@ -2,6 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<script>
+  /* Sessão: esta tela é só para quem entrou na conta. Sem login, volta para a entrada. */
+  (function(){
+    try{
+      var s = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
+      if(!s || !JSON.parse(s)) location.replace('index.html');
+    }catch(e){ location.replace('index.html'); }
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>TechSaúde - Mini Jogos</title>
 <script src="navegacao-app.js"></script>
@@ -246,7 +255,7 @@
     </button>
 
     <div class="brand-top">
-      <img src="logo.png" alt="Logo TechSaúde" onerror="var img=this; if(img.dataset.tentativa!=='1'){ img.dataset.tentativa='1'; img.src='img/logo.png'; } else { img.style.visibility='hidden'; }">
+      <img src="img/logo.png" alt="Logo TechSaúde" onerror="this.style.visibility='hidden'">
       <span class="app-title">Mini Jogos</span>
     </div>
 

@@ -305,8 +305,13 @@ async function carregar(){
   }
 
   const idUsuario = usuario ? (usuario.id ?? usuario.id_usuario) : null;
-  if(!idUsuario || !supabaseClient){
-    mostrarSemContato('Não foi possível carregar os contatos. Entre na sua conta para consultar os números cadastrados.');
+  if(!idUsuario){
+    // Sem login a tela continua aberta (é socorro), mas só com os números públicos.
+    mostrarSemContato('Entre na sua conta para ver os seus contatos de confiança. Enquanto isso, use os números de socorro abaixo.');
+    return;
+  }
+  if(!supabaseClient){
+    mostrarSemContato('Não foi possível carregar os contatos agora. Use os números de socorro abaixo.');
     return;
   }
 

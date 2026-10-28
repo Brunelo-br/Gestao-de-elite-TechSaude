@@ -2,6 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<script>
+  /* Sessão: esta tela é só para quem entrou na conta. Sem login, volta para a entrada. */
+  (function(){
+    try{
+      var s = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
+      if(!s || !JSON.parse(s)) location.replace('index.html');
+    }catch(e){ location.replace('index.html'); }
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>TechSaúde - Caça-Palavras</title>
 
@@ -203,7 +212,7 @@
     .grid.size-12{ --cell-size:1.15rem; }
   }
   .cell{
-    width:var(--cell-size); height:var(--cell-size); font-size:calc(var(--cell-size) * .42);
+    width:var(--cell-size); height:var(--cell-size); font-size:calc(var(--cell-size) * .6); /* letra maior dentro do quadradinho (antes .42) */
     display:flex; align-items:center; justify-content:center; background:var(--cream-deep);
     border:2px solid transparent; border-radius:8px; font-weight:800; cursor:pointer; user-select:none; color:var(--text);
   }
@@ -314,7 +323,7 @@
     </button>
 
     <div class="brand-top">
-      <img src="logo.png" alt="Logo TechSaúde" onerror="var img=this; if(img.dataset.tentativa!=='1'){ img.dataset.tentativa='1'; img.src='img/logo.png'; } else { img.style.visibility='hidden'; }">
+      <img src="img/logo.png" alt="Logo TechSaúde" onerror="this.style.visibility='hidden'">
       <span class="app-title">Caça-Palavras</span>
     </div>
 

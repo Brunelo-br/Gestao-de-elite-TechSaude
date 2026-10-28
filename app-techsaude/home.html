@@ -392,7 +392,6 @@
 
   try {
     const usuarioSalvo = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
-    console.log('Conteúdo de localStorage.getItem(\'usuario_logado\'):', localStorage.getItem('usuario_logado'));
 
     if (!usuarioSalvo) {
       window.location.href = 'index.html';
@@ -443,7 +442,9 @@
 
   // ---------- 6. LOGOUT ----------
   function logout(){
+    // Apaga a sessão atual e a chave antiga, para nenhuma tela continuar logada.
     localStorage.removeItem('usuario_logado');
+    localStorage.removeItem('usuarioLogado');
     window.location.href = 'index.html';
   }
 </script>
