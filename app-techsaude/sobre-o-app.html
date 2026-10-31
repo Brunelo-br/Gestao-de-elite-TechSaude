@@ -114,6 +114,16 @@
   .selo{ display:inline-block; margin-top:6px; padding:2px 10px; border-radius:999px; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.3px; }
   .selo.pendente{ background:#f7e8c4; color:#7a5a12; border:1px solid #e0c277; }
   .selo.lido{ background:#dcefdf; color:#1b4332; border:1px solid #9dcbab; }
+  .selo[hidden]{ display:none; }
+  /* Botão "Voltar ao menu" dentro do documento: só aparece quando a tela abre como janela (Configurações), onde a barra do topo fica escondida */
+  .voltar-menu{ display:none; }
+  html.modal-embed .voltar-menu{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:48px; margin:0 0 14px;
+    padding:.7rem 1rem; border-radius:999px; border:2px solid var(--green-deep); background:#fff; color:var(--green-deep);
+    font-weight:800; font-size:.95rem; text-transform:uppercase; letter-spacing:.3px; cursor:pointer; font-family:inherit;
+  }
+  html.modal-embed .voltar-menu.fim{ margin:16px 0 0; }
+  html.modal-embed .voltar-menu:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; }
 
   /* ============ DOCUMENTOS ============ */
   .doc{
@@ -500,8 +510,18 @@
     return { pendente: !(a.data && a.data.length), versao_id: vigente.id, versao: vigente.versao };
   }
 
+  // Data em que esta conta aceitou a versão vigente (ou null).
+  async function dataAceite(usuario){
+    if (!cliente || !usuario || !usuario.termos || !usuario.termos.versao_id) return null;
+    var r = await cliente.from('aceite_termos').select('aceito_em')
+      .eq('usuario_id', idDo(usuario)).eq('versao_id', usuario.termos.versao_id).limit(1);
+    if (r.error || !r.data || !r.data.length) return null;
+    return new Date(r.data[0].aceito_em);
+  }
+
   window.TechSaudeTermos = {
     consultar: consultar,
+    dataAceite: dataAceite,
     salvarSessao: salvarSessao,
     // Em dia = o login conferiu no banco e não há Termos pendentes.
     aceito: function(usuario){
@@ -592,13 +612,21 @@
   }
 
   var NOMES_DOC = { termos: 'os Termos de Uso', privacidade: 'a Política de Privacidade' };
+  var aceitoEm = null; // data do aceite gravada no banco
   function atualizarSelos(){
+    // Status real: quem já aceitou vê "Aceito em ..."; quem ainda não aceitou vê "Falta ler" ou "Lido".
+    var jaAceitou = !pendente && TechSaudeTermos.aceito(usuario);
     ['termos','privacidade'].forEach(function(k){
       var s = document.querySelector('[data-selo="' + k + '"]');
       if (!s) return;
-      s.hidden = !pendente;
-      s.className = 'selo ' + (lidos[k] ? 'lido' : 'pendente');
-      s.textContent = lidos[k] ? '✓ Lido' : 'Falta ler';
+      s.hidden = false;
+      if (jaAceitou) {
+        s.className = 'selo lido';
+        s.textContent = aceitoEm ? '✓ Aceito em ' + aceitoEm.toLocaleDateString('pt-BR') : '✓ Lido e aceito';
+      } else {
+        s.className = 'selo ' + (lidos[k] ? 'lido' : 'pendente');
+        s.textContent = lidos[k] ? '✓ Lido' : 'Falta ler';
+      }
     });
     // A caixinha "Li e aceito" só libera depois de abrir os dois documentos.
     var faltam = ['termos','privacidade'].filter(function(k){ return !lidos[k]; });
@@ -665,6 +693,28 @@
     if (ok) TechSaudeTermos.recusar();
   });
 
+  // ---------- VOLTAR AO MENU DENTRO DO DOCUMENTO (janela das Configurações) ----------
+  ['termos', 'privacidade', 'versao'].forEach(function(k){
+    ['inicio', 'fim'].forEach(function(lugar){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'voltar-menu' + (lugar === 'fim' ? ' fim' : '');
+      b.innerHTML = '<span aria-hidden="true">←</span> Voltar ao menu';
+      b.addEventListener('click', function(){ mostrar('menu'); });
+      if (lugar === 'inicio') views[k].insertBefore(b, views[k].firstChild); else views[k].appendChild(b);
+    });
+  });
+  // As Configurações avisam quando a janela abre de novo: volta para o menu e atualiza o status.
+  window.addEventListener('message', function(e){
+    if (e.origin !== window.location.origin || e.data !== 'techsaude:sobre-inicio') return;
+    try {
+      var s = localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado');
+      if (s) usuario = JSON.parse(s);
+    } catch (x) {}
+    mostrar('menu');
+    atualizarSelos();
+  });
+
   // ---------- ESTADO INICIAL ----------
   // Confere no banco: sessão antiga (sem a informação dos Termos) ou aceite feito em outro aparelho.
   if (pendente) {
@@ -676,6 +726,15 @@
   }
   $('avisoPrimeiro').hidden = !pendente;
   atualizarSelos();
+  if (!pendente) {
+    // Quem já aceitou só consulta: o subtítulo não fala mais em marcar a caixinha.
+    var subTermos = document.querySelector('#view-termos .view-sub');
+    if (subTermos) subTermos.textContent = 'Leia quando quiser. Você já aceitou estes Termos.';
+  }
+  if (!pendente && TechSaudeTermos.aceito(usuario)) {
+    TechSaudeTermos.dataAceite(usuario).then(function(d){ if (d) { aceitoEm = d; atualizarSelos(); } })
+      .catch(function(e){ console.error('Não foi possível buscar a data do aceite:', e); });
+  }
   var abrirDireto = params.get('doc');
   mostrar(views[abrirDireto] && abrirDireto !== 'menu' ? abrirDireto : 'menu');
 

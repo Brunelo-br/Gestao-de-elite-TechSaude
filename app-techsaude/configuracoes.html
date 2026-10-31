@@ -1024,6 +1024,11 @@
     }
     if (id==='telefone') document.getElementById('telefoneInput').value = document.getElementById('telefoneDisplay').textContent === 'Não informado' ? '' : document.getElementById('telefoneDisplay').textContent;
     if (id==='senha')    { ['senhaAtual','senhaNova1','senhaNova2'].forEach(x=>document.getElementById(x).value=''); resetStr(); }
+    // Sobre o App: ao abrir de novo, a janela volta para o menu (e não fica presa no último documento lido).
+    if (id==='sobre') {
+      const frame = document.querySelector('.sobre-modal-frame');
+      try { frame.contentWindow.postMessage('techsaude:sobre-inicio', window.location.origin); } catch (e) {}
+    }
     document.getElementById('modal-'+id).classList.add('open');
     // focus first input
     setTimeout(() => {
