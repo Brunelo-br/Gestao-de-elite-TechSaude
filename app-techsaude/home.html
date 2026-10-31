@@ -2,6 +2,16 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<script>
+  /* Sessão e Termos: sem login volta para a entrada; com Termos de Uso pendentes, abre os Termos antes de tudo. */
+  (function(){
+    try{
+      var s = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');
+      if(!s){ location.replace('index.html'); return; }
+      if(!s.termos || s.termos.pendente !== false) location.replace('sobre-o-app.html?doc=termos&de=home.html');
+    }catch(e){ location.replace('index.html'); }
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TechSaúde — Home</title>
 

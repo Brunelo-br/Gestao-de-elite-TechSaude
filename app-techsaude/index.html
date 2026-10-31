@@ -1490,12 +1490,26 @@
   }
 
   // ---------- 7. LOGIN REAL NO SUPABASE ----------
-  const VERSAO_TERMOS_ACEITE = '1.0.0';
-  function chaveAceiteTermos(usuario){
-    const idUsuarioTermos = usuario.id ?? usuario.id_usuario;
-    if(idUsuarioTermos != null) return 'techsaude_termos_aceite:usuario:' + idUsuarioTermos;
-    const identificador = usuario.email || usuario.cpf;
-    return identificador ? 'techsaude_termos_aceite:conta:' + String(identificador).trim().toLowerCase() : null;
+  // Termos de Uso: confere no banco se esta conta já aceitou a versão vigente.
+  // Enquanto não aceitar, os Termos abrem em todo login (em qualquer aparelho).
+  async function situacaoTermos(usuarioId){
+    const { data: vigentes, error } = await supabaseClient
+      .from('termos_versao')
+      .select('id, versao')
+      .eq('vigente', true)
+      .order('publicada_em', { ascending: false })
+      .limit(1);
+    if(error) throw error;
+    const vigente = vigentes && vigentes[0];
+    if(!vigente) return { pendente: false, versao_id: null, versao: null }; // nenhuma versão publicada
+    const { data: aceites, error: erroAceite } = await supabaseClient
+      .from('aceite_termos')
+      .select('id')
+      .eq('usuario_id', usuarioId)
+      .eq('versao_id', vigente.id)
+      .limit(1);
+    if(erroAceite) throw erroAceite;
+    return { pendente: !(aceites && aceites.length), versao_id: vigente.id, versao: vigente.versao };
   }
 
   document.getElementById('form-login').addEventListener('submit', async function(e){
@@ -1589,15 +1603,16 @@
 
     const usuarioSessao = { ...data };
     delete usuarioSessao.senha_hash;
-    localStorage.setItem('usuario_logado', JSON.stringify(usuarioSessao));
-    let termosAceitos = false;
+    // Se não der para conferir agora, os Termos abrem e a tela deles confere de novo.
+    usuarioSessao.termos = { pendente: true, versao_id: null, versao: null };
     try {
-      const chaveAceite = chaveAceiteTermos(usuarioSessao);
-      termosAceitos = Boolean(chaveAceite) && localStorage.getItem(chaveAceite) === VERSAO_TERMOS_ACEITE;
+      usuarioSessao.termos = await situacaoTermos(data.id);
     } catch(error) {
       console.error('Não foi possível verificar o aceite dos Termos de Uso:', error);
     }
-    window.location.href = termosAceitos ? 'home.html' : 'sobre-o-app.html?doc=termos&de=home.html';
+    localStorage.removeItem('usuarioLogado'); // chave antiga
+    localStorage.setItem('usuario_logado', JSON.stringify(usuarioSessao));
+    window.location.href = usuarioSessao.termos.pendente ? 'sobre-o-app.html?doc=termos&de=home.html' : 'home.html';
   });
 
   function logout(){
@@ -1605,35 +1620,6 @@
     goTo('welcome');
   }
 
-  // ---------- 8. RECUPERAR SENHA (CÓDIGO DE 6 DÍGITOS) ----------
-  async function recuperarSenha(){
-    const email = prompt('Digite o e-mail cadastrado para receber o código de recuperação:');
-    if(!email) return;
-
-    const cleanEmail = email.trim().toLowerCase();
-
-    const { data: user, error } = await supabaseClient
-      .from('usuario')
-      .select('id')
-      .eq('email', cleanEmail)
-      .maybeSingle();
-
-    if(!user){
-      showMsg('login-msg', 'E-mail não encontrado em nossa base de dados.', 'error');
-      return;
-    }
-
-    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiraEm = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-
-    await supabaseClient.from('recuperacao_senha').insert([{
-      usuario_id: user.id,
-      codigo_verificacao: codigo,
-      expira_em: expiraEm
-    }]);
-
-    showMsg('login-msg', `Código gerado no Supabase para ${cleanEmail}: [ ${codigo} ]`, 'ok');
-  }
 </script>
 
 <!-- ===== PADRÃO TECHSAÚDE: pop-up de Ajuda (o conteúdo vem de AJUDA_TELA, no script abaixo) ===== -->

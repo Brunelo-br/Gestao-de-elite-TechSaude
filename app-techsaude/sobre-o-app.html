@@ -6,6 +6,7 @@
 <title>TechSaúde — Termos, Privacidade e Versão</title>
 <script src="navegacao-app.js"></script>
 <script src="lembretes-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <!-- Aplica o tamanho de letra salvo ANTES da tela aparecer (evita "piscar") -->
 <script>
@@ -166,6 +167,12 @@
   .btn-recusar:hover{ background:#f4dcd6; border-color:var(--error); color:var(--error); }
   .btn:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; }
   .aceite-nota{ margin:12px 0 0; font-size:.82rem; color:var(--text-soft); line-height:1.4; }
+  .aceite label.bloqueado{ opacity:.55; cursor:not-allowed; }
+  .aceite input[type=checkbox]:disabled{ cursor:not-allowed; }
+  .falta-ler{ margin:0 0 14px; padding:12px 14px; border-radius:14px; background:#f7e8c4; border:1px solid #e0c277; color:#7a5a12; font-weight:700; font-size:.92rem; line-height:1.4; }
+  .falta-ler[hidden]{ display:none; }
+  .btn-ler{ display:block; width:100%; margin-top:10px; min-height:48px; padding:.7rem 1rem; border-radius:999px; border:2px solid var(--green-deep); background:#fff; color:var(--green-deep); font-weight:800; font-size:.95rem; text-transform:uppercase; letter-spacing:.3px; cursor:pointer; }
+  .btn-ler:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; }
 
   /* Mensagem de emergência */
   .msg-emerg{ display:none; margin:0 0 14px; padding:11px 14px; border-radius:14px; font-size:.88rem; font-weight:700; background:#f4dcd6; color:var(--error); border:1px solid #e0a998; }
@@ -434,6 +441,10 @@
 
     <!-- ===== ACEITE (só aparece no primeiro acesso) ===== -->
     <section class="aceite" id="aceite" hidden aria-labelledby="aceiteTitulo">
+      <p class="falta-ler" id="faltaLer" hidden role="status">
+        <span id="faltaLerTexto">Para liberar a caixinha, leia os dois documentos.</span>
+        <button type="button" class="btn-ler" id="btnFaltaLer">Ler a Política de Privacidade</button>
+      </p>
       <label for="chkAceite" id="aceiteTitulo">
         <input type="checkbox" id="chkAceite">
         <span>Li e aceito os Termos de Uso e a Política de Privacidade.</span>
@@ -462,31 +473,50 @@
 
 <script>
 (function(){
-  var VERSAO_TERMOS = '1.0.0';
-  function chaveAceite(usuario){
-    var idUsuarioTermos = usuario ? (usuario.id != null ? usuario.id : usuario.id_usuario) : null;
-    if(idUsuarioTermos != null) return 'techsaude_termos_aceite:usuario:' + idUsuarioTermos;
-    var identificador = usuario && (usuario.email || usuario.cpf);
-    return identificador ? 'techsaude_termos_aceite:conta:' + String(identificador).trim().toLowerCase() : null;
+  // O aceite fica no banco: termos_versao (versões publicadas) e aceite_termos (quem aceitou qual versão e quando).
+  var SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+  var cliente = null;
+  try { if (window.supabase) cliente = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+  catch (e) { console.error('Supabase não iniciou:', e); }
+
+  function idDo(usuario){ return usuario ? (usuario.id != null ? usuario.id : usuario.id_usuario) : null; }
+  function salvarSessao(usuario){
+    localStorage.setItem('usuario_logado', JSON.stringify(usuario));
+    localStorage.removeItem('usuarioLogado');
+  }
+
+  // Versão vigente dos Termos e se esta conta já aceitou.
+  async function consultar(usuario){
+    if (!cliente) throw new Error('Sem conexão com o banco.');
+    var r = await cliente.from('termos_versao').select('id, versao').eq('vigente', true)
+      .order('publicada_em', { ascending: false }).limit(1);
+    if (r.error) throw r.error;
+    var vigente = r.data && r.data[0];
+    if (!vigente) return { pendente: false, versao_id: null, versao: null }; // nenhuma versão publicada
+    var a = await cliente.from('aceite_termos').select('id')
+      .eq('usuario_id', idDo(usuario)).eq('versao_id', vigente.id).limit(1);
+    if (a.error) throw a.error;
+    return { pendente: !(a.data && a.data.length), versao_id: vigente.id, versao: vigente.versao };
   }
 
   window.TechSaudeTermos = {
+    consultar: consultar,
+    salvarSessao: salvarSessao,
+    // Em dia = o login conferiu no banco e não há Termos pendentes.
     aceito: function(usuario){
-      try {
-        var chave = chaveAceite(usuario);
-        return Boolean(chave) && localStorage.getItem(chave) === VERSAO_TERMOS;
-      }
-      catch (e) { return false; }
+      return Boolean(usuario && usuario.termos && usuario.termos.pendente === false);
     },
-    registrar: function(usuario){
-      try {
-        var chave = chaveAceite(usuario);
-        if (!chave) return false;
-        localStorage.setItem(chave, VERSAO_TERMOS);
-        return true;
-      } catch (e) {
-        return false;
+    // Grava o aceite na tabela aceite_termos e atualiza a sessão.
+    registrar: async function(usuario){
+      var t = (usuario.termos && usuario.termos.versao_id) ? usuario.termos : await consultar(usuario);
+      if (t.versao_id) {
+        if (!cliente) throw new Error('Sem conexão com o banco.');
+        var r = await cliente.from('aceite_termos').insert([{ usuario_id: idDo(usuario), versao_id: t.versao_id }]);
+        if (r.error && r.error.code !== '23505') throw r.error; // 23505 = esta versão já tinha sido aceita
       }
+      usuario.termos = { pendente: false, versao_id: t.versao_id, versao: t.versao };
+      salvarSessao(usuario);
     },
     recusar: function(){
       try {
@@ -561,6 +591,7 @@
     marcarAjuda();
   }
 
+  var NOMES_DOC = { termos: 'os Termos de Uso', privacidade: 'a Política de Privacidade' };
   function atualizarSelos(){
     ['termos','privacidade'].forEach(function(k){
       var s = document.querySelector('[data-selo="' + k + '"]');
@@ -569,7 +600,22 @@
       s.className = 'selo ' + (lidos[k] ? 'lido' : 'pendente');
       s.textContent = lidos[k] ? '✓ Lido' : 'Falta ler';
     });
+    // A caixinha "Li e aceito" só libera depois de abrir os dois documentos.
+    var faltam = ['termos','privacidade'].filter(function(k){ return !lidos[k]; });
+    var liberado = faltam.length === 0;
+    var chkAceite = $('chkAceite');
+    chkAceite.disabled = !liberado;
+    if (!liberado) { chkAceite.checked = false; $('btnAceitar').disabled = true; }
+    $('aceiteTitulo').classList.toggle('bloqueado', !liberado);
+    $('faltaLer').hidden = liberado || !pendente;
+    if (!liberado) {
+      $('faltaLerTexto').textContent = 'Para liberar a caixinha, falta ler ' +
+        faltam.map(function(k){ return NOMES_DOC[k]; }).join(' e ') + '.';
+      $('btnFaltaLer').textContent = 'Ler ' + NOMES_DOC[faltam[0]];
+      $('btnFaltaLer').dataset.doc = faltam[0];
+    }
   }
+  $('btnFaltaLer').addEventListener('click', function(){ mostrar(this.dataset.doc); });
 
   document.querySelectorAll('[data-abrir]').forEach(function(b){
     b.addEventListener('click', function(){ mostrar(b.getAttribute('data-abrir')); });
@@ -598,13 +644,20 @@
   var chk = $('chkAceite'), btnAceitar = $('btnAceitar');
   chk.addEventListener('change', function(){ btnAceitar.disabled = !chk.checked; });
 
-  btnAceitar.addEventListener('click', function(){
+  btnAceitar.addEventListener('click', async function(){
     if (!chk.checked) return;
-    if (!TechSaudeTermos.registrar(usuario)) {
-      alert('Não foi possível salvar o seu aceite neste navegador. Verifique se o armazenamento não está bloqueado e tente de novo.');
-      return;
+    var rotulo = btnAceitar.textContent;
+    btnAceitar.disabled = true;
+    btnAceitar.textContent = 'Salvando...';
+    try {
+      await TechSaudeTermos.registrar(usuario);
+      window.location.href = 'home.html';
+    } catch (e) {
+      console.error('Erro ao salvar o aceite dos Termos:', e);
+      btnAceitar.textContent = rotulo;
+      btnAceitar.disabled = !chk.checked;
+      alert('Não foi possível salvar o seu aceite agora. Verifique a internet e tente de novo.');
     }
-    window.location.href = 'home.html';
   });
 
   $('btnRecusar').addEventListener('click', function(){
@@ -613,6 +666,14 @@
   });
 
   // ---------- ESTADO INICIAL ----------
+  // Confere no banco: sessão antiga (sem a informação dos Termos) ou aceite feito em outro aparelho.
+  if (pendente) {
+    TechSaudeTermos.consultar(usuario).then(function(t){
+      usuario.termos = t;
+      try { TechSaudeTermos.salvarSessao(usuario); } catch (e) {}
+      if (!t.pendente) window.location.replace('home.html');
+    }).catch(function(e){ console.error('Não foi possível conferir os Termos no banco:', e); });
+  }
   $('avisoPrimeiro').hidden = !pendente;
   atualizarSelos();
   var abrirDireto = params.get('doc');
@@ -655,11 +716,12 @@
       titulo: 'Como ler este documento',
       intro: 'Role a tela para baixo para ler tudo.',
       passos: [
+        'Leia os <b>dois</b> documentos: os Termos de Uso e a Política de Privacidade.',
         'No fim da tela, marque a caixinha <b>“Li e aceito”</b>.',
         'Depois toque em <b>Aceitar e continuar</b>. Se não concordar, toque em <b>Recusar</b>.',
         'Para escolher outro documento, toque em <b>Voltar ao menu</b>.'
       ],
-      dica: 'O botão “Aceitar e continuar” só fica ativo depois de marcar a caixinha.'
+      dica: 'A caixinha só libera depois de abrir os dois documentos, e o botão “Aceitar e continuar” só fica ativo depois de marcar a caixinha.'
     },
     leituraLivre: {
       titulo: 'Como ler este documento',
