@@ -159,6 +159,10 @@
   .tag{border-radius:999px;padding:3px 10px;font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:#fff;}
   .tag.leve{background:var(--success-bg);border:1.5px solid var(--success-border);color:var(--green-mid);}
   .tag.alerta{background:#fde4e0;border:1.5px solid #f0a99b;color:var(--danger);}
+  .tag.aberto{background:#dcefdf;border:1.5px solid #9dcbab;color:#1b4332;}
+  .tag.fechado{background:#ece8dc;border:1.5px solid #cfc6aa;color:#5a5240;}
+  .unidade-horario{font-size:.9rem;font-weight:600;color:var(--text-soft);line-height:1.35;margin-top:4px;}
+  .unidade-horario em{font-style:normal;color:#7a5a12;}
   .unidade-end{font-size:.92rem;font-weight:600;color:var(--text-soft);line-height:1.35;}
   .unidade-dist{font-weight:800;color:var(--green-deep);}
   .acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
@@ -349,7 +353,7 @@
       <li>Toque em um <strong>pino no mapa</strong> ou em um <strong>cartão da lista</strong> para ver os detalhes.</li>
       <li><strong>Como chegar</strong> abre o caminho no Google Maps. <strong>Ligar</strong> aparece quando a unidade tem telefone.</li>
     </ol>
-    <p class="ajuda-extra">As informações vêm de uma base pública (OpenStreetMap) e podem estar desatualizadas. Na dúvida, ligue antes de ir. 💚</p>
+    <p class="ajuda-extra">As informações vêm de uma base pública (OpenStreetMap) e podem estar desatualizadas. “Aberto agora” e “Fechado agora” seguem o horário dessa base e os feriados nacionais (feriados da cidade não entram). Na dúvida, ligue antes de ir. 💚</p>
   </div>
 </div>
 
@@ -365,7 +369,9 @@
   // Chave do Geoapify (plano gratuito, sem cartão). Depois de publicar o app,
   // restringir a chave ao endereço do site no painel do Geoapify.
   var GEOAPIFY_KEY = '2f3e3adbb0f34b33a946c69371925719';
-  var LIMITE_RESULTADOS = 40;   // até 40 unidades por busca (= 2 créditos)
+  // Duas buscas (hospitais/prontos-socorros e clínicas/UBS), até 50 de cada (= 3 créditos cada).
+  // Antes era uma busca só com 40: em lugares com muitas clínicas, ela parava a 2–5 km mesmo com 10 km escolhido.
+  var LIMITE_RESULTADOS = 50;
   var QTD_FLUTUANTES = 3;       // quantas unidades mais próximas ganham card flutuante no mapa
   var CENTRO_PADRAO = [-23.5106, -46.8761]; // Barueri, antes da primeira busca
 
@@ -438,7 +444,7 @@
   /* =====================================================================
      MAPA (Leaflet + mapa do Geoapify)
      ===================================================================== */
-  var mapa = null, camadaUnidades = null, marcadorOrigem = null, circuloRaio = null;
+  var mapa = null, camadaMapa = null, camadaUnidades = null, marcadorOrigem = null, circuloRaio = null;
   var marcadoresPorId = {};
 
   function iniciarMapa(){
@@ -447,7 +453,7 @@
       return;
     }
     mapa = L.map('mapa', { zoomControl:true, scrollWheelZoom:false }).setView(CENTRO_PADRAO, 13);
-    L.tileLayer('https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=' + GEOAPIFY_KEY, {
+    camadaMapa = L.tileLayer('https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=' + GEOAPIFY_KEY, {
       maxZoom: 19,
       attribution: 'Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Geoapify</a> | © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
     }).addTo(mapa);
@@ -486,31 +492,239 @@
     if(m < 1000) return Math.round(m/10)*10 + ' m';
     return (m/1000).toFixed(1).replace('.', ',') + ' km';
   }
-  function formatarTelefone(t){
-    var d = soDigitos(t);
-    if(d.indexOf('55') === 0 && d.length >= 12) d = d.slice(2);
-    if(d.length === 11) return '(' + d.slice(0,2) + ') ' + d.slice(2,7) + '-' + d.slice(7);
-    if(d.length === 10) return '(' + d.slice(0,2) + ') ' + d.slice(2,6) + '-' + d.slice(6);
-    return t;
-  }
-  function linkTelefone(t){
-    var d = soDigitos(t);
-    if(d.indexOf('55') !== 0 && d.length <= 11) d = '55' + d;
-    return 'tel:+' + d;
-  }
-  function linkComoChegar(u){
-    // Link oficial do Google Maps: abre o app/site com a rota até a unidade. Não precisa de chave.
-    return 'https://www.google.com/maps/dir/?api=1&destination=' + u.lat + ',' + u.lon + '&travelmode=driving';
+  // Texto sem acento e em minúsculas, para comparar nomes.
+  function normalizar(t){
+    return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
   }
 
-  /* Classifica a unidade em um dos 4 tipos usando nome + categorias do OpenStreetMap */
+  /* Classifica a unidade em um dos 4 tipos usando nome + categorias do OpenStreetMap.
+     Devolve null para o que não é um lugar de atendimento (ex.: "Departamento de Cirurgia" dentro de um hospital). */
   function classificar(props){
-    var nome = (props.name || '').toLowerCase();
+    var nome = normalizar(props.name);
     var cats = props.categories || [];
+    if(/^(departamento|setor|ala|bloco|predio|anexo) /.test(nome)) return null;
     if(/pronto[\s-]?socorro|pronto[\s-]?atendimento|\bupa\b|\bp\.?s\.?\b|\bama\b/.test(nome)) return 'ps';
-    if(/\bubs\b|unidade b[aá]sica|posto de sa[uú]de|\busf\b|\besf\b|sa[uú]de da fam[ií]lia|centro de sa[uú]de/.test(nome)) return 'ubs';
-    if(cats.indexOf('healthcare.hospital') !== -1) return 'hospital';
+    if(/\bubs\b|unidade (de )?basica|posto de saude|\busf\b|\besf\b|saude da familia|centro de saude|unidade de saude/.test(nome)) return 'ubs';
+    // Consultório, clínica, laboratório e ambulatório não são hospital, mesmo quando a base pública marca assim.
+    if(!/^hospital/.test(nome) && /consultorio|odonto|dentist|clinica|diagnostic|laborator|ambulatorio|centro medico|exames|imagem/.test(nome)) return 'clinica';
+    if(cats.indexOf('healthcare.hospital') !== -1 || /hospital|santa casa|maternidade/.test(nome)) return 'hospital';
     return 'clinica';
+  }
+
+  /* Telefones: a base pública às vezes traz dois números juntos ("A; B") ou números incompletos.
+     Devolve só os números brasileiros válidos, já sem o +55: DDD + 8 ou 9 dígitos, 0800/0300 ou serviço curto (192). */
+  function telefonesValidos(){
+    var lista = [];
+    Array.prototype.slice.call(arguments).forEach(function(campo){
+      String(campo || '').split(/[;,/]|\bou\b/).forEach(function(parte){
+        var d = soDigitos(parte);
+        if(d.indexOf('55') === 0 && (d.length === 12 || d.length === 13)) d = d.slice(2);
+        if(d.length === 11 && d.charAt(0) === '0' && d.charAt(1) !== '8' && d.charAt(1) !== '3') d = d.slice(1); // 0 + DDD + número
+        var ok = (/^[1-9][1-9]\d{8}$/.test(d) && /^[2-5]/.test(d.slice(2))) ||  // fixo: DDD + 8 dígitos começando de 2 a 5
+                 /^[1-9][1-9]9\d{8}$/.test(d) ||                               // celular: DDD + 9 + 8 dígitos
+                 /^0[38]00\d{7}$/.test(d) ||                                   // 0800 / 0300
+                 /^1\d{2}$/.test(d);                                           // 192, 193...
+        if(ok && lista.indexOf(d) === -1) lista.push(d);
+      });
+    });
+    return lista;
+  }
+  function formatarTelefone(d){
+    if(/^0[38]00/.test(d)) return d.slice(0,4) + ' ' + d.slice(4,7) + ' ' + d.slice(7);
+    if(d.length === 11) return '(' + d.slice(0,2) + ') ' + d.slice(2,7) + '-' + d.slice(7);
+    if(d.length === 10) return '(' + d.slice(0,2) + ') ' + d.slice(2,6) + '-' + d.slice(6);
+    return d;
+  }
+  // Link que abre o aplicativo de telefone já com o número. DDD + número vai no formato +55, que funciona de qualquer celular.
+  function linkTelefone(d){
+    return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? 'tel:+55' + d : 'tel:' + d;
+  }
+
+  /* Remove repetidos da base pública: mesmo nome a menos de 600 m, ou um nome dentro do outro
+     (ex.: "Santa Casa" e "Santa Casa de São Paulo") do mesmo tipo a menos de 300 m. Fica o que tem telefone. */
+  function removerRepetidos(lista){
+    var ficam = [];
+    lista.forEach(function(u){
+      var nu = normalizar(u.nome);
+      var igual = null;
+      for(var i = 0; i < ficam.length; i++){
+        var f = ficam[i], nf = normalizar(f.nome);
+        var dist = distanciaMetros(f.lat, f.lon, u.lat, u.lon);
+        if((nf === nu && dist < 600) || (f.tipo === u.tipo && dist < 300 && (nf.indexOf(nu) !== -1 || nu.indexOf(nf) !== -1))){ igual = i; break; }
+      }
+      if(igual === null){ ficam.push(u); return; }
+      var atual = ficam[igual];
+      var melhor = (!atual.telefones.length && u.telefones.length) ||
+                   (atual.telefones.length === u.telefones.length && u.nome.length > atual.nome.length);
+      if(melhor){ u.emergencia = u.emergencia || atual.emergencia; u.h24 = u.h24 || atual.h24; ficam[igual] = u; }
+      else { atual.emergencia = atual.emergencia || u.emergencia; atual.h24 = atual.h24 || u.h24; }
+    });
+    return ficam;
+  }
+  function linkComoChegar(u){
+    // Link oficial do Google Maps: abre o app/site com a rota até a unidade (carro, ônibus ou a pé, à escolha da pessoa).
+    return 'https://www.google.com/maps/dir/?api=1&destination=' + u.lat + ',' + u.lon;
+  }
+
+  /* =====================================================================
+     HORÁRIO DE FUNCIONAMENTO (campo opening_hours do OpenStreetMap)
+     Só mostra "Aberto agora" / "Fechado agora" quando entende o horário com certeza.
+     Se o texto vier fora do padrão, mostra o horário traduzido e pede para ligar antes.
+     ===================================================================== */
+  var DIAS_OSM = ['su','mo','tu','we','th','fr','sa'];                 // mesma ordem do getDay()
+  var DIAS_NOME = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var DIAS_EXTENSO = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+
+  // Feriados nacionais (fixos + Carnaval, Sexta-feira Santa e Corpus Christi, que dependem da Páscoa).
+  // Feriados municipais não entram: por isso a tela continua dizendo para ligar antes.
+  function pascoa(ano){
+    var a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4;
+    var f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+    var i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+    var mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(ano, mes - 1, dia);
+  }
+  function ehFeriadoNacional(data){
+    var dm = String(data.getDate()).padStart(2, '0') + '/' + String(data.getMonth() + 1).padStart(2, '0');
+    if(['01/01','21/04','01/05','07/09','12/10','02/11','15/11','20/11','25/12'].indexOf(dm) !== -1) return true;
+    var p = pascoa(data.getFullYear()), dia = 86400000;
+    var hoje = new Date(data.getFullYear(), data.getMonth(), data.getDate()).getTime();
+    return [-48, -47, -2, 60].some(function(n){ return Math.round((hoje - p.getTime()) / dia) === n; });
+  }
+
+  // Devolve { dias: [7 listas de faixas em minutos], feriadoFechado } ou null se não entender.
+  function lerHorario(texto){
+    var t = String(texto || '').trim();
+    if(!t) return null;
+    if(t === '24/7') return { h24: true, dias: [0,1,2,3,4,5,6].map(function(){ return [[0, 1440]]; }), feriadoFechado: false };
+    var dias = [null, null, null, null, null, null, null];
+    var feriadoFechado = false;
+    var regras = t.split(/\s*;\s*/).filter(Boolean);
+    for(var i = 0; i < regras.length; i++){
+      // "<dias> <horários>" ou "<dias> off". Os dias aceitam "Mo-Fr", "Sa,Su", "Sa, Su" e "PH" (feriado).
+      var m = /^((?:(?:mo|tu|we|th|fr|sa|su|ph)(?:-(?:mo|tu|we|th|fr|sa|su))?)(?:\s*,\s*(?:mo|tu|we|th|fr|sa|su|ph)(?:-(?:mo|tu|we|th|fr|sa|su))?)*)\s+(off|closed|\d{2}:\d{2}-\d{2}:\d{2}(?:\s*,\s*\d{2}:\d{2}-\d{2}:\d{2})*)$/i.exec(regras[i]);
+      // também aceita "PH Sa,Su off" (feriado escrito antes)
+      if(!m) m = /^ph\s+((?:(?:mo|tu|we|th|fr|sa|su)(?:-(?:mo|tu|we|th|fr|sa|su))?)(?:\s*,\s*(?:mo|tu|we|th|fr|sa|su)(?:-(?:mo|tu|we|th|fr|sa|su))?)*)\s+(off|closed)$/i.exec(regras[i]);
+      if(!m) return null;
+      var faixas = [];
+      if(!/^(off|closed)$/i.test(m[2])){
+        var partes = m[2].split(/\s*,\s*/);
+        for(var k = 0; k < partes.length; k++){
+          var h = /^(\d{2}):(\d{2})-(\d{2}):(\d{2})$/.exec(partes[k]);
+          var ini = Number(h[1]) * 60 + Number(h[2]), fim = Number(h[3]) * 60 + Number(h[4]);
+          if(ini >= 1440 || fim > 1440 || Number(h[2]) > 59 || Number(h[4]) > 59 || fim <= ini) return null; // sem virada de meia-noite
+          faixas.push([ini, fim]);
+        }
+      }
+      var itens = m[1].toLowerCase().split(/\s*,\s*/);
+      if(/^ph/i.test(regras[i])) feriadoFechado = feriadoFechado || !faixas.length;
+      for(var j = 0; j < itens.length; j++){
+        if(itens[j] === 'ph'){ if(!faixas.length) feriadoFechado = true; continue; }
+        var ab = itens[j].split('-');
+        var a = DIAS_OSM.indexOf(ab[0]), b = ab[1] ? DIAS_OSM.indexOf(ab[1]) : a;
+        // percorre do dia a até o dia b, dando a volta na semana (ex.: "Su-Fr")
+        for(var d = a, passos = 0; passos < 7; d = (d + 1) % 7, passos++){
+          dias[d] = faixas.slice();                 // regra de depois vale mais que a de antes (padrão OSM)
+          if(d === b) break;
+        }
+      }
+    }
+    // dias que nenhuma regra citou ficam fechados
+    return { h24: false, dias: dias.map(function(f){ return f || []; }), feriadoFechado: feriadoFechado };
+  }
+
+  function horaTexto(min){
+    var h = Math.floor(min / 60), m = min % 60;
+    if(h === 24) h = 0;
+    return h + 'h' + (m ? String(m).padStart(2, '0') : '');
+  }
+  function faixasTexto(f){
+    if(!f.length) return 'fechado';
+    if(f.length === 1 && f[0][0] === 0 && f[0][1] === 1440) return '24 horas';
+    return f.map(function(x){ return horaTexto(x[0]) + ' às ' + horaTexto(x[1]); }).join(' e ');
+  }
+
+  // "Seg a Sex: 7h às 21h · Sáb e Dom: fechado" (semana começando na segunda)
+  function resumoHorario(hr){
+    if(hr.h24) return 'Aberto 24 horas, todos os dias';
+    var ordem = [1,2,3,4,5,6,0], grupos = [];
+    ordem.forEach(function(d){
+      var txt = faixasTexto(hr.dias[d]), ult = grupos[grupos.length - 1];
+      if(ult && ult.txt === txt) ult.dias.push(d); else grupos.push({ txt: txt, dias: [d] });
+    });
+    // se só falta fechado no fim de semana e não há mais nada, o texto fica curto
+    var partes = grupos.map(function(g){
+      var nomes = g.dias.length === 1 ? DIAS_NOME[g.dias[0]]
+        : g.dias.length === 2 ? DIAS_NOME[g.dias[0]] + ' e ' + DIAS_NOME[g.dias[1]]
+        : DIAS_NOME[g.dias[0]] + ' a ' + DIAS_NOME[g.dias[g.dias.length - 1]];
+      return nomes + ': ' + g.txt;
+    });
+    if(hr.feriadoFechado) partes.push('feriados: fechado');
+    return partes.join(' · ');
+  }
+
+  // Situação agora: { aberto, texto }. Horários que viram a meia-noite não são aceitos, então basta olhar o dia de hoje.
+  function situacaoAgora(hr, agora){
+    agora = agora || new Date();
+    if(hr.h24) return { aberto: true, texto: 'Aberto agora' };
+    var d = agora.getDay(), min = agora.getHours() * 60 + agora.getMinutes();
+    if(hr.feriadoFechado && ehFeriadoNacional(agora)) return { aberto: false, texto: 'Fechado hoje (feriado)' };
+    var hoje = hr.dias[d];
+    for(var i = 0; i < hoje.length; i++){
+      if(min >= hoje[i][0] && min < hoje[i][1]) return { aberto: true, texto: 'Aberto agora · fecha às ' + horaTexto(hoje[i][1]) };
+    }
+    for(var j = 0; j < hoje.length; j++){
+      if(min < hoje[j][0]) return { aberto: false, texto: 'Fechado agora · abre às ' + horaTexto(hoje[j][0]) };
+    }
+    for(var k = 1; k <= 7; k++){
+      var dd = (d + k) % 7;
+      if(hr.dias[dd].length) return { aberto: false, texto: 'Fechado agora · abre ' + (k === 1 ? 'amanhã' : DIAS_EXTENSO[dd]) + ' às ' + horaTexto(hr.dias[dd][0][0]) };
+    }
+    return { aberto: false, texto: 'Fechado agora' };
+  }
+
+  // Quando o horário vem fora do padrão: traduz os códigos para português, sem dizer se está aberto.
+  function traduzirHorario(texto){
+    var mapa = { mo:'Seg', tu:'Ter', we:'Qua', th:'Qui', fr:'Sex', sa:'Sáb', su:'Dom', ph:'feriados', off:'fechado', closed:'fechado' };
+    return String(texto).replace(/\b(mo|tu|we|th|fr|sa|su|ph|off|closed)\b/gi, function(x){ return mapa[x.toLowerCase()]; })
+      .replace(/(\d{2}):(\d{2})/g, function(_, h, m){ return horaTexto(Number(h) * 60 + Number(m)); })
+      .replace(/\s*;\s*/g, ' · ').replace(/-(?=\d|Seg|Ter|Qua|Qui|Sex|Sáb|Dom)/g, ' a ');
+  }
+
+  // Tudo o que a tela precisa: { resumo, situacao (ou null), confirmar }
+  function infoHorario(texto){
+    if(!texto) return null;
+    var hr = lerHorario(texto);
+    if(!hr) return { resumo: traduzirHorario(texto), situacao: null, confirmar: true };
+    return { resumo: resumoHorario(hr), situacao: situacaoAgora(hr), confirmar: false, h24: hr.h24 };
+  }
+
+  /* =====================================================================
+     CACHE DAS BUSCAS (15 minutos, só nesta aba)
+     Voltar para a tela ou trocar 10 km → 5 km → 10 km não gasta créditos do Geoapify de novo.
+     ===================================================================== */
+  var CACHE_MINUTOS = 15;
+  var RAIOS = [2000, 5000, 10000];
+  function chaveCache(o, raio){ return 'techsaude_hosp_busca:' + o.lat.toFixed(3) + ',' + o.lon.toFixed(3) + ':' + raio; }
+  function lerCache(o){
+    for(var i = 0; i < RAIOS.length; i++){
+      var raio = RAIOS[i];
+      if(raio < estado.raio) continue;
+      try{
+        var c = JSON.parse(sessionStorage.getItem(chaveCache(o, raio)) || 'null');
+        if(!c || Date.now() - c.t > CACHE_MINUTOS * 60000) continue;
+        // uma busca maior que veio completa também serve para um raio menor
+        if(raio !== estado.raio && c.cortado) continue;
+        var lista = c.unidades.map(function(u){ u.distancia = distanciaMetros(o.lat, o.lon, u.lat, u.lon); return u; })
+          .filter(function(u){ return u.distancia <= estado.raio; })
+          .sort(function(a,b){ return a.distancia - b.distancia; });
+        return { unidades: lista, cortado: raio === estado.raio ? c.cortado : false };
+      }catch(e){}
+    }
+    return null;
+  }
+  function gravarCache(o, unidades, cortado){
+    try{ sessionStorage.setItem(chaveCache(o, estado.raio), JSON.stringify({ t: Date.now(), unidades: unidades, cortado: cortado })); }catch(e){}
   }
 
   function mostrarStatus(tipo, texto, carregando){
@@ -619,51 +833,71 @@
   function buscarUnidades(){
     var o = estado.origem;
     if(!o) return;
+    var guardada = lerCache(o);
+    if(guardada){
+      estado.unidades = guardada.unidades;
+      estado.cortado = guardada.cortado;
+      estado.buscaFalhou = false;
+      esconderStatus();
+      desenhar(true);
+      return;
+    }
     var raioKm = (estado.raio/1000) + ' km';
     mostrarStatus('info', 'Procurando unidades de saúde em até ' + raioKm + '…', true);
     elLista.setAttribute('aria-busy', 'true');
 
-    var params = new URLSearchParams({
-      categories: 'healthcare.hospital,healthcare.clinic_or_praxis',
-      filter: 'circle:' + o.lon + ',' + o.lat + ',' + estado.raio,
-      bias: 'proximity:' + o.lon + ',' + o.lat,
-      limit: String(LIMITE_RESULTADOS), lang: 'pt', apiKey: GEOAPIFY_KEY
-    });
+    function consulta(categoria){
+      var params = new URLSearchParams({
+        categories: categoria,
+        filter: 'circle:' + o.lon + ',' + o.lat + ',' + estado.raio,
+        bias: 'proximity:' + o.lon + ',' + o.lat,
+        limit: String(LIMITE_RESULTADOS), lang: 'pt', apiKey: GEOAPIFY_KEY
+      });
+      return buscarJson('https://api.geoapify.com/v2/places?' + params.toString());
+    }
 
-    buscarJson('https://api.geoapify.com/v2/places?' + params.toString())
-      .then(function(dados){
+    Promise.all([consulta('healthcare.hospital'), consulta('healthcare.clinic_or_praxis')])
+      .then(function(respostas){
+        if(estado.origem !== o) return;           // a pessoa já trocou a busca
+        // se alguma das buscas veio cheia, pode haver mais unidades no raio: avisamos na tela
+        estado.cortado = respostas.some(function(d){ return (d.features || []).length >= LIMITE_RESULTADOS; });
         var vistos = {};
-        var lista = (dados.features || []).map(function(f){
-          var p = f.properties || {};
-          var lat = p.lat, lon = p.lon;
-          if(lat == null && f.geometry && f.geometry.coordinates){ lon = f.geometry.coordinates[0]; lat = f.geometry.coordinates[1]; }
-          var raw = (p.datasource && p.datasource.raw) || {};
-          return {
-            id: p.place_id || (lat + ',' + lon),
-            nome: p.name || p.address_line1 || '',
-            tipo: classificar(p),
-            lat: lat, lon: lon,
-            endereco: p.address_line2 || p.formatted || '',
-            telefone: (p.contact && p.contact.phone) || raw.phone || raw['contact:phone'] || '',
-            emergencia: raw.emergency === 'yes',
-            h24: raw.opening_hours === '24/7',
-            distancia: distanciaMetros(o.lat, o.lon, lat, lon)
-          };
-        }).filter(function(u){
-          // ignora lugares sem nome e duplicados (mesmo nome a menos de 60 m)
-          if(!u.nome || u.lat == null) return false;
-          var chave = u.nome.toLowerCase();
-          if(vistos[chave] && distanciaMetros(vistos[chave].lat, vistos[chave].lon, u.lat, u.lon) < 60) return false;
-          vistos[chave] = u;
-          return true;
-        }).sort(function(a,b){ return a.distancia - b.distancia; });
+        var lista = [];
+        respostas.forEach(function(dados){
+          (dados.features || []).forEach(function(f){
+            var p = f.properties || {};
+            if(p.place_id && vistos[p.place_id]) return;   // o mesmo lugar nas duas buscas
+            if(p.place_id) vistos[p.place_id] = true;
+            var lat = p.lat, lon = p.lon;
+            if(lat == null && f.geometry && f.geometry.coordinates){ lon = f.geometry.coordinates[0]; lat = f.geometry.coordinates[1]; }
+            var raw = (p.datasource && p.datasource.raw) || {};
+            var tipo = classificar(p);
+            if(!tipo || !p.name || lat == null) return;     // sem nome ou setor interno de hospital
+            lista.push({
+              id: p.place_id || (lat + ',' + lon),
+              nome: p.name,
+              tipo: tipo,
+              lat: lat, lon: lon,
+              endereco: p.address_line2 || p.formatted || '',
+              telefones: telefonesValidos(p.contact && p.contact.phone, raw.phone, raw['contact:phone'], raw['contact:mobile']),
+              emergencia: raw.emergency === 'yes',
+              h24: raw.opening_hours === '24/7',
+              horario: raw.opening_hours || '',
+              distancia: distanciaMetros(o.lat, o.lon, lat, lon)
+            });
+          });
+        });
+        lista.sort(function(a,b){ return a.distancia - b.distancia; });
 
-        estado.unidades = lista;
+        estado.unidades = removerRepetidos(lista);
+        estado.buscaFalhou = false;
+        gravarCache(o, estado.unidades, estado.cortado);
         esconderStatus();
         desenhar(true);
       })
       .catch(function(err){
         estado.unidades = [];
+        estado.buscaFalhou = true;
         desenhar(false);
         if(err.message === 'LIMITE') mostrarStatus('aviso', 'Muitas buscas hoje. Tente novamente mais tarde.');
         else mostrarStatus('erro', 'Não conseguimos buscar as unidades agora. Verifique a internet e tente de novo.');
@@ -682,11 +916,23 @@
     var t = '<span class="tag" style="background:' + TIPOS[u.tipo].cor + '">' + TIPOS[u.tipo].nome + '</span>';
     if(u.emergencia && u.tipo !== 'ps') t += '<span class="tag alerta">🚨 Emergência</span>';
     if(u.h24) t += '<span class="tag leve">Aberto 24h</span>';
+    else {
+      var info = infoHorario(u.horario);
+      if(info && info.situacao) t += '<span class="tag ' + (info.situacao.aberto ? 'aberto' : 'fechado') + '">' + escapar(info.situacao.aberto ? 'Aberto agora' : (/feriado/.test(info.situacao.texto) ? 'Fechado (feriado)' : 'Fechado agora')) + '</span>';
+    }
     return t;
+  }
+  // Linha do horário: "🕒 Aberto agora · fecha às 21h — Seg a Sex: 7h às 21h · Sáb e Dom: fechado"
+  function htmlHorario(u){
+    var info = infoHorario(u.horario);
+    if(!info) return '';
+    if(info.h24) return '<div class="unidade-horario">🕒 Aberto 24 horas, todos os dias</div>';
+    return '<div class="unidade-horario">🕒 ' + (info.situacao ? '<strong>' + escapar(info.situacao.texto) + '</strong> — ' : '') + escapar(info.resumo) +
+      (info.confirmar ? ' <em>(horário fora do padrão: ligue antes)</em>' : '') + '</div>';
   }
   function htmlAcoes(u){
     var h = '<a class="btn btn-primary" href="' + linkComoChegar(u) + '" target="_blank" rel="noopener">🧭 Como chegar</a>';
-    if(u.telefone) h += '<a class="btn btn-secondary" href="' + linkTelefone(u.telefone) + '">📞 Ligar</a>';
+    if(u.telefones.length) h += '<a class="btn btn-secondary" href="' + linkTelefone(u.telefones[0]) + '">📞 Ligar</a>';
     return h;
   }
 
@@ -695,7 +941,14 @@
     visiveis.forEach(function(u, i){ u.numero = i + 1; });
 
     // ----- LISTA -----
-    elContador.textContent = estado.origem ? (visiveis.length + (visiveis.length === 1 ? ' unidade' : ' unidades') + ' em até ' + (estado.raio/1000) + ' km') : '';
+    if(!estado.origem) elContador.textContent = '';
+    else if(estado.cortado && visiveis.length){
+      // a busca veio cheia: mostra até onde chegou de verdade, em vez de prometer o raio inteiro
+      var maisLonge = visiveis[visiveis.length - 1].distancia;
+      elContador.textContent = visiveis.length + ' unidades mais próximas (até ' + formatarDistancia(maisLonge) + ')';
+    } else {
+      elContador.textContent = visiveis.length + (visiveis.length === 1 ? ' unidade' : ' unidades') + ' em até ' + (estado.raio/1000) + ' km';
+    }
     if(!estado.origem){
       elLista.innerHTML = '<div class="vazio"><span class="ico" aria-hidden="true">🗺️</span>Escolha de onde buscar para ver as unidades.</div>';
     } else if(!visiveis.length){
@@ -714,7 +967,8 @@
             '<div class="tags">' + htmlTags(u) + '</div>' +
             '<div class="unidade-end"><span class="unidade-dist">📏 ' + formatarDistancia(u.distancia) + '</span>' +
               (u.endereco ? ' · ' + escapar(u.endereco) : '') +
-              (u.telefone ? '<br>📞 ' + escapar(formatarTelefone(u.telefone)) : '') + '</div>' +
+              (u.telefones.length ? '<br>📞 ' + escapar(u.telefones.map(formatarTelefone).join(' · ')) : '') + '</div>' +
+            htmlHorario(u) +
             '<div class="acoes">' + htmlAcoes(u) + '</div>' +
           '</div></article>';
       }).join('');
@@ -740,7 +994,7 @@
       m.bindPopup(
         '<div class="pop-nome">' + u.numero + '. ' + escapar(u.nome) + '</div>' +
         '<div class="tags">' + htmlTags(u) + '</div>' +
-        '<div class="pop-info">📏 ' + formatarDistancia(u.distancia) + (u.telefone ? ' · 📞 ' + escapar(formatarTelefone(u.telefone)) : '') + '</div>' +
+        '<div class="pop-info">📏 ' + formatarDistancia(u.distancia) + (u.telefones.length ? ' · 📞 ' + escapar(formatarTelefone(u.telefones[0])) : '') + htmlHorario(u) + '</div>' +
         '<div class="pop-acoes">' + htmlAcoes(u) + '</div>', { maxWidth: 280 });
       // cards flutuantes fixos para as mais próximas
       if(u.numero <= QTD_FLUTUANTES){
@@ -1063,6 +1317,32 @@
     if(e.key === CHAVE_FONTE && e.newValue) aplicarFonte(parseFloat(e.newValue) || 100, false);
   });
   marcarBotaoFonte();
+
+  /* =====================================================================
+     INTERNET: QUANDO CAI E QUANDO VOLTA
+     ===================================================================== */
+  // Sem internet, as imagens do mapa não carregam. Quando a conexão volta, o mapa e a busca voltam sozinhos.
+  var avisoSemInternet = false;
+  window.addEventListener('offline', function(){
+    avisoSemInternet = true;
+    mostrarStatus('aviso', '📶 Sem internet. O mapa e a lista voltam sozinhos quando a conexão voltar.');
+  });
+  function carregarLeaflet(pronto){
+    if(typeof L !== 'undefined'){ pronto(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    s.onload = pronto;
+    document.head.appendChild(s);
+  }
+  window.addEventListener('online', function(){
+    if(avisoSemInternet){ avisoSemInternet = false; esconderStatus(); }
+    carregarLeaflet(function(){
+      if(!mapa){ esconderStatus(); iniciarMapa(); if(mapa && estado.origem) desenhar(true); }
+      else { mapa.invalidateSize(); if(camadaMapa) camadaMapa.redraw(); }   // pede de novo as partes do mapa que falharam
+      if(estado.origem && estado.buscaFalhou) buscarUnidades();
+      else if(!estado.origem && estado.modo === 'casa') usarCasa();
+    });
+  });
 
   /* =====================================================================
      INÍCIO

@@ -281,6 +281,13 @@ function clock(){
   document.getElementById('datetime').textContent = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' - '+dias[n.getDay()]+', '+n.getDate()+' de '+meses[n.getMonth()]+' de '+n.getFullYear();
 }
 clock();
+  // Abre o aplicativo de telefone com o número. DDD + número vai como +55, que funciona de qualquer celular.
+  function linkLigar(numero){
+    var d = String(numero || '').replace(/\D/g, '');
+    if(d.indexOf('55') === 0 && (d.length === 12 || d.length === 13)) d = d.slice(2);
+    if(d.length === 11 && d.charAt(0) === '0' && !/^0[38]00/.test(d)) d = d.slice(1);
+    return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? 'tel:+55' + d : 'tel:' + d;
+  }
 async function carregar(){
   const lista = document.getElementById('contatos-confianca');
   let usuario = null;
@@ -349,7 +356,7 @@ async function carregar(){
     if(telefone){
       const ligar = document.createElement('a');
       ligar.className = 'call';
-      ligar.href = 'tel:' + telefone;
+      ligar.href = linkLigar(telefone);
       ligar.textContent = 'Ligar para ' + (contato.nome_contato || 'o contato');
       card.appendChild(ligar);
     }

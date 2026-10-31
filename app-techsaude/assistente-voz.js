@@ -324,6 +324,14 @@
     } catch (e) { falar('Não consegui consultar suas consultas agora.'); }
   }
 
+  // Abre o aplicativo de telefone com o número. DDD + número vai como +55, que funciona de qualquer celular.
+  function linkLigar(numero){
+    var d = String(numero || '').replace(/\D/g, '');
+    if(d.indexOf('55') === 0 && (d.length === 12 || d.length === 13)) d = d.slice(2);
+    if(d.length === 11 && d.charAt(0) === '0' && !/^0[38]00/.test(d)) d = d.slice(1);
+    return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? 'tel:+55' + d : 'tel:' + d;
+  }
+
   // ---------- Emergência (lê contato_emergencia, igual ao home.html) ----------
   async function acionarEmergencia() {
     var nome = 'SAMU', tel = '192';
@@ -335,7 +343,7 @@
       }
     } catch (e) { /* usa SAMU */ }
     falar('Ligando para ' + nome + ' agora.', function () {
-      window.location.href = 'tel:' + String(tel).replace(/[^\d+]/g, '');
+      window.location.href = linkLigar(tel);
     });
   }
   async function ligarContato() {
@@ -345,7 +353,7 @@
       if (r.error || !r.data || !r.data.length) return falar('Você ainda não cadastrou um contato de emergência. Posso abrir as configurações.');
       var ct = r.data[0];
       confirmar('Ligar para ' + ct.nome_contato + '?', function () {
-        falar('Ligando para ' + ct.nome_contato + '.', function () { window.location.href = 'tel:' + String(ct.telefone).replace(/[^\d+]/g, ''); });
+        falar('Ligando para ' + ct.nome_contato + '.', function () { window.location.href = linkLigar(ct.telefone); });
       });
     } catch (e) { falar('Não consegui buscar seu contato agora.'); }
   }
