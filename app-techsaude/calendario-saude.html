@@ -14,6 +14,9 @@
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TechSaúde — Calendário de Saúde</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
 <script src="navegacao-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="lembretes-app.js"></script>
@@ -110,54 +113,140 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
 }
 @media (max-width:480px){ .row-2,.datetime-inputs{flex-wrap:wrap;} }
 
-.cal-wrap{background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:.75rem .6rem .9rem;margin-bottom:1.2rem;}
-.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;padding:0 .25rem;}
-.cal-head h2{margin:0;font-size:1rem;letter-spacing:.4px;}
-.cal-nav{width:2.6rem;height:2.6rem;border:none;border-radius:50%;cursor:pointer;background:linear-gradient(180deg,#234a34,var(--green-deep));color:var(--cream);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 3px 0 #0e2416;}
-.cal-nav svg{width:1.2rem;height:1.2rem;}
-.weekdays,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
-.weekdays span{text-align:center;font-size:.7rem;font-weight:800;color:var(--text-soft);padding:.4rem 0;text-transform:uppercase;}
-.day{position:relative;aspect-ratio:1;border:none;background:transparent;border-radius:50%;cursor:pointer;font-weight:800;font-size:.9rem;color:var(--green-deep);}
-.day:focus-visible{outline:3px solid var(--teal);outline-offset:2px;}
-.day.muted{color:#b5aa84;font-weight:600;}
-.day.today{box-shadow:inset 0 0 0 2.5px var(--teal);color:var(--green-deep);}
-.day.selected{background:var(--green-deep);color:var(--cream);}
-.day.selected.today{box-shadow:inset 0 0 0 2.5px var(--teal),0 0 0 2px #8fe0cf;}
-.day{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;min-height:44px;line-height:1;}
-.day .num{display:block;}
-.day .marcas{display:flex;gap:2px;height:13px;align-items:center;justify-content:center;}
-.day .marcas svg{width:13px;height:13px;}
-.day .marca-consulta{color:#1f5fa8;}
-.day .marca-remedio{color:#b5651d;}
-.day .marca-outro{width:6px;height:6px;border-radius:50%;background:var(--teal);display:inline-block;}
-.day.selected .marca-consulta,.day.selected .marca-remedio{color:#f3efdc;}
-.day.selected .marca-outro{background:#8fe0cf;}
-.lista-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 10px;}
-.lista-topo .section-title{margin:0;}
-.lista-topo .btn-sm{min-height:44px;}
-.lista-sub{margin:-4px 0 10px;font-size:.8rem;font-weight:700;color:var(--text-soft);}
-.cal-legenda{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;margin:12px 0 0;font-size:.8rem;font-weight:700;color:var(--text-soft);}
-.cal-legenda span{display:inline-flex;align-items:center;gap:5px;}
-.cal-legenda svg{width:16px;height:16px;}
-.cal-status{text-align:center;font-size:.8rem;font-weight:700;color:var(--text-soft);margin:8px 0 0;min-height:1em;}
-.event-icon.remedio{color:#b5651d;}
-.event-icon.consulta{color:#1f5fa8;}
-.section-title{font-size:.95rem;text-align:center;margin:0 0 .75rem;letter-spacing:.3px;}
-.event-list{display:flex;flex-direction:column;gap:10px;margin-bottom:1.1rem;}
-.event-card{display:flex;align-items:center;gap:.65rem;background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:.75rem;}
-.event-icon{width:2.8rem;height:2.8rem;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid var(--line);color:var(--green-deep);}
-.event-icon svg{width:1.5rem;height:1.5rem;}
-.event-body{flex:1;min-width:0;}
-.event-title{margin:0;font-weight:800;color:var(--green-deep);font-size:.9rem;}
-.event-meta{margin:3px 0 0;font-size:.78rem;color:var(--text-soft);font-weight:600;}
-.event-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
-@media (min-width:900px){
-  .desktop-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:start;margin-bottom:22px;}
-  .cal-wrap{margin-bottom:0;padding:1.1rem 1rem 1.2rem;}
-  .cal-head h2{font-size:1.2rem;} .day{font-size:1rem;}
-  .events-col .event-list{max-height:520px;overflow-y:auto;}
-  .main-content > .btn-block{max-width:420px;margin:0 auto;}
+/* ================= CALENDÁRIO DE SAÚDE (versão 2) ================= */
+:root{ --c-consulta:#1f5fa8; --c-consulta-bg:#e3eefb; --c-remedio:#b5651d; --c-remedio-bg:#fbeedd; --c-evento:#7b4fa0; --c-evento-bg:#f1e8f8; --c-feriado:#c0392b; --c-papel:#faf7ec; }
+.titulo-baloo{ font-family:'Baloo 2','Trebuchet MS',sans-serif; }
+.page-title{ font-family:'Baloo 2','Trebuchet MS',sans-serif; font-size:1.55rem; margin-bottom:2px; }
+.page-sub{ margin-bottom:18px; }
+
+/* Próximo compromisso */
+.proximo{ background:var(--c-papel); border:2.5px solid var(--green-deep); border-radius:22px; padding:16px 16px 14px; margin:0 0 16px; position:relative; overflow:hidden; }
+.proximo::before{ content:""; position:absolute; inset:0 0 auto 0; height:6px; background:linear-gradient(90deg,var(--c-consulta),var(--teal),var(--c-remedio)); }
+.proximo-rotulo{ margin:4px 0 10px; font-size:.75rem; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:var(--green-mid); text-align:center; }
+.proximo-linha{ display:flex; align-items:center; gap:14px; }
+.proximo-icone{ width:56px; height:56px; border-radius:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#fff; background:var(--c-consulta); box-shadow:0 4px 0 rgba(0,0,0,.15); }
+.proximo-icone svg{ width:30px; height:30px; }
+.proximo-icone.evento{ background:var(--c-evento); }
+.proximo-texto{ flex:1; min-width:0; }
+.proximo-quando{ margin:0; font-family:'Baloo 2','Trebuchet MS',sans-serif; font-weight:800; font-size:1.2rem; color:var(--green-deep); line-height:1.15; }
+.proximo-titulo{ margin:2px 0 0; font-weight:800; font-size:.95rem; color:var(--text); line-height:1.3; }
+.proximo-local{ margin:2px 0 0; font-size:.85rem; font-weight:600; color:var(--text-soft); }
+.contagem{ display:inline-block; margin-top:8px; padding:4px 12px; border-radius:999px; background:var(--green-deep); color:var(--cream); font-size:.78rem; font-weight:800; letter-spacing:.3px; }
+.contagem.hoje{ background:var(--c-feriado); }
+.proximo .btn-ghost{ margin-top:12px; }
+.proximo.vazio .proximo-quando{ font-size:1.05rem; }
+
+/* Atalhos */
+.atalhos{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:0 0 18px; }
+.atalho{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; min-height:88px; padding:10px 6px; border-radius:18px; border:2px solid var(--line); background:#fff; color:var(--green-deep); text-decoration:none; font-weight:800; font-size:.82rem; text-transform:uppercase; letter-spacing:.2px; cursor:pointer; text-align:center; line-height:1.15; box-shadow:0 3px 0 var(--line); font-family:inherit; }
+.atalho:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--line); }
+.atalho:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+.atalho .bola{ width:40px; height:40px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:#fff; }
+.atalho .bola svg{ width:22px; height:22px; }
+.atalho.consulta .bola{ background:var(--c-consulta); }
+.atalho.remedio .bola{ background:var(--c-remedio); }
+.atalho.evento .bola{ background:var(--c-evento); }
+
+/* Calendário */
+.cal-wrap{ background:var(--c-papel); border:2px solid var(--line); border-radius:22px; padding:14px 10px 12px; margin-bottom:16px; touch-action:pan-y; }
+.cal-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+.cal-head h2{ margin:0; font-family:'Baloo 2','Trebuchet MS',sans-serif; font-size:1.3rem; letter-spacing:.3px; text-align:center; line-height:1.1; }
+.cal-head h2 small{ display:block; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; font-size:.72rem; font-weight:700; color:var(--text-soft); text-transform:none; letter-spacing:0; }
+.cal-nav{ width:48px; height:48px; border:none; border-radius:16px; cursor:pointer; background:linear-gradient(180deg,#234a34,var(--green-deep)); color:var(--cream); display:flex; align-items:center; justify-content:center; padding:0; box-shadow:0 3px 0 #0e2416; flex-shrink:0; }
+.cal-nav:active{ transform:translateY(2px); box-shadow:0 1px 0 #0e2416; }
+.cal-nav svg{ width:1.3rem; height:1.3rem; }
+.cal-nav:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+.btn-hoje{ display:block; margin:4px auto 8px; border:2px solid var(--teal); background:#fff; color:var(--green-deep); border-radius:999px; padding:6px 16px; min-height:40px; font-weight:800; font-size:.78rem; text-transform:uppercase; cursor:pointer; font-family:inherit; }
+.btn-hoje[hidden]{ display:none; }
+.weekdays,.days{ display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px; }
+.weekdays span{ text-align:center; font-size:.68rem; font-weight:800; color:var(--text-soft); padding:.35rem 0; text-transform:uppercase; }
+.weekdays span:first-child{ color:var(--c-feriado); }
+.day{ position:relative; min-width:0; min-height:52px; border:2px solid transparent; background:transparent; border-radius:14px; cursor:pointer; padding:5px 0 4px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:3px; font-family:'Baloo 2','Trebuchet MS',sans-serif; font-weight:800; font-size:1.05rem; color:var(--green-deep); line-height:1; }
+.day:focus-visible{ outline:3px solid var(--teal); outline-offset:1px; }
+.day:hover{ border-color:var(--line); }
+.day.domingo .num,.day.feriado .num{ color:var(--c-feriado); }
+.day.com-consulta{ background:var(--c-consulta-bg); }
+.day.muted{ opacity:.38; }
+.day.today{ border-color:var(--teal); box-shadow:inset 0 0 0 1px var(--teal); }
+.day.selected{ background:var(--green-deep); border-color:var(--green-deep); }
+.day.selected .num{ color:var(--cream) !important; }
+.day.selected.today{ box-shadow:0 0 0 3px #8fe0cf; }
+.day .marcas{ display:flex; gap:2px; height:14px; align-items:center; justify-content:center; }
+.day .marcas svg{ width:14px; height:14px; }
+.day .m-consulta{ color:var(--c-consulta); }
+.day .m-remedio{ color:var(--c-remedio); }
+.day .m-evento{ width:7px; height:7px; border-radius:50%; background:var(--c-evento); display:inline-block; }
+.day .m-feriado{ width:7px; height:7px; border-radius:2px; background:var(--c-feriado); display:inline-block; transform:rotate(45deg); }
+.day.selected .m-consulta,.day.selected .m-remedio{ color:var(--cream); }
+.day.selected .m-evento{ background:#e3cff2; }
+.day.selected .m-feriado{ background:#f6b8ae; }
+.cal-legenda{ display:flex; flex-wrap:wrap; gap:6px 14px; justify-content:center; margin:12px 0 0; font-size:.78rem; font-weight:700; color:var(--text-soft); }
+.cal-legenda span{ display:inline-flex; align-items:center; gap:5px; }
+.cal-legenda svg{ width:16px; height:16px; }
+.cal-legenda .l-consulta{ color:var(--c-consulta); } .cal-legenda .l-remedio{ color:var(--c-remedio); }
+.continuos{ margin:12px 0 0; padding:10px 12px; border-radius:14px; background:var(--c-remedio-bg); border:1.5px solid #ecc9a0; color:#6b3c10; font-size:.85rem; font-weight:700; line-height:1.4; display:flex; gap:8px; align-items:flex-start; }
+.continuos[hidden]{ display:none; }
+.continuos svg{ width:18px; height:18px; flex-shrink:0; margin-top:1px; color:var(--c-remedio); }
+.cal-status{ text-align:center; font-size:.8rem; font-weight:700; color:var(--text-soft); margin:8px 0 0; min-height:1em; }
+
+/* Painel do dia */
+.painel{ margin-bottom:18px; }
+.painel-topo{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:0 0 4px; }
+.painel-topo h2{ margin:0; font-family:'Baloo 2','Trebuchet MS',sans-serif; font-size:1.25rem; line-height:1.15; text-transform:none; }
+.painel-topo .btn-sm{ min-height:44px; padding:.4rem .9rem; }
+.lista-sub{ margin:0 0 12px; font-size:.82rem; font-weight:700; color:var(--text-soft); }
+.aviso-feriado{ display:flex; align-items:center; gap:10px; margin:0 0 12px; padding:10px 12px; border-radius:14px; background:#fbe3df; border:1.5px solid #eeb1a6; color:#8a2a1e; font-weight:800; font-size:.88rem; }
+.periodo{ margin:14px 0 6px; display:flex; align-items:center; gap:8px; font-size:.75rem; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:var(--text-soft); }
+.periodo::after{ content:""; flex:1; height:2px; background:var(--line); border-radius:2px; }
+.dia-cabeca{ margin:16px 0 6px; font-family:'Baloo 2','Trebuchet MS',sans-serif; font-weight:800; font-size:1rem; color:var(--green-deep); display:flex; gap:8px; align-items:center; }
+.dia-cabeca .feriado-tag{ font-family:'Trebuchet MS',sans-serif; font-size:.7rem; padding:2px 8px; border-radius:999px; background:#fbe3df; color:#8a2a1e; text-transform:uppercase; }
+.event-list{ display:flex; flex-direction:column; gap:10px; }
+.item{ display:flex; gap:10px; align-items:stretch; }
+.item-hora{ width:62px; flex-shrink:0; text-align:center; padding-top:12px; font-family:'Baloo 2','Trebuchet MS',sans-serif; font-weight:800; font-size:1.05rem; color:var(--green-deep); }
+.item-hora.longa{ font-size:.82rem; padding-top:14px; }
+.item-hora small{ display:block; font-family:'Trebuchet MS',sans-serif; font-size:.68rem; font-weight:700; color:var(--text-soft); text-transform:uppercase; }
+.event-card{ flex:1; min-width:0; display:flex; align-items:flex-start; gap:10px; background:#fff; border:2px solid var(--line); border-left-width:7px; border-radius:16px; padding:10px 12px; }
+.event-card.consulta{ border-left-color:var(--c-consulta); }
+.event-card.medicamento{ border-left-color:var(--c-remedio); }
+.event-card.evento{ border-left-color:var(--c-evento); }
+.event-icon{ width:2.6rem; height:2.6rem; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; background:var(--c-evento); }
+.event-icon svg{ width:1.4rem; height:1.4rem; }
+.event-icon.consulta{ background:var(--c-consulta); }
+.event-icon.medicamento{ background:var(--c-remedio); }
+.event-body{ flex:1; min-width:0; }
+.event-tipo{ margin:0; font-size:.68rem; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--text-soft); }
+.event-title{ margin:1px 0 0; font-weight:800; color:var(--green-deep); font-size:.98rem; line-height:1.3; overflow-wrap:anywhere; }
+.event-meta{ margin:3px 0 0; font-size:.84rem; color:var(--text-soft); font-weight:600; line-height:1.35; overflow-wrap:anywhere; }
+.event-actions{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.event-actions .btn-sm{ min-height:40px; padding:.35rem .85rem; }
+.empty{ text-align:center; color:var(--text-soft); font-size:.92rem; padding:1.3rem .8rem; background:var(--c-papel); border:2px dashed var(--line); border-radius:16px; font-weight:600; line-height:1.45; }
+
+/* Formulário */
+.tipo-chips{ display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px; }
+.tipo-chip{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 4px; min-height:64px; border-radius:14px; border:2px solid var(--line); background:#fff; color:var(--green-deep); font-weight:800; font-size:.78rem; cursor:pointer; font-family:inherit; }
+.tipo-chip .emo{ font-size:1.35rem; line-height:1; }
+.tipo-chip[aria-pressed="true"]{ background:var(--green-deep); border-color:var(--green-deep); color:var(--cream); }
+.tipo-chip:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+.nota-telas{ margin:0 0 14px; padding:10px 12px; border-radius:14px; background:#e3eefb; border:1.5px solid #b5cdec; color:#163e6e; font-size:.85rem; font-weight:700; line-height:1.4; }
+.nota-telas a{ color:#163e6e; }
+.linha-check{ display:flex; align-items:center; gap:10px; margin:0 0 14px; font-weight:800; color:var(--green-deep); font-size:.9rem; cursor:pointer; }
+.linha-check input{ width:24px; height:24px; accent-color:var(--green-deep); }
+.linha-check[hidden]{ display:none; }
+.form-erro{ margin:0 0 10px; color:var(--error); font-weight:800; font-size:.85rem; text-align:center; min-height:1em; }
+
+@media (max-width:380px){
+  .atalho{ font-size:.72rem; min-height:80px; }
+  .day{ min-height:48px; font-size:.98rem; }
+  .item-hora{ width:52px; font-size:.95rem; }
 }
+@media (min-width:900px){
+  .desktop-grid{ display:grid; grid-template-columns:1.1fr .9fr; gap:26px; align-items:start; }
+  .painel .event-list{ max-height:620px; overflow-y:auto; padding-right:4px; }
+  .atalhos{ max-width:640px; margin-left:auto; margin-right:auto; }
+  .proximo{ max-width:640px; margin-left:auto; margin-right:auto; }
+  .day{ min-height:62px; font-size:1.15rem; }
+}
+
 </style>
 <script>
   /* PADRÃO TECHSAÚDE: aplica o tamanho de letra salvo ANTES da tela aparecer */
@@ -212,104 +301,105 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
     </div>
 
     <h1 class="page-title">Calendário de Saúde</h1>
+    <p class="page-sub">Suas consultas, remédios e compromissos num só lugar.</p>
+
+    <!-- PRÓXIMO COMPROMISSO -->
+    <section class="proximo" id="proximo" aria-live="polite"></section>
+
+    <!-- ATALHOS -->
+    <nav class="atalhos" aria-label="Incluir">
+      <a class="atalho consulta" href="lembretedeconsultas.html"><span class="bola" id="ico-atalho-consulta"></span>+ Consulta</a>
+      <a class="atalho remedio" href="medicamentos.html"><span class="bola" id="ico-atalho-remedio"></span>+ Remédio</a>
+      <button type="button" class="atalho evento" onclick="abrirForm()"><span class="bola" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg></span>+ Evento</button>
+    </nav>
 
     <div class="desktop-grid">
-    <section class="cal-wrap" aria-label="Calendário mensal">
+    <section class="cal-wrap" aria-label="Calendário mensal" id="cal-wrap">
       <div class="cal-head">
-        <button type="button" class="cal-nav" onclick="mudarMes(-1)" aria-label="Mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-        <h2 id="cal-titulo">MARÇO 2026</h2>
-        <button type="button" class="cal-nav" onclick="mudarMes(1)" aria-label="Próximo mês"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+        <button type="button" class="cal-nav" onclick="mudarMes(-1)" aria-label="Mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h2 id="cal-titulo" aria-live="polite">NOVEMBRO 2026</h2>
+        <button type="button" class="cal-nav" onclick="mudarMes(1)" aria-label="Próximo mês"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
       </div>
-      <div class="weekdays">
-        <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
+      <button type="button" class="btn-hoje" id="btn-hoje" onclick="irParaHoje()" hidden>↩ Voltar para hoje</button>
+      <div class="weekdays" aria-hidden="true">
+        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
       </div>
       <div class="days" id="cal-dias"></div>
       <div class="cal-legenda" aria-hidden="true">
-        <span class="marca-consulta" id="leg-consulta"></span>
-        <span class="marca-remedio" id="leg-remedio"></span>
-        <span><i class="marca-outro" style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;"></i> Outro evento</span>
-        <span><i style="width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 2.5px var(--teal);display:inline-block;"></i> Hoje</span>
-        <span><i style="width:16px;height:16px;border-radius:50%;background:var(--green-deep);display:inline-block;"></i> Dia escolhido</span>
+        <span class="l-consulta" id="leg-consulta"></span>
+        <span class="l-remedio" id="leg-remedio"></span>
+        <span><i class="m-evento" style="width:9px;height:9px;border-radius:50%;background:var(--c-evento);display:inline-block;"></i> Evento</span>
+        <span><i style="width:9px;height:9px;border-radius:2px;background:var(--c-feriado);display:inline-block;transform:rotate(45deg);"></i> Feriado</span>
       </div>
+      <p class="continuos" id="continuos" hidden></p>
       <p class="cal-status" id="cal-status" aria-live="polite"></p>
     </section>
 
-    <div class="events-col">
-    <div class="lista-topo">
-      <h2 class="section-title" id="titulo-lista" aria-live="polite">Eventos do dia</h2>
-      <button type="button" class="btn-sm outline" id="btn-ver-mes" onclick="alternarVisao()">Ver o mês todo</button>
+    <section class="painel" aria-labelledby="titulo-lista">
+      <div class="painel-topo">
+        <h2 id="titulo-lista" aria-live="polite">Hoje</h2>
+        <button type="button" class="btn-sm outline" id="btn-ver-mes" onclick="alternarVisao()">Ver o mês todo</button>
+      </div>
+      <p class="lista-sub" id="sub-lista"></p>
+      <div id="aviso-feriado"></div>
+      <div class="event-list" id="lista-eventos"></div>
+    </section>
     </div>
-    <p class="lista-sub" id="sub-lista">Toque em um dia do calendário para ver o que está marcado.</p>
-    <div class="event-list" id="lista-eventos"></div>
-    </div>
-    </div>
-
-    <button type="button" class="btn-block" onclick="abrirForm()">+ Incluir novo evento</button>
   </div>
 </div>
+
+<!-- FORMULÁRIO DE EVENTO -->
 <div class="popup-overlay" id="popup-form">
-  <div class="popup-card" style="text-align:left;max-width:440px;">
-    <h2 id="form-titulo" style="text-align:center;">Incluir novo evento</h2>
-    <form id="form-evento" onsubmit="salvarEvento(event)">
+  <div class="popup-card" role="dialog" aria-modal="true" aria-labelledby="form-titulo" style="text-align:left;max-width:460px;">
+    <h2 id="form-titulo" style="text-align:center;">Novo evento</h2>
+    <p class="nota-telas">🩺 Consultas e 💊 remédios têm tela própria, com lembretes no horário: <a href="lembretedeconsultas.html">nova consulta</a> · <a href="medicamentos.html">novo remédio</a>.</p>
+    <form id="form-evento" onsubmit="salvarEvento(event)" novalidate>
       <input type="hidden" id="ev-id">
+      <input type="hidden" id="ev-tipo" value="compromisso">
       <div class="form-group">
-        <label class="field-label">Tipo de evento</label>
-        <div class="form-field">
-          <select id="ev-tipo">
-            <option value="consulta">Consulta médica</option>
-            <option value="medicamento">Medicamento</option>
-            <option value="aniversario">Aniversário / compromisso</option>
-            <option value="outro">Outro</option>
-          </select>
-        </div>
+        <span class="field-label" id="rot-tipo">Que tipo de evento?</span>
+        <div class="tipo-chips" role="group" aria-labelledby="rot-tipo" id="tipo-chips"></div>
       </div>
       <div class="form-group">
-        <label class="field-label">Descrição</label>
-        <div class="form-field">
-          <input id="ev-titulo" type="text" placeholder="Ex: Consulta com Dr. Silva" required>
-        </div>
+        <label class="field-label" for="ev-titulo">Descrição</label>
+        <div class="form-field"><input id="ev-titulo" type="text" maxlength="120" placeholder="Ex: Aniversário da Maria" autocomplete="off"></div>
       </div>
       <div class="datetime-inputs">
         <div class="form-group">
-          <label class="field-label">Data</label>
-          <div class="form-field">
-            <input id="ev-data" type="date" required>
-          </div>
+          <label class="field-label" for="ev-data">Data</label>
+          <div class="form-field"><input id="ev-data" type="date"></div>
         </div>
         <div class="form-group">
-          <label class="field-label">Hora</label>
-          <div class="form-field">
-            <input id="ev-hora" type="time">
-          </div>
+          <label class="field-label" for="ev-hora">Hora (opcional)</label>
+          <div class="form-field"><input id="ev-hora" type="time"></div>
         </div>
       </div>
+      <label class="linha-check" id="linha-anual"><input type="checkbox" id="ev-anual"> Repetir todo ano nesta data</label>
       <div class="form-group">
-        <label class="field-label">Observações (opcional)</label>
-        <div class="form-field">
-          <textarea id="ev-obs" placeholder="Local, dosagem, observações..."></textarea>
-        </div>
+        <label class="field-label" for="ev-obs">Observações (opcional)</label>
+        <div class="form-field"><textarea id="ev-obs" maxlength="300" placeholder="Ex: local, o que levar, quem vai junto..."></textarea></div>
       </div>
-      <p class="hint">Scanner de receita e persistência no banco ficam para a próxima sprint.</p>
+      <p class="form-erro" id="form-erro" role="alert"></p>
       <div class="popup-actions">
-        <button type="submit" class="btn-block">Salvar</button>
-        <button type="button" class="btn-sm outline" style="padding:12px;" onclick="fecharForm()">Cancelar</button>
+        <button type="submit" class="btn-block">Salvar evento</button>
+        <button type="button" class="btn-ghost" onclick="fecharForm()">Cancelar</button>
       </div>
     </form>
   </div>
 </div>
 
 <div class="popup-overlay" id="popup-excluir">
-  <div class="popup-card">
-    <h2>Excluir evento?</h2>
+  <div class="popup-card" role="dialog" aria-modal="true" aria-labelledby="excluir-titulo">
+    <h2 id="excluir-titulo">Excluir evento?</h2>
     <p id="excluir-texto"></p>
     <div class="popup-actions">
       <button type="button" class="btn-block danger" onclick="confirmarExclusao()">Sim, excluir</button>
-      <button type="button" class="btn-sm outline" style="padding:12px;" onclick="fecharExcluir()">Cancelar</button>
+      <button type="button" class="btn-ghost" onclick="fecharExcluir()">Cancelar</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <div id="modalAjuda" class="ajuda-overlay" hidden>
   <div class="ajuda-modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
@@ -330,12 +420,13 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
     "titulo": "Como usar o Calendário de Saúde",
     "intro": "Aqui ficam suas consultas, remédios e compromissos, todos num só lugar.",
     "passos": [
-      "As consultas e os remédios cadastrados no app aparecem sozinhos: o <b>estetoscópio</b> marca dia de consulta e o <b>comprimido</b>, dia de remédio.",
-      "O dia de <b>hoje</b> tem um anel verde-claro. O <b>dia escolhido</b> fica todo verde-escuro, e a lista ao lado mostra o que tem nele.",
-      "Toque em um <b>dia</b> para ver o que está marcado. Para ver o mês inteiro, toque em <b>Ver o mês todo</b>.",
-      "Use as setas <b>‹ ›</b> para trocar de mês.",
-      "Toque em <b>+ Incluir novo evento</b>, escolha o tipo, escreva a descrição, a data e a hora, e toque em <b>Salvar</b>.",
-      "Em cada evento, toque em <b>Editar</b> para mudar ou em <b>Excluir</b> para apagar."
+      "No alto aparece o seu <b>próximo compromisso</b>, com quantos dias faltam. Toque no botão dele para ver os detalhes.",
+      "Os botões <b>+ Consulta</b> e <b>+ Remédio</b> abrem as telas próprias, que avisam no horário. O <b>+ Evento</b> serve para anotar aniversário, exame, vacina ou outro compromisso.",
+      "No calendário, o <b>estetoscópio</b> azul marca dia de consulta, o <b>comprimido</b> marca dia de remédio com prazo, a <b>bolinha roxa</b> é evento e o <b>losango vermelho</b> é feriado.",
+      "Remédio de <b>uso contínuo</b> não marca todos os dias: ele aparece no aviso laranja, embaixo do calendário.",
+      "Toque em um <b>dia</b> para ver tudo dele, separado em manhã, tarde e noite. Para ver o mês inteiro, toque em <b>Ver o mês todo</b>.",
+      "Para trocar de mês, use as setas <b>‹ ›</b> ou arraste o dedo para o lado no calendário. Para voltar ao dia de hoje, toque em <b>Voltar para hoje</b>.",
+      "Nos eventos que você criou, toque em <b>Editar</b> para mudar ou em <b>Excluir</b> para apagar."
     ],
     "dica": "Em todas as telas existe o botão ❔ Ajuda. Toque nele sempre que tiver dúvida. 💚"
   }
@@ -387,10 +478,24 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
 <script>
 const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
 const SEMANA = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+const SEMANA_MIN = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+const SEMANA_CURTA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const MESES_LONG = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-const KEY = 'techsaude_calendario_v1';
+const KEY_ANTIGA = 'techsaude_calendario_v1';     // versões antigas: uma lista só para o aparelho inteiro
 const CONSULTAS_KEY = 'techsaude_consultas_v2';
 const ICONS = {"consulta": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 3v6a4 4 0 0 0 8 0V3\"/><path d=\"M5 3h2M13 3h2\"/><path d=\"M10 13v2a4.5 4.5 0 0 0 9 0v-2\"/><circle cx=\"19\" cy=\"11\" r=\"2\"/></svg>", "medicamento": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><g transform=\"rotate(-45 12 12)\"><rect x=\"2.5\" y=\"8.5\" width=\"19\" height=\"7\" rx=\"3.5\"/><line x1=\"12\" y1=\"8.5\" x2=\"12\" y2=\"15.5\"/></g></svg>", "aniversario": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"9\" width=\"17\" height=\"11.5\" rx=\"2\"/><path d=\"M3.5 13h17M12 9v11.5\"/><path d=\"M12 9c-1-4-5-4.5-5-2s3 2 5 2c2 0 5 .5 5-2s-4-2-5 2z\"/></svg>", "outro": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21z\"/><circle cx=\"12\" cy=\"9.5\" r=\"2.5\"/></svg>"};
+ICONS.exame = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M9 3h6M10 3v6.5L4.8 18.2A2 2 0 0 0 6.5 21h11a2 2 0 0 0 1.7-2.8L14 9.5V3\"/><path d=\"M7.5 15h9\"/></svg>";
+ICONS.vacina = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m18 2 4 4M17 7l3-3M19 9 8.7 19.3a2.4 2.4 0 0 1-3.4 0l-.6-.6a2.4 2.4 0 0 1 0-3.4L15 5\"/><path d=\"m9 11 4 4M5 19l-3 3M14 4l6 6\"/></svg>";
+ICONS.compromisso = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3.5\" y=\"5\" width=\"17\" height=\"15.5\" rx=\"2.5\"/><path d=\"M3.5 10h17M8 3v4M16 3v4\"/><path d=\"m9 15 2 2 4-4\"/></svg>";
+// Tipos de evento que esta tela cria. Consulta e remédio têm tela própria (com lembretes).
+const TIPOS_EVENTO = [
+  { id:'aniversario', nome:'Aniversário', emo:'🎂' },
+  { id:'exame',       nome:'Exame',       emo:'🧪' },
+  { id:'vacina',      nome:'Vacina',      emo:'💉' },
+  { id:'compromisso', nome:'Compromisso', emo:'📌' },
+  { id:'outro',       nome:'Outro',       emo:'✏️' }
+];
+const NOME_TIPO = { aniversario:'Aniversário', exame:'Exame', vacina:'Vacina', compromisso:'Compromisso', outro:'Evento', consulta:'Consulta (anotação)', medicamento:'Remédio (anotação)' };
 
 let viewYear, viewMonth, selectedISO = null, excluirId = null;
 
@@ -409,31 +514,37 @@ function idUsuario(){
 }
 const USER_ID = idUsuario();
 if(!USER_ID) window.location.replace('index.html');
+// Os eventos ficam na tabela evento_calendario (conta da pessoa). Aqui fica uma cópia por conta,
+// para a tela abrir rápido e funcionar sem internet; o que não foi enviado fica marcado como pendente.
+const KEY = 'techsaude_calendario_v1_' + USER_ID;
+const KEY_EXCLUIR = KEY + '_excluir';   // ids do banco apagados sem internet (apaga quando a conexão voltar)
 let alarmesRemedio = [];
 
 function canUseStorage(){
-  try{
-    const t='__ts_test__';
-    window.localStorage.setItem(t,'1');
-    window.localStorage.removeItem(t);
-    return true;
-  }catch(e){ return false; }
+  try{ const t='__ts_test__'; window.localStorage.setItem(t,'1'); window.localStorage.removeItem(t); return true; }catch(e){ return false; }
 }
 const HAS_STORAGE = canUseStorage();
 function loadEventos(){
-  if(HAS_STORAGE){
-    try{
-      const raw = localStorage.getItem(KEY);
-      if(raw){
-        const parsed = JSON.parse(raw);
-        if(Array.isArray(parsed)){
-          const limpos = parsed.filter(e => EXEMPLOS_ANTIGOS.indexOf(e.id + '|' + e.titulo + '|' + e.data) === -1);
-          if(limpos.length !== parsed.length) localStorage.setItem(KEY, JSON.stringify(limpos));
-          return limpos;
-        }
+  if(!HAS_STORAGE) return [];
+  try{
+    let raw = localStorage.getItem(KEY);
+    // Primeira vez nesta versão: os eventos da lista antiga (do aparelho) passam para esta conta.
+    if(raw === null && localStorage.getItem(KEY_ANTIGA) !== null){
+      raw = localStorage.getItem(KEY_ANTIGA);
+      localStorage.setItem(KEY, raw);
+      localStorage.removeItem(KEY_ANTIGA);
+    }
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed)){
+        const limpos = parsed.filter(e => e && EXEMPLOS_ANTIGOS.indexOf(e.id + '|' + e.titulo + '|' + e.data) === -1)
+          // eventos das versões antigas (só no aparelho) entram na fila para ir para o banco
+          .map(e => (e.banco || e.pendente) ? e : Object.assign({}, e, { id: 'tmp-' + e.id, banco: false, pendente: 'criar' }));
+        localStorage.setItem(KEY, JSON.stringify(limpos));
+        return limpos;
       }
-    }catch(e){}
-  }
+    }
+  }catch(e){}
   return [];
 }
 let eventosBase = loadEventos();
@@ -443,22 +554,20 @@ function carregarConsultasDaAgenda(){
     const raw = localStorage.getItem(CONSULTAS_KEY);
     if(!raw) return [];
     const dados = JSON.parse(raw);
-    if(!Array.isArray(dados)){
-      console.warn('Consultas não sincronizadas com o calendário: formato local inválido.');
-      return [];
-    }
-    return dados.filter(c => c && (c.data_consulta || c.data) && (c.usuario_id == null || Number(c.usuario_id) === USER_ID)).map(c => {
+    if(!Array.isArray(dados)){ console.warn('Consultas não sincronizadas com o calendário: formato local inválido.'); return []; }
+    return dados.filter(c => c && (c.data_consulta || c.data) && (c.usuario_id == null || Number(c.usuario_id) === USER_ID) && c.status !== 'cancelada').map(c => {
       const data = c.data_consulta || c.data;
       const hora = c.hora_consulta || c.hora || '';
-      const medico = c.medico || 'Profissional não informado';
+      const medico = c.medico || '';
       const especialidade = c.especialidade || '';
       return {
         id: 'consulta-' + String(c.id ?? c.id_consulta ?? data + '-' + medico),
         tipo: 'consulta',
-        titulo: 'Consulta com ' + medico + (especialidade ? ' — ' + especialidade : ''),
+        titulo: (especialidade || 'Consulta') + (medico ? ' com ' + medico : ''),
         data: String(data).slice(0,10),
         hora: String(hora).slice(0, 5),
-        obs: c.local_atendimento || c.local || '',
+        local: c.local_atendimento || c.local || '',
+        obs: c.observacoes || c.obs || '',
         consultaVinculada: true
       };
     });
@@ -467,17 +576,61 @@ function carregarConsultasDaAgenda(){
     return [];
   }
 }
-function sincronizarConsultas(){
-  eventos = eventosBase.concat(carregarConsultasDaAgenda());
+function sincronizarConsultas(){ eventos = eventosBase.concat(carregarConsultasDaAgenda()); }
+
+// ---------- EVENTOS NO BANCO (tabela evento_calendario) ----------
+function lerExcluir(){ try{ const l = JSON.parse(localStorage.getItem(KEY_EXCLUIR) || '[]'); return Array.isArray(l) ? l : []; }catch(e){ return []; } }
+function salvarExcluir(l){ try{ localStorage.setItem(KEY_EXCLUIR, JSON.stringify(l)); }catch(e){} }
+function paraLinha(e){
+  return { usuario_id: USER_ID, tipo: e.tipo, titulo: e.titulo, data: e.data, hora: e.hora || null, obs: e.obs || null, anual: Boolean(e.anual) };
+}
+function deLinha(r){
+  return { id: r.id, tipo: r.tipo, titulo: r.titulo, data: String(r.data).slice(0, 10), hora: r.hora ? String(r.hora).slice(0, 5) : '',
+           obs: r.obs || '', anual: Boolean(r.anual), banco: true, pendente: null };
+}
+let sincronizando = null;
+function sincronizarEventos(){
+  if(!supabaseClient) return Promise.reject(new Error('Sem conexão com o banco.'));
+  if(sincronizando) return sincronizando;          // evita enviar o mesmo evento duas vezes
+  sincronizando = (async () => {
+    // 1) envia o que ficou guardado só neste aparelho
+    for(const e of eventosBase.filter(x => x.pendente)){
+      if(e.pendente === 'criar'){
+        const r = await supabaseClient.from('evento_calendario').insert([paraLinha(e)]).select('id').single();
+        if(r.error) throw r.error;
+        e.id = r.data.id; e.banco = true;
+      } else {
+        const r = await supabaseClient.from('evento_calendario').update(paraLinha(e)).eq('id', e.id).eq('usuario_id', USER_ID);
+        if(r.error) throw r.error;
+      }
+      e.pendente = null;
+      saveEventos();
+    }
+    for(const id of lerExcluir()){
+      const r = await supabaseClient.from('evento_calendario').delete().eq('id', id).eq('usuario_id', USER_ID);
+      if(r.error) throw r.error;
+      salvarExcluir(lerExcluir().filter(x => String(x) !== String(id)));
+    }
+    // 2) traz a lista da conta (inclui o que foi feito em outro aparelho)
+    const r = await supabaseClient.from('evento_calendario').select('*').eq('usuario_id', USER_ID).order('data', { ascending: true });
+    if(r.error) throw r.error;
+    // mantém o que foi criado enquanto a busca acontecia (ainda pendente)
+    eventosBase = (r.data || []).map(deLinha).concat(eventosBase.filter(x => x.pendente));
+    saveEventos();
+  })();
+  return sincronizando.finally(() => { sincronizando = null; });
+}
+function textoPendentes(){
+  const n = eventosBase.filter(e => e.pendente).length + lerExcluir().length;
+  return n ? (n === 1 ? '1 alteração' : n + ' alterações') + ' ainda não foi para a sua conta (sem internet). Ela será enviada sozinha.' : '';
 }
 
 // ---------- DADOS DO BANCO: consultas e remédios ----------
-// Antes o calendário só lia a cópia local das consultas, por isso uma consulta nova
-// às vezes não aparecia. Agora ele busca direto no Supabase sempre que a tela abre.
 async function carregarDoBanco(){
   const status = document.getElementById('cal-status');
   if(!supabaseClient || !USER_ID){ carregarRemediosLocais(); return; }
   let falhou = false;
+  try{ await sincronizarEventos(); }catch(e){ falhou = true; console.warn('Eventos: usando cópia local.', e); }
   try{
     const r = await supabaseClient.from('consulta').select('*').eq('usuario_id', USER_ID);
     if(r.error) throw r.error;
@@ -497,12 +650,14 @@ async function carregarDoBanco(){
       ativo: d.ativo !== false
     })).concat(locais);
   }catch(e){ falhou = true; carregarRemediosLocais(); console.warn('Remédios: usando cópia local.', e); }
-  status.textContent = falhou ? 'Sem conexão com o servidor: mostrando o que está salvo neste aparelho.' : '';
+  status.textContent = falhou ? 'Sem conexão com o servidor: mostrando o que está salvo neste aparelho. ' + textoPendentes() : textoPendentes();
 }
 function lerRemediosLocais(){
   try{ const l = JSON.parse(localStorage.getItem('medicamentos_' + USER_ID) || '[]'); return Array.isArray(l) ? l : []; }catch(e){ return []; }
 }
 function carregarRemediosLocais(){ alarmesRemedio = lerRemediosLocais(); }
+function nomeRemedio(a){ return (a.medicamentos || []).map(m => m.nome + (m.dose ? ' ' + m.dose : '')).join(' + ') || 'Remédio'; }
+function ehContinuo(a){ return a.duracaoTipo !== 'dias' && a.duracaoTipo !== 'doses'; }
 
 // Horários de remédio de cada dia, entre duas datas (mesmo cálculo da tela de Medicamentos).
 function dosesNoPeriodo(inicioPeriodo, fimPeriodo){
@@ -533,161 +688,288 @@ function calcularDosesDoMes(){
   dosesMes = dosesNoPeriodo(ini, fim);
 }
 function saveEventos(){
-  if(!HAS_STORAGE) return;
-  try{ localStorage.setItem(KEY, JSON.stringify(eventosBase)); }catch(e){}
+  if(!HAS_STORAGE) return false;
+  try{ localStorage.setItem(KEY, JSON.stringify(eventosBase)); return true; }catch(e){ return false; }
 }
 
 function pad(n){ return String(n).padStart(2,'0'); }
 function toISO(y,m,d){ return y + '-' + pad(m+1) + '-' + pad(d); }
-function fmtDataBR(iso){
-  if(!iso) return '';
-  const [y,m,d] = iso.split('-');
-  return d + '/' + m + '/' + y;
+function hojeISO(){ const h = new Date(); return toISO(h.getFullYear(), h.getMonth(), h.getDate()); }
+function fmtDataBR(iso){ if(!iso) return ''; const [y,m,d] = iso.split('-'); return d + '/' + m + '/' + y; }
+function dataLonga(iso){
+  const d = new Date(iso + 'T12:00:00');
+  return SEMANA_MIN[d.getDay()] + ', ' + d.getDate() + ' de ' + MESES_LONG[d.getMonth()];
 }
+function horaBonita(h){
+  if(!h) return '';
+  const [hh, mm] = h.split(':');
+  if(Number(hh) === 0 && (!mm || mm === '00')) return 'meia-noite';
+  if(Number(hh) === 12 && (!mm || mm === '00')) return 'meio-dia';
+  return Number(hh) + 'h' + (mm && mm !== '00' ? mm : '');
+}
+
+// ---------- FERIADOS NACIONAIS ----------
+function pascoa(ano){
+  const a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4;
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(ano, mes - 1, dia, 12);
+}
+const FERIADOS_FIXOS = { '01-01':'Confraternização Universal', '04-21':'Tiradentes', '05-01':'Dia do Trabalho', '09-07':'Independência do Brasil',
+  '10-12':'Nossa Senhora Aparecida', '11-02':'Finados', '11-15':'Proclamação da República', '11-20':'Dia da Consciência Negra', '12-25':'Natal' };
+const cacheFeriados = {};
+function feriadosDoAno(ano){
+  if(cacheFeriados[ano]) return cacheFeriados[ano];
+  const lista = {};
+  Object.keys(FERIADOS_FIXOS).forEach(md => { lista[ano + '-' + md] = FERIADOS_FIXOS[md]; });
+  const p = pascoa(ano);
+  [[-48,'Carnaval'],[-47,'Carnaval'],[-2,'Sexta-feira Santa'],[60,'Corpus Christi']].forEach(([n, nome]) => {
+    const d = new Date(p); d.setDate(p.getDate() + n);
+    lista[toISO(d.getFullYear(), d.getMonth(), d.getDate())] = nome;
+  });
+  return (cacheFeriados[ano] = lista);
+}
+function feriado(iso){ return feriadosDoAno(Number(iso.slice(0,4)))[iso] || null; }
+
+// Evento "repetir todo ano" (aniversário): vale para a mesma data dos anos seguintes.
+function eventoNoDia(e, iso){
+  if(e.data === iso) return true;
+  return Boolean(e.anual) && e.data.slice(5) === iso.slice(5) && iso > e.data;
+}
+function eventosDoDia(iso){ return eventos.filter(e => eventoNoDia(e, iso)); }
+function corDoTipo(tipo){ return tipo === 'consulta' ? 'consulta' : tipo === 'medicamento' ? 'medicamento' : 'evento'; }
 
 function atualizarRelogio(){
   const now = new Date();
   document.getElementById('datetime').textContent =
-    pad(now.getHours()) + ':' + pad(now.getMinutes()) + ' - ' +
-    SEMANA[now.getDay()] + ', ' + now.getDate() + ' de ' + MESES_LONG[now.getMonth()] + ' de ' + now.getFullYear();
+    pad(now.getHours()) + ':' + pad(now.getMinutes()) + ' - ' + SEMANA[now.getDay()] + ', ' + now.getDate() + ' de ' + MESES_LONG[now.getMonth()] + ' de ' + now.getFullYear();
 }
 
-function renderCalendario(){
-  document.getElementById('cal-titulo').textContent = MESES[viewMonth] + ' ' + viewYear;
-  const first = new Date(viewYear, viewMonth, 1);
-  let start = first.getDay();
-  start = start === 0 ? 6 : start - 1;
-  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
-  const prevDays = new Date(viewYear, viewMonth, 0).getDate();
-  const today = new Date();
-  const todayISO = toISO(today.getFullYear(), today.getMonth(), today.getDate());
-  calcularDosesDoMes();
-  const consultaDias = new Set(eventos.filter(e => e.tipo === 'consulta').map(e => e.data));
-  const remedioDias = new Set(eventos.filter(e => e.tipo === 'medicamento').map(e => e.data));
-  const outrosDias = new Set(eventos.filter(e => e.tipo !== 'consulta' && e.tipo !== 'medicamento').map(e => e.data));
+// ---------- PRÓXIMO COMPROMISSO ----------
+function renderProximo(){
+  const el = document.getElementById('proximo');
+  const agora = new Date();
+  const hoje = hojeISO();
+  const agoraHora = pad(agora.getHours()) + ':' + pad(agora.getMinutes());
+  let melhor = null;
+  // Procura nos próximos 400 dias (assim pega os aniversários que se repetem).
+  for(let i = 0; i < 400 && !melhor; i++){
+    const d = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + i, 12);
+    const iso = toISO(d.getFullYear(), d.getMonth(), d.getDate());
+    const doDia = eventosDoDia(iso).filter(e => i > 0 || !e.hora || e.hora >= agoraHora)
+      .sort((a, b) => (a.hora || '99').localeCompare(b.hora || '99'));
+    if(doDia.length) melhor = { e: doDia[0], iso: iso, dias: i };
+  }
+  if(!melhor){
+    el.className = 'proximo vazio';
+    el.innerHTML = '<p class="proximo-rotulo">Próximo compromisso</p><div class="proximo-linha"><div class="proximo-icone" style="background:var(--teal)">' + ICONS.compromisso +
+      '</div><div class="proximo-texto"><p class="proximo-quando">Nada marcado por enquanto</p><p class="proximo-local">Use os botões abaixo para incluir uma consulta, um remédio ou um evento.</p></div></div>';
+    return;
+  }
+  const e = melhor.e;
+  const quando = melhor.dias === 0 ? 'Hoje' : melhor.dias === 1 ? 'Amanhã' : dataLonga(melhor.iso).replace(/^./, c => c.toUpperCase());
+  const contagem = melhor.dias === 0 ? 'É hoje' + (e.hora ? ', às ' + horaBonita(e.hora) : '') : melhor.dias === 1 ? 'Falta 1 dia' : 'Faltam ' + melhor.dias + ' dias';
+  const botao = e.consultaVinculada ? 'Ver detalhes da consulta' : 'Ver no calendário';
+  el.className = 'proximo';
+  el.innerHTML = '<p class="proximo-rotulo">Próximo compromisso</p>' +
+    '<div class="proximo-linha"><div class="proximo-icone' + (e.tipo === 'consulta' ? '' : ' evento') + '">' + (ICONS[e.tipo] || ICONS.compromisso) + '</div>' +
+    '<div class="proximo-texto"><p class="proximo-quando">' + escapeHtml(quando) + (e.hora ? ' às ' + horaBonita(e.hora) : '') + '</p>' +
+    '<p class="proximo-titulo">' + escapeHtml(e.titulo) + '</p>' +
+    (e.local ? '<p class="proximo-local">📍 ' + escapeHtml(e.local) + '</p>' : '') +
+    '<span class="contagem' + (melhor.dias === 0 ? ' hoje' : '') + '">' + contagem + '</span></div></div>' +
+    '<button type="button" class="btn-ghost" id="btn-proximo">' + botao + '</button>';
+  document.getElementById('btn-proximo').onclick = () => {
+    if(e.consultaVinculada){ window.location.href = 'lembretedeconsultas.html?editar=' + encodeURIComponent(String(e.id).replace('consulta-', '')); return; }
+    const [y, m] = melhor.iso.split('-').map(Number);
+    viewYear = y; viewMonth = m - 1; selectedISO = melhor.iso;
+    renderTudo();
+    document.querySelector('.painel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+}
 
-  const grid = document.getElementById('cal-dias');
-  grid.innerHTML = '';
+// ---------- CALENDÁRIO ----------
+function renderCalendario(){
+  document.getElementById('cal-titulo').innerHTML = MESES[viewMonth] + ' ' + viewYear;
+  const hoje = new Date();
+  document.getElementById('btn-hoje').hidden = (viewYear === hoje.getFullYear() && viewMonth === hoje.getMonth() && selectedISO === hojeISO());
+  const start = new Date(viewYear, viewMonth, 1).getDay();          // semana começa no domingo
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const prevDays = new Date(viewYear, viewMonth, 0).getDate();
+  const todayISO = hojeISO();
+  calcularDosesDoMes();
+
   const cells = [];
-  for(let i=0;i<start;i++){
+  for(let i = 0; i < start; i++){
     const d = prevDays - start + 1 + i;
-    cells.push({d, muted:true, iso: toISO(viewMonth===0?viewYear-1:viewYear, viewMonth===0?11:viewMonth-1, d)});
+    cells.push({ d, muted:true, iso: toISO(viewMonth === 0 ? viewYear - 1 : viewYear, viewMonth === 0 ? 11 : viewMonth - 1, d) });
   }
-  for(let d=1;d<=daysInMonth;d++){
-    cells.push({d, muted:false, iso: toISO(viewYear, viewMonth, d)});
-  }
+  for(let d = 1; d <= daysInMonth; d++) cells.push({ d, muted:false, iso: toISO(viewYear, viewMonth, d) });
   while(cells.length % 7 !== 0){
     const extra = cells.length - (start + daysInMonth) + 1;
-    cells.push({d: extra, muted:true, iso: toISO(viewMonth===11?viewYear+1:viewYear, viewMonth===11?0:viewMonth+1, extra)});
+    cells.push({ d: extra, muted:true, iso: toISO(viewMonth === 11 ? viewYear + 1 : viewYear, viewMonth === 11 ? 0 : viewMonth + 1, extra) });
   }
-  cells.forEach(c => {
+  const grid = document.getElementById('cal-dias');
+  grid.innerHTML = '';
+  cells.forEach((c, idx) => {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'day';
-    const temConsulta = consultaDias.has(c.iso);
-    const temRemedio = Boolean(dosesMes[c.iso]) || remedioDias.has(c.iso);
-    const temOutro = outrosDias.has(c.iso);
+    const doDia = eventosDoDia(c.iso);
+    const temConsulta = doDia.some(e => e.tipo === 'consulta');
+    // Remédio de uso contínuo não marca o mês inteiro (fica no aviso abaixo do calendário).
+    const temRemedio = (dosesMes[c.iso] || []).some(x => !ehContinuo(x.alarme)) || doDia.some(e => e.tipo === 'medicamento');
+    const temEvento = doDia.some(e => e.tipo !== 'consulta' && e.tipo !== 'medicamento');
+    const fer = feriado(c.iso);
     btn.innerHTML = '<span class="num">' + c.d + '</span><span class="marcas" aria-hidden="true">' +
-      (temConsulta ? '<span class="marca-consulta">' + ICONS.consulta + '</span>' : '') +
-      (temRemedio ? '<span class="marca-remedio">' + ICONS.medicamento + '</span>' : '') +
-      (temOutro ? '<i class="marca-outro"></i>' : '') + '</span>';
+      (temConsulta ? '<span class="m-consulta">' + ICONS.consulta + '</span>' : '') +
+      (temRemedio ? '<span class="m-remedio">' + ICONS.medicamento + '</span>' : '') +
+      (temEvento ? '<i class="m-evento"></i>' : '') + (fer ? '<i class="m-feriado"></i>' : '') + '</span>';
     const partes = [];
+    if(fer) partes.push('feriado: ' + fer);
     if(temConsulta) partes.push('tem consulta');
     if(temRemedio) partes.push('tem remédio');
-    if(temOutro) partes.push('tem outro evento');
-    btn.setAttribute('aria-label', c.d + ' de ' + MESES_LONG[Number(c.iso.slice(5,7)) - 1] + (partes.length ? ': ' + partes.join(', ') : ''));
+    if(temEvento) partes.push('tem evento');
+    btn.setAttribute('aria-label', c.d + ' de ' + MESES_LONG[Number(c.iso.slice(5,7)) - 1] + (c.iso === todayISO ? ', hoje' : '') + (partes.length ? ': ' + partes.join(', ') : ''));
     if(c.muted) btn.classList.add('muted');
+    if(idx % 7 === 0) btn.classList.add('domingo');
+    if(fer) btn.classList.add('feriado');
+    if(temConsulta) btn.classList.add('com-consulta');
     if(c.iso === todayISO) btn.classList.add('today');
-    if(c.iso === selectedISO) btn.classList.add('selected');
-    if(temConsulta || temRemedio || temOutro) btn.classList.add('has-event');
-    if(c.iso === selectedISO) btn.setAttribute('aria-pressed', 'true');
+    if(c.iso === selectedISO){ btn.classList.add('selected'); btn.setAttribute('aria-pressed', 'true'); }
     btn.onclick = () => {
       selectedISO = c.iso;
-      // Tocou num dia de outro mês (cinza): o calendário vai para aquele mês.
       const [y, m] = c.iso.split('-').map(Number);
       if(y !== viewYear || m - 1 !== viewMonth){ viewYear = y; viewMonth = m - 1; }
       renderCalendario(); renderEventos();
     };
     grid.appendChild(btn);
   });
+  renderContinuos();
 }
 
-const SEMANA_CURTA = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+function renderContinuos(){
+  const el = document.getElementById('continuos');
+  const continuos = alarmesRemedio.filter(a => a.ativo && ehContinuo(a) && !isNaN(new Date(a.primeiraDose)));
+  if(!continuos.length){ el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = ICONS.medicamento + '<span><b>Todos os dias (uso contínuo):</b> ' + continuos.map(a => escapeHtml(nomeRemedio(a))).join(' · ') + '. Toque em um dia para ver os horários.</span>';
+}
+
+// ---------- LISTA DO DIA / DO MÊS ----------
 function atualizarTituloLista(){
   const titulo = document.getElementById('titulo-lista');
   const sub = document.getElementById('sub-lista');
   const btn = document.getElementById('btn-ver-mes');
   if(selectedISO){
-    const d = new Date(selectedISO + 'T12:00:00');
     const hoje = new Date();
-    const ehHoje = selectedISO === toISO(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
     const amanha = new Date(hoje); amanha.setDate(hoje.getDate() + 1);
+    const ehHoje = selectedISO === hojeISO();
     const ehAmanha = selectedISO === toISO(amanha.getFullYear(), amanha.getMonth(), amanha.getDate());
-    const nome = SEMANA_CURTA[d.getDay()];
-    titulo.textContent = (ehHoje ? 'Hoje' : ehAmanha ? 'Amanhã' : nome.charAt(0).toUpperCase() + nome.slice(1)) + ', ' + fmtDataBR(selectedISO).slice(0, 5);
-    sub.textContent = 'Mostrando o que está marcado neste dia. Toque em outro dia para mudar.';
+    const longa = dataLonga(selectedISO);
+    titulo.textContent = ehHoje ? 'Hoje, ' + longa : ehAmanha ? 'Amanhã, ' + longa : longa.replace(/^./, c => c.toUpperCase());
+    sub.textContent = 'Toque em outro dia do calendário para ver o que tem nele.';
     btn.textContent = 'Ver o mês todo';
   } else {
-    titulo.textContent = 'Eventos de ' + MESES_LONG[viewMonth] + ' de ' + viewYear;
-    sub.textContent = 'Consultas e eventos do mês. Toque em um dia para ver também os remédios.';
+    titulo.textContent = 'Tudo de ' + MESES_LONG[viewMonth] + ' de ' + viewYear;
+    sub.textContent = 'Consultas, eventos e feriados do mês. Toque em um dia para ver também os horários dos remédios.';
     btn.textContent = 'Ver só hoje';
   }
 }
 function alternarVisao(){
   if(selectedISO){ selectedISO = null; }
-  else {
-    const h = new Date(); viewYear = h.getFullYear(); viewMonth = h.getMonth();
-    selectedISO = toISO(viewYear, viewMonth, h.getDate());
-  }
+  else { const h = new Date(); viewYear = h.getFullYear(); viewMonth = h.getMonth(); selectedISO = hojeISO(); }
   renderCalendario(); renderEventos();
+}
+function irParaHoje(){
+  const h = new Date(); viewYear = h.getFullYear(); viewMonth = h.getMonth(); selectedISO = hojeISO();
+  renderCalendario(); renderEventos();
+}
+
+function periodoDe(hora){
+  if(!hora) return 'Sem horário';
+  const h = Number(hora.slice(0,2));
+  return h < 5 ? 'Madrugada' : h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite';
+}
+
+function cartao(e){
+  const cor = corDoTipo(e.tipo);
+  let tipoTxt, acoes = '', meta = [];
+  if(e.remedioVinculado){
+    tipoTxt = 'Remédio' + (e.continuo ? ' · uso contínuo' : '');
+    acoes = '<button type="button" class="btn-sm outline" onclick="window.location.href=\'medicamentos.html\'">Ver remédio</button>';
+  } else if(e.consultaVinculada){
+    tipoTxt = 'Consulta';
+    if(e.local) meta.push('📍 ' + escapeHtml(e.local));
+    if(e.obs) meta.push('📝 ' + escapeHtml(e.obs));
+    acoes = '<button type="button" class="btn-sm outline" onclick="window.location.href=\'lembretedeconsultas.html?editar=' + encodeURIComponent(String(e.id).replace('consulta-', '')) + '\'">Ver consulta</button>';
+  } else {
+    tipoTxt = (NOME_TIPO[e.tipo] || 'Evento') + (e.anual ? ' · todo ano' : '');
+    if(e.obs) meta.push('📝 ' + escapeHtml(e.obs));
+    acoes = '<button type="button" class="btn-sm outline" onclick="editarEvento(\'' + escapeHtml(String(e.id)) + '\')">Editar</button>' +
+            '<button type="button" class="btn-sm danger" onclick="pedirExclusao(\'' + escapeHtml(String(e.id)) + '\')">Excluir</button>';
+    if(e.pendente) tipoTxt += ' · ainda não salvo na conta';
+  }
+  return '<article class="event-card ' + cor + '">' +
+    '<div class="event-icon ' + cor + '">' + (ICONS[e.tipo] || ICONS.outro) + '</div>' +
+    '<div class="event-body"><p class="event-tipo">' + tipoTxt + '</p>' +
+    '<p class="event-title">' + escapeHtml(e.titulo) + '</p>' +
+    (meta.length ? '<p class="event-meta">' + meta.join('<br>') + '</p>' : '') +
+    '<div class="event-actions">' + acoes + '</div></div></article>';
+}
+function linhaItem(e){
+  const h = e.hora ? horaBonita(e.hora) : '—';
+  return '<div class="item"><div class="item-hora' + (h.length > 5 ? ' longa' : '') + '">' + h + '</div>' + cartao(e) + '</div>';
 }
 
 function renderEventos(){
   atualizarTituloLista();
   const el = document.getElementById('lista-eventos');
-  let lista = eventos.slice().sort((a,b) => (a.data+(a.hora||'')).localeCompare(b.data+(b.hora||'')));
+  const aviso = document.getElementById('aviso-feriado');
+  aviso.innerHTML = '';
   if(selectedISO){
-    lista = lista.filter(e => e.data === selectedISO);
-    // Remédios do dia: um item por alarme, com todos os horários.
+    const fer = feriado(selectedISO);
+    if(fer) aviso.innerHTML = '<div class="aviso-feriado">🇧🇷 Feriado nacional: ' + fer + '. Postos e clínicas podem estar fechados.</div>';
+    let lista = eventosDoDia(selectedISO);
+    // Remédios do dia: um item por horário, juntando os remédios do mesmo horário.
     const doses = dosesMes[selectedISO] || dosesNoPeriodo(new Date(selectedISO + 'T00:00:00'), new Date(selectedISO + 'T23:59:00'))[selectedISO] || [];
-    const porAlarme = new Map();
-    doses.forEach(d => { const k = String(d.alarme.id); if(!porAlarme.has(k)) porAlarme.set(k, { a: d.alarme, horas: [] }); porAlarme.get(k).horas.push(d.hora); });
-    const remedios = Array.from(porAlarme.values()).map(x => ({
-      id: 'remedio-' + x.a.id, tipo: 'medicamento', remedioVinculado: true, data: selectedISO, hora: x.horas[0],
-      titulo: x.a.medicamentos.map(m => m.nome + (m.dose ? ' — ' + m.dose : '')).join(' + '),
-      horas: x.horas
-    }));
-    lista = lista.concat(remedios).sort((a,b) => (a.hora||'').localeCompare(b.hora||''));
+    const porHora = new Map();
+    doses.forEach(d => { if(!porHora.has(d.hora)) porHora.set(d.hora, []); porHora.get(d.hora).push(d.alarme); });
+    porHora.forEach((alarmes, hora) => {
+      lista.push({ id: 'remedio-' + hora, tipo: 'medicamento', remedioVinculado: true, data: selectedISO, hora: hora,
+        titulo: alarmes.map(nomeRemedio).join(' + '), continuo: alarmes.every(ehContinuo) });
+    });
+    lista.sort((a, b) => (a.hora || '99').localeCompare(b.hora || '99'));
+    if(!lista.length){
+      el.innerHTML = '<div class="empty">Nada marcado para este dia.<br>Toque em <b>+ Evento</b> para anotar um compromisso.</div>';
+      return;
+    }
+    let html = '', periodoAtual = null;
+    lista.forEach(e => {
+      const p = periodoDe(e.hora);
+      if(p !== periodoAtual){ html += '<div class="periodo">' + p + '</div>'; periodoAtual = p; }
+      html += linhaItem(e);
+    });
+    el.innerHTML = html;
   } else {
-    const prefix = viewYear + '-' + String(viewMonth+1).padStart(2,'0');
-    lista = lista.filter(e => e.data.startsWith(prefix));
+    const dias = new Date(viewYear, viewMonth + 1, 0).getDate();
+    let html = '';
+    for(let d = 1; d <= dias; d++){
+      const iso = toISO(viewYear, viewMonth, d);
+      const lista = eventosDoDia(iso).sort((a, b) => (a.hora || '99').localeCompare(b.hora || '99'));
+      const fer = feriado(iso);
+      if(!lista.length && !fer) continue;
+      const dt = new Date(iso + 'T12:00:00');
+      html += '<div class="dia-cabeca">' + SEMANA_CURTA[dt.getDay()] + ', ' + pad(d) + '/' + pad(viewMonth + 1) +
+        (fer ? ' <span class="feriado-tag">Feriado: ' + fer + '</span>' : '') + '</div>';
+      html += lista.map(linhaItem).join('');
+    }
+    el.innerHTML = html || '<div class="empty">Nenhuma consulta ou evento neste mês.</div>';
   }
-  if(!lista.length){
-    el.innerHTML = '<div class="empty" style="grid-column:1/-1">' + (selectedISO ? 'Nada marcado para ' + fmtDataBR(selectedISO) + '.' : 'Nenhum evento neste mês.') + '</div>';
-    return;
-  }
-  el.innerHTML = lista.map(e => {
-    const hora = e.horas ? ' – ' + e.horas.join(', ') : (e.hora ? ' – ' + e.hora : '');
-    const acoes = e.remedioVinculado
-      ? '<button type="button" class="btn-sm outline" onclick="window.location.href=\'medicamentos.html\'">Ver remédio</button>'
-      : e.consultaVinculada
-      ? '<button type="button" class="btn-sm outline" onclick="window.location.href=\'lembretedeconsultas.html?editar=' + encodeURIComponent(String(e.id).replace('consulta-', '')) + '\'">Ver consulta</button>'
-      : '<div class="event-actions">' +
-          '<button type="button" class="btn-sm outline" onclick="editarEvento(' + e.id + ')">Editar</button>' +
-          '<button type="button" class="btn-sm danger" onclick="pedirExclusao(' + e.id + ')">Excluir</button>' +
-        '</div>';
-    return '<article class="event-card">' +
-      '<div class="event-icon' + (e.tipo === 'medicamento' ? ' remedio' : e.tipo === 'consulta' ? ' consulta' : '') + '">' + (ICONS[e.tipo] || ICONS.outro) + '</div>' +
-      '<div class="event-body">' +
-        '<p class="event-title">' + escapeHtml(e.titulo) + '</p>' +
-        '<p class="event-meta">' + (e.remedioVinculado ? 'Remédio · ' : e.consultaVinculada ? 'Consulta · ' : '') + fmtDataBR(e.data) + hora + '</p>' +
-      '</div>' +
-      acoes + '</article>';
-  }).join('');
 }
 
 function escapeHtml(s){
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function mudarMes(delta){
@@ -699,104 +981,168 @@ function mudarMes(delta){
   renderEventos();
 }
 
+// Arrastar o dedo para o lado no calendário também troca o mês.
+(function(){
+  const area = document.getElementById('cal-wrap');
+  let x0 = null, y0 = null;
+  area.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  area.addEventListener('touchend', e => {
+    if(x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) mudarMes(dx < 0 ? 1 : -1);
+    x0 = null;
+  }, { passive: true });
+})();
+
+// ---------- FORMULÁRIO ----------
+let tipoLegado = null;   // eventos antigos criados como "Consulta" ou "Medicamento" nesta tela
+function montarChips(){
+  document.getElementById('tipo-chips').innerHTML = TIPOS_EVENTO.map(t =>
+    '<button type="button" class="tipo-chip" data-tipo="' + t.id + '" aria-pressed="false"><span class="emo" aria-hidden="true">' + t.emo + '</span>' + t.nome + '</button>').join('');
+  document.querySelectorAll('.tipo-chip').forEach(b => b.addEventListener('click', () => escolherTipo(b.dataset.tipo, true)));
+}
+function escolherTipo(tipo, peloUsuario){
+  document.getElementById('ev-tipo').value = tipo;
+  document.querySelectorAll('.tipo-chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.tipo === tipo ? 'true' : 'false'));
+  if(peloUsuario){
+    tipoLegado = null;
+    document.getElementById('ev-anual').checked = (tipo === 'aniversario');
+    const ph = { aniversario:'Ex: Aniversário da Maria', exame:'Ex: Exame de sangue em jejum', vacina:'Ex: Vacina da gripe no posto', compromisso:'Ex: Reunião da família', outro:'Ex: Buscar óculos na ótica' };
+    document.getElementById('ev-titulo').placeholder = ph[tipo] || '';
+  }
+}
+let formSujo = false;
 function abrirForm(ev){
-  document.getElementById('form-titulo').textContent = ev ? 'Editar evento' : 'Incluir novo evento';
+  document.getElementById('form-titulo').textContent = ev ? 'Editar evento' : 'Novo evento';
+  document.getElementById('form-erro').textContent = '';
   document.getElementById('ev-id').value = ev ? ev.id : '';
-  document.getElementById('ev-tipo').value = ev ? ev.tipo : 'consulta';
+  tipoLegado = ev && (ev.tipo === 'consulta' || ev.tipo === 'medicamento') ? ev.tipo : null;
+  escolherTipo(ev ? (tipoLegado ? 'outro' : ev.tipo) : 'compromisso', !ev);
+  if(tipoLegado) document.getElementById('ev-tipo').value = tipoLegado;
   document.getElementById('ev-titulo').value = ev ? ev.titulo : '';
-  document.getElementById('ev-data').value = ev ? ev.data : (selectedISO || toISO(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()));
+  document.getElementById('ev-data').value = ev ? ev.data : (selectedISO || hojeISO());
   document.getElementById('ev-hora').value = ev && ev.hora ? ev.hora : '';
   document.getElementById('ev-obs').value = ev && ev.obs ? ev.obs : '';
+  document.getElementById('ev-anual').checked = ev ? Boolean(ev.anual) : false;
+  formSujo = false;
   document.getElementById('popup-form').classList.add('show');
+  setTimeout(() => document.getElementById('ev-titulo').focus(), 50);
 }
 function fecharForm(){ document.getElementById('popup-form').classList.remove('show'); }
+document.getElementById('form-evento').addEventListener('input', () => { formSujo = true; });
 
-function salvarEvento(e){
+async function salvarEvento(e){
   e.preventDefault();
+  const erro = document.getElementById('form-erro');
   const id = document.getElementById('ev-id').value;
+  const antigo = id ? eventosBase.find(x => String(x.id) === String(id)) : null;
   const item = {
-    id: id ? Number(id) : Date.now(),
+    id: antigo ? antigo.id : 'tmp-' + Date.now(),
+    banco: antigo ? Boolean(antigo.banco) : false,
+    pendente: antigo && antigo.banco ? 'editar' : 'criar',
     tipo: document.getElementById('ev-tipo').value,
     titulo: document.getElementById('ev-titulo').value.trim(),
     data: document.getElementById('ev-data').value,
     hora: document.getElementById('ev-hora').value,
-    obs: document.getElementById('ev-obs').value.trim()
+    obs: document.getElementById('ev-obs').value.trim(),
+    anual: document.getElementById('ev-anual').checked
   };
-  if(!item.titulo || !item.data){ mostrarToast('Preencha descrição e data'); return; }
-  if(id){
-    eventosBase = eventosBase.map(x => x.id === item.id ? item : x);
-    mostrarToast('Evento atualizado!');
-  } else {
-    eventosBase.push(item);
-    mostrarToast('Evento incluído!');
-  }
+  if(!item.titulo){ erro.textContent = 'Escreva uma descrição para o evento.'; document.getElementById('ev-titulo').focus(); return; }
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(item.data)){ erro.textContent = 'Escolha a data do evento.'; document.getElementById('ev-data').focus(); return; }
+  if(antigo){ eventosBase = eventosBase.map(x => x === antigo ? item : x); }
+  else { eventosBase.push(item); }
   saveEventos();
+  const botao = document.querySelector('#form-evento button[type=submit]');
+  botao.disabled = true; botao.textContent = 'Salvando...';
+  let naConta = true;
+  try{ await sincronizarEventos(); }catch(err){ naConta = false; console.warn('Evento guardado só neste aparelho por enquanto:', err); }
+  botao.disabled = false; botao.textContent = 'Salvar evento';
+  mostrarToast(naConta ? (antigo ? 'Evento atualizado!' : 'Evento salvo na sua conta!') : 'Salvo neste aparelho. Vai para a sua conta quando a internet voltar.');
+  document.getElementById('cal-status').textContent = textoPendentes();
   sincronizarConsultas();
   fecharForm();
-  renderCalendario();
-  renderEventos();
+  // mostra o dia do evento
+  const [y, m] = item.data.split('-').map(Number);
+  viewYear = y; viewMonth = m - 1; selectedISO = item.data;
+  renderTudo();
 }
 
 function editarEvento(id){
-  const ev = eventos.find(x => x.id === id);
+  const ev = eventosBase.find(x => String(x.id) === String(id));
   if(ev) abrirForm(ev);
 }
 function pedirExclusao(id){
-  const ev = eventos.find(x => x.id === id);
+  const ev = eventosBase.find(x => String(x.id) === String(id));
   if(!ev) return;
   excluirId = id;
-  document.getElementById('excluir-texto').textContent = ev.titulo + ' — ' + fmtDataBR(ev.data);
+  document.getElementById('excluir-texto').textContent = ev.titulo + ' — ' + fmtDataBR(ev.data) + (ev.anual ? ' (e nos próximos anos)' : '');
   document.getElementById('popup-excluir').classList.add('show');
 }
 function fecharExcluir(){ document.getElementById('popup-excluir').classList.remove('show'); excluirId = null; }
-function confirmarExclusao(){
-  eventosBase = eventosBase.filter(x => x.id !== excluirId);
+async function confirmarExclusao(){
+  const ev = eventosBase.find(x => String(x.id) === String(excluirId));
+  if(!ev){ fecharExcluir(); return; }
+  eventosBase = eventosBase.filter(x => x !== ev);
+  if(ev.banco) salvarExcluir(lerExcluir().concat([ev.id]));   // apaga no banco (agora ou quando a internet voltar)
   saveEventos();
   sincronizarConsultas();
   fecharExcluir();
-  renderCalendario();
-  renderEventos();
-  mostrarToast('Evento excluído.');
+  renderTudo();
+  let naConta = true;
+  try{ await sincronizarEventos(); }catch(err){ naConta = false; }
+  mostrarToast(naConta ? 'Evento excluído.' : 'Excluído neste aparelho. Some da sua conta quando a internet voltar.');
+  document.getElementById('cal-status').textContent = textoPendentes();
+  sincronizarConsultas(); renderTudo();
 }
+// Esc fecha as janelas (o formulário só fecha direto se nada foi digitado).
+document.addEventListener('keydown', function(ev){
+  if(ev.key !== 'Escape') return;
+  if(document.getElementById('popup-excluir').classList.contains('show')){ fecharExcluir(); return; }
+  if(document.getElementById('popup-form').classList.contains('show')){
+    if(!formSujo || window.confirm('Fechar sem salvar? O que você digitou será perdido.')) fecharForm();
+  }
+});
 
 function mostrarToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2400);
 }
+
+function renderTudo(){ renderProximo(); renderCalendario(); renderEventos(); }
 
 (function init(){
   const today = new Date();
   viewYear = today.getFullYear();
   viewMonth = today.getMonth();
-  selectedISO = toISO(viewYear, viewMonth, today.getDate());
+  selectedISO = hojeISO();
   atualizarRelogio();
   setInterval(atualizarRelogio, 30000);
   document.getElementById('leg-consulta').innerHTML = ICONS.consulta + ' Consulta';
   document.getElementById('leg-remedio').innerHTML = ICONS.medicamento + ' Remédio';
+  document.getElementById('ico-atalho-consulta').innerHTML = ICONS.consulta;
+  document.getElementById('ico-atalho-remedio').innerHTML = ICONS.medicamento;
+  montarChips();
   carregarRemediosLocais();
   sincronizarConsultas();
-  renderCalendario();
-  renderEventos();
+  renderTudo();
   atualizarDoBanco();
 })();
 async function atualizarDoBanco(){
   await carregarDoBanco();
   sincronizarConsultas();
-  renderCalendario();
-  renderEventos();
+  renderTudo();
 }
 // Voltando para esta tela (botão Voltar do celular ou outra aba): busca de novo.
 window.addEventListener('pageshow', function(e){ if(e.persisted) atualizarDoBanco(); });
+window.addEventListener('online', atualizarDoBanco);   // internet voltou: envia o que ficou pendente
 document.addEventListener('visibilitychange', function(){ if(!document.hidden) atualizarDoBanco(); });
 window.addEventListener('storage', function(event){
-  if(event.key === CONSULTAS_KEY){
-    sincronizarConsultas();
-    renderCalendario();
-    renderEventos();
-  }
+  if(event.key === CONSULTAS_KEY){ sincronizarConsultas(); renderTudo(); }
 });
 </script>
+
 </body>
 </html>
