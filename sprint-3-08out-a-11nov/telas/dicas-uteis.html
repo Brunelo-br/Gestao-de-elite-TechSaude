@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<script>
+  /* Sessão e Termos: sem login volta para a entrada; com Termos de Uso pendentes, abre os Termos antes de tudo. */
+  (function(){
+    try{
+      var s = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');
+      if(!s){ location.replace('index.html'); return; }
+      if(!s.termos || s.termos.pendente !== false) location.replace('sobre-o-app.html?doc=termos&de=home.html');
+    }catch(e){ location.replace('index.html'); }
+  })();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde — Dicas Úteis</title>
+<script src="navegacao-app.js"></script>
+<script src="lembretes-app.js"></script>
+<style>
+:root{
+  --cream:#f3efdc; --cream-deep:#ece5c9; --ink:#16301f; --ink-soft:#2e4a37;
+  --green-deep:#1b3a26; --green-mid:#2f6b46; --teal:#2f9e8f; --line:#cdbf95;
+  --text:#26332a; --text-soft:#55604f; --danger:#c0392b; --error:#a3402c;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{min-height:100vh;background:var(--cream);font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;color:var(--text);display:flex;flex-direction:column;}
+input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;}
+h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
+.wrap{flex:1;min-height:100vh;display:flex;flex-direction:column;background:var(--cream);}
+
+/* TOPBAR */
+.topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;padding:18px 14px 14px;background:linear-gradient(160deg,#1d5b3a,#123a26);}
+.topbar-spacer{width:60px;}
+.logo-center{grid-column:2;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:2px;}
+.logo-mark{width:200px;height:200px;object-fit:contain;}
+.topbar-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:var(--cream);text-decoration:none;font-size:0.64rem;font-weight:800;letter-spacing:0.3px;text-transform:uppercase;padding:2px;width:60px;}
+.topbar-btn .icon-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.topbar-btn.emergencia .icon-circle{background:#c0392b;}
+.topbar-btn.inicio .icon-circle{background:rgba(255,255,255,0.16);}
+.topbar-btn.voltar .icon-circle{background:rgba(255,255,255,0.16);}
+.topbar-right{grid-column:3;justify-self:end;display:flex;align-items:flex-start;gap:6px;}
+.topbar-btn svg{width:20px;height:20px;color:#fff;}
+.topbar-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+@media (max-width:480px){.topbar{padding:14px 8px 12px;}.logo-mark{width:120px;height:120px;}.topbar-btn{width:50px;}}
+.datetime{padding:9px 18px;font-size:0.85rem;color:var(--text-soft);background:var(--cream);border-bottom:1px solid var(--line);}
+.main-content{flex:1;padding:16px 16px 32px;}
+
+/* TÍTULOS */
+.page-title{margin:2px 0 6px;font-size:1.3rem;text-align:center;letter-spacing:.3px;line-height:1.25;}
+.page-title.danger{color:var(--danger);}
+.page-sub{margin:0 0 16px;text-align:center;color:var(--text-soft);font-size:.9rem;line-height:1.45;font-weight:600;}
+
+/* BOTÕES */
+.btn-block{display:block;width:100%;text-align:center;text-decoration:none;border:none;border-radius:999px;padding:.9rem 1rem;cursor:pointer;font-weight:800;font-size:.9rem;text-transform:uppercase;letter-spacing:.3px;color:var(--cream);background:linear-gradient(180deg,#234a34,var(--green-deep));box-shadow:0 4px 0 #0e2416;margin-bottom:4px;}
+.btn-block:active{transform:translateY(3px);box-shadow:0 1px 0 #0e2416;}
+.btn-block.danger{background:linear-gradient(180deg,#d04a3b,var(--danger));box-shadow:0 4px 0 #7f241b;color:#fff;}
+.btn-block.danger:active{box-shadow:0 1px 0 #7f241b;}
+.btn-block.on{background:linear-gradient(180deg,#3bb3a3,var(--teal));box-shadow:0 4px 0 #1f6f64;}
+.btn-block:disabled{opacity:.45;cursor:not-allowed;}
+.btn-block:focus-visible,.btn-ghost:focus-visible,.btn-sm:focus-visible,.chip:focus-within{outline:3px solid var(--teal);outline-offset:2px;}
+.btn-ghost{display:block;width:100%;margin-top:10px;text-align:center;text-decoration:none;border:2px solid var(--line);background:#fff;color:var(--green-deep);border-radius:999px;padding:.8rem;font-weight:800;font-size:.85rem;text-transform:uppercase;letter-spacing:.3px;cursor:pointer;}
+.btn-ghost:hover{border-color:var(--teal);}
+.btn-sm{border-radius:999px;padding:.4rem .8rem;font-size:.7rem;font-weight:800;text-transform:uppercase;cursor:pointer;background:#fff;}
+.btn-sm.outline{border:2px solid var(--green-mid);color:var(--green-mid);}
+.btn-sm.danger{border:2px solid var(--danger);color:var(--danger);}
+
+/* CARDS, ABAS, FORMULÁRIOS */
+.card{background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:14px;}
+.card h2,.card h3{margin:0 0 .4rem;color:var(--green-deep);}
+.card p{line-height:1.45;}
+.list{display:flex;flex-direction:column;gap:12px;}
+.empty{text-align:center;color:var(--text-soft);font-size:.9rem;padding:1.4rem .8rem;background:var(--cream-deep);border:2px dashed var(--line);border-radius:16px;font-weight:600;}
+.tabs,.nav-row{display:flex;gap:8px;margin-bottom:14px;}
+.tabs button,.nav-row button{flex:1;border:2px solid var(--green-deep);background:#fff;color:var(--green-deep);border-radius:999px;padding:.7rem .5rem;font-weight:800;text-transform:uppercase;cursor:pointer;font-size:.75rem;}
+.tabs button.on,.tabs button.active,.nav-row button.on,.nav-row button.active{background:var(--green-deep);color:var(--cream);}
+.form-group{margin-bottom:.8rem;}
+.field-label{display:block;margin-bottom:.35rem;font-size:.72rem;font-weight:800;color:var(--green-deep);text-transform:uppercase;letter-spacing:.4px;}
+.form-field{display:flex;align-items:center;gap:.6rem;background:#fff;padding:.75rem .9rem;border-radius:14px;border:2px solid var(--line);}
+.form-field:focus-within{border-color:var(--teal);}
+.form-field input,.form-field select,.form-field textarea{flex:1;border:none;background:transparent;font-size:.95rem;font-weight:600;color:var(--text);outline:none;min-width:0;}
+.form-field textarea{resize:vertical;min-height:4.4rem;}
+.row-2,.datetime-inputs{display:flex;gap:8px;} .row-2 .form-group,.datetime-inputs .form-group{flex:1;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:.5rem .8rem;font-size:.8rem;font-weight:800;color:var(--green-deep);cursor:pointer;}
+.chip input{display:none;}
+.chip.on{background:var(--green-deep);border-color:var(--green-deep);color:var(--cream);}
+.hint{font-size:.78rem;color:var(--text-soft);margin:0 0 .8rem;text-align:center;}
+
+/* POP-UPS E AVISOS */
+.popup-overlay,.overlay{position:fixed;inset:0;background:rgba(10,20,14,0.55);display:none;align-items:center;justify-content:center;padding:1rem;z-index:120;}
+.popup-overlay.show,.overlay.show{display:flex;}
+.popup-card{background:var(--cream);border:2px solid var(--line);border-radius:22px;padding:1.5rem 1.2rem 1.2rem;max-width:400px;width:100%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.35);max-height:90vh;overflow-y:auto;}
+.popup-card h2{margin:0 0 .6rem;font-size:1.1rem;}
+.popup-card p{margin:0 0 1rem;font-size:.95rem;font-weight:600;line-height:1.45;}
+.popup-actions{display:flex;flex-direction:column;gap:.5rem;}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(1rem);background:var(--green-deep);color:var(--cream);padding:.75rem 1.1rem;border-radius:999px;font-weight:800;font-size:.85rem;opacity:0;transition:.3s;z-index:200;pointer-events:none;max-width:90%;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.3);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* DESKTOP (>= 900px) */
+@media (min-width:900px){
+  body{background:radial-gradient(circle at 50% 0%,#0f5132 0%,#0b3e28 45%,#082a1c 100%);align-items:center;justify-content:center;padding:40px 24px;}
+  .wrap{flex:none;width:100%;max-width:1080px;min-height:660px;border-radius:32px;margin:auto;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,0.45),0 0 0 1px rgba(255,255,255,0.06);}
+  .wrap.narrow{max-width:720px;}
+  .topbar{padding:26px 32px 18px;}
+  .datetime{padding:10px 32px;}
+  .main-content{padding:22px 32px 32px;}
+  .page-title{font-size:1.55rem;}
+}
+@media (max-width:480px){ .row-2,.datetime-inputs{flex-wrap:wrap;} }
+
+.tip{background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:14px 14px 12px;margin-bottom:10px;}
+.tip h2{margin:0 0 6px;font-size:1rem;text-transform:none;font-weight:800;}
+.tip p{margin:0;font-size:.92rem;line-height:1.45;color:var(--text);font-weight:600;}
+.tag{display:inline-block;margin-bottom:8px;font-size:.7rem;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--green-mid);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:3px 9px;}
+.panel{display:none;} .panel.on{display:block;}
+.card{display:flex;align-items:center;gap:12px;}
+.card h2{margin:0 0 8px;font-size:1rem;text-transform:none;font-weight:800;}
+.thumb{width:64px;height:64px;flex-shrink:0;border-radius:18px;background:#fff;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--green-deep);}
+.thumb svg{width:2.2rem;height:2.2rem;}
+.btn-play{border:none;border-radius:999px;padding:.65rem 1rem;font-weight:800;font-size:.78rem;text-transform:uppercase;color:var(--cream);cursor:pointer;background:linear-gradient(180deg,#234a34,var(--green-deep));box-shadow:0 4px 0 #0e2416;}
+.btn-play:active{transform:translateY(3px);box-shadow:0 1px 0 #0e2416;}
+.btn-play:focus-visible{outline:3px solid var(--teal);outline-offset:2px;}
+.note{margin-top:12px;font-size:.85rem;color:var(--text-soft);line-height:1.4;font-weight:600;}
+.modal{background:var(--cream);border:2px solid var(--line);border-radius:22px;width:100%;max-width:560px;max-height:calc(100vh - 2rem);max-height:calc(100dvh - 2rem);overflow-x:hidden;overflow-y:auto;box-shadow:0 30px 60px rgba(0,0,0,.35);}
+.modal header{position:sticky;top:0;z-index:2;background:linear-gradient(160deg,#1d5b3a,#123a26);color:var(--cream);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
+.modal header h3{margin:0;font-size:1rem;font-weight:800;}
+.modal header button{background:rgba(255,255,255,.16);border:none;color:#fff;width:2.75rem;height:2.75rem;min-width:44px;min-height:44px;border-radius:50%;font-size:1.4rem;cursor:pointer;}
+.player{background:#111;aspect-ratio:16/9;} .player iframe{width:100%;height:100%;border:0;}
+.steps{padding:14px 16px 16px;color:var(--text);font-size:.95rem;line-height:1.5;font-weight:600;}
+.steps ol{margin:8px 0 0;padding-left:18px;}
+@media (min-width:900px){ .tips,.list{display:grid;grid-template-columns:1fr 1fr;gap:12px;} .tip{margin:0;} }
+</style>
+<script>
+  /* PADRÃO TECHSAÚDE: aplica o tamanho de letra salvo ANTES da tela aparecer */
+  (function(){ try{ var f = parseFloat(localStorage.getItem('techsaude_fonte')); if(f >= 85 && f <= 150){ document.documentElement.style.fontSize = f + '%'; } }catch(e){} })();
+</script>
+<style>
+.toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin:0 0 22px; }
+.toolbar-acessibilidade .font-group{ display:inline-flex; border:2px solid #cdbf95; border-radius:999px; overflow:hidden; background:#fff; }
+.toolbar-acessibilidade .font-btn{ border:none; background:#fff; color:#1b3a26; font-weight:800; padding:9px 13px; cursor:pointer; font-size:.75rem; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; min-width:44px; min-height:40px; margin:0; }
+.toolbar-acessibilidade .font-btn + .font-btn{ border-left:1px solid #e4dbbd; }
+.toolbar-acessibilidade .font-btn.active{ background:#1b3a26; color:#f3efdc; }
+.toolbar-acessibilidade .font-btn:focus-visible,.toolbar-acessibilidade .chip-btn:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+.toolbar-acessibilidade .chip-btn{ background:#fff; border:2px solid #cdbf95; border-radius:999px; padding:9px 15px; font-size:.75rem; min-height:40px; margin:0; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:#1b3a26; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; }
+.toolbar-acessibilidade .chip-btn:hover{ border-color:#2f9e8f; }
+.ajuda-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:10000; }
+.ajuda-overlay[hidden]{ display:none !important; }
+.ajuda-modal{ background:#f3efdc; border:2px solid #cdbf95; border-radius:22px; padding:2rem 1.6rem 1.5rem; max-width:460px; width:100%; position:relative; box-shadow:0 30px 60px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto; text-align:left; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; color:#26332a; animation:ajudaPop .2s ease; }
+@keyframes ajudaPop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.ajuda-modal .ajuda-fechar{ position:absolute; top:.75rem; right:.75rem; background:#ece5c9; border:none; width:2.75rem; height:2.75rem; min-width:44px; min-height:44px; border-radius:50%; font-size:1.2rem; cursor:pointer; color:#1b3a26; margin:0; padding:0; }
+.ajuda-modal .ajuda-tag{ margin:0 0 .3rem; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#2f6b46; }
+.ajuda-modal h2{ margin:0 2.6rem .5rem 0; padding:0; font-size:1.3rem; line-height:1.2; color:#1b3a26; font-weight:900; text-transform:uppercase; text-align:left; font-family:inherit; }
+.ajuda-modal .ajuda-intro{ margin:0 0 1rem; font-size:.98rem; font-weight:600; color:#55604f; line-height:1.45; }
+.ajuda-modal .ajuda-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.7rem; counter-reset:passo; }
+.ajuda-modal .ajuda-lista li{ counter-increment:passo; position:relative; padding:0 0 0 2.5rem; margin:0; min-height:1.9rem; font-size:1rem; font-weight:600; line-height:1.45; color:#26332a; }
+.ajuda-modal .ajuda-lista li::before{ content:counter(passo); position:absolute; left:0; top:-.05rem; width:1.9rem; height:1.9rem; border-radius:50%; background:#1b3a26; color:#f3efdc; font-weight:800; font-size:.95rem; display:flex; align-items:center; justify-content:center; }
+.ajuda-modal .ajuda-lista b{ color:#1b3a26; }
+.ajuda-modal .ajuda-extra{ margin:1.1rem 0 0; padding:.8rem 1rem; background:#dcefdf; border:1.5px solid #a5d6a7; border-radius:14px; font-size:.95rem; font-weight:600; color:#1b4332; line-height:1.4; }
+.ajuda-modal .ajuda-ok{ display:block; width:100%; margin:1.2rem 0 0; padding:.9rem; border:none; border-radius:999px; cursor:pointer; background:linear-gradient(180deg,#234a34,#1b3a26); color:#f3efdc; font-weight:800; font-size:1rem; text-transform:uppercase; letter-spacing:.4px; font-family:inherit; box-shadow:0 5px 0 #0e2416; }
+.ajuda-modal .ajuda-ok:active{ transform:translateY(3px); box-shadow:0 2px 0 #0e2416; }
+.ajuda-modal button:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+
+/* ===== Guia animado dos tutoriais ===== */
+.guia{padding:14px 16px 6px;text-align:center;background:#fff;}
+.guia-fone{width:min(240px,70vw);margin:0 auto 12px;border:6px solid var(--green-deep,#1b3a26);border-radius:26px;background:#f7f5ea;min-height:270px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.18);text-align:left;}
+@media (max-height:700px){.guia-fone{width:min(190px,58vw);min-height:190px;margin-bottom:8px;}}
+.gf-barra{background:var(--green-deep,#1b3a26);color:#f3efdc;font-weight:800;font-size:.78rem;padding:9px 12px;text-align:center;}
+.gf-corpo{padding:12px 10px;display:flex;flex-direction:column;gap:8px;}
+.gf-apps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.gf-app{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.62rem;font-weight:800;color:var(--text,#26332a);}
+.gf-app i{width:42px;height:42px;border-radius:12px;background:#cdbf95;display:block;}
+.gf-app.alvo i{background:var(--green-mid,#2f6b46);}
+.gf-btn{border-radius:12px;border:2px solid var(--line,#cdbf95);background:#fff;padding:9px 10px;font-size:.78rem;font-weight:800;color:var(--green-deep,#1b3a26);text-align:center;}
+.gf-btn.verm{background:#c0392b;border-color:#c0392b;color:#fff;}
+.gf-campo{border-radius:10px;border:2px solid var(--line,#cdbf95);background:#fff;padding:7px 9px;font-size:.72rem;color:var(--text,#26332a);font-weight:700;}
+.gf-campo small{display:block;color:var(--text-soft,#55604f);font-weight:700;font-size:.6rem;text-transform:uppercase;letter-spacing:.3px;}
+.gf-linha{font-size:.74rem;font-weight:700;color:var(--text,#26332a);padding:4px 2px;border-bottom:1px dashed var(--line,#cdbf95);}
+.gf-aviso{background:#f7e6c8;border:2px solid #e0b878;color:#8a4b0f;border-radius:10px;padding:7px 9px;font-size:.68rem;font-weight:800;}
+.gf-icones{display:flex;justify-content:center;gap:18px;}
+.gf-ico{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.6rem;font-weight:800;color:var(--text,#26332a);}
+.gf-ico i{width:38px;height:38px;border-radius:50%;background:#dcefdf;border:2px solid #a5d6a7;display:block;}
+.alvo{position:relative;animation:gfPulso 1.3s ease-in-out infinite;}
+.alvo::after{content:"👆";position:absolute;right:-4px;bottom:-14px;font-size:1.3rem;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));}
+.gf-btn.alvo,.gf-campo.alvo,.gf-linha.alvo{outline:3px solid var(--teal,#2f9e8f);outline-offset:2px;}
+.gf-app.alvo i,.gf-ico.alvo i{outline:3px solid var(--teal,#2f9e8f);outline-offset:2px;}
+@keyframes gfPulso{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+@media (prefers-reduced-motion:reduce){.alvo{animation:none;}}
+.guia-contagem{margin:0 0 2px;font-size:.78rem;font-weight:800;color:var(--green-mid,#2f6b46);text-transform:uppercase;letter-spacing:.4px;}
+.guia-titulo{margin:0 0 4px;font-size:1.1rem;color:var(--green-deep,#1b3a26);font-weight:900;}
+.guia-texto{margin:0 auto 10px;max-width:420px;font-size:1rem;line-height:1.45;font-weight:600;color:var(--text,#26332a);}
+.guia-pontos{display:flex;justify-content:center;gap:6px;margin-bottom:12px;}
+.guia-pontos span{width:10px;height:10px;border-radius:50%;background:#cdbf95;}
+.guia-pontos span.on{background:var(--green-deep,#1b3a26);}
+.guia-nav{display:flex;gap:10px;max-width:420px;margin:0 auto 10px;}
+.guia-btn{flex:1;border:none;border-radius:999px;padding:.85rem 1rem;font-weight:800;font-size:.9rem;text-transform:uppercase;cursor:pointer;color:#f3efdc;background:linear-gradient(180deg,#234a34,#1b3a26);box-shadow:0 4px 0 #0e2416;font-family:inherit;}
+.guia-btn.sec{background:#fff;color:#1b3a26;border:2px solid #cdbf95;box-shadow:none;}
+.guia-btn:disabled{opacity:.4;cursor:not-allowed;}
+.guia-btn:focus-visible{outline:3px solid var(--teal,#2f9e8f);outline-offset:2px;}
+.steps-todos{background:#fff;padding:0 16px 14px;}
+.steps-todos summary{cursor:pointer;font-weight:800;color:var(--green-mid,#2f6b46);font-size:.88rem;padding:6px 0;}
+</style>
+</head>
+<body>
+<div class="wrap ">
+  <div class="topbar">
+    <button type="button" class="topbar-btn emergencia" onclick="window.location.href='emergencia.html'" aria-label="Emergência"><span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a5 5 0 0 0-5 5v3.5c0 1-.4 1.9-1.1 2.6L4 16h16l-1.9-1.9c-.7-.7-1.1-1.6-1.1-2.6V8a5 5 0 0 0-5-5Z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></svg></span>Emergência</button>
+    <div class="logo-center"><img class="logo-mark" src="img/logo.png" alt="Logo TechSaúde"></div>
+    <div class="topbar-right">
+      <button type="button" class="topbar-btn voltar" onclick="voltarTelaApp()" aria-label="Voltar"><span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></span>Voltar</button>
+      <a class="topbar-btn inicio" href="home.html" aria-label="Início"><span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span>Início</a>
+    </div>
+  </div>
+  <div class="datetime" id="datetime"></div>
+  <div class="main-content">
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho da letra">
+        <button type="button" class="font-btn" data-scale="100" aria-label="Letra tamanho normal">A</button>
+        <button type="button" class="font-btn" data-scale="115" aria-label="Letra grande">A+</button>
+        <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
+      </div>
+      <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
+    </div>
+
+    <h1 class="page-title">Dicas úteis</h1>
+    <p class="page-sub">Dica é um recado curto para o dia a dia. Tutorial é a aula, com a tela do celular passo a passo, para aprender a fazer.</p>
+    <div class="tabs" role="tablist" aria-label="Dicas e tutoriais">
+      <button type="button" id="tab-dicas" class="on" role="tab" aria-selected="true" aria-controls="panel-dicas" onclick="aba('dicas')">Dicas úteis</button>
+      <button type="button" id="tab-tutoriais" role="tab" aria-selected="false" aria-controls="panel-tutoriais" onclick="aba('tutoriais')">Tutoriais</button>
+    </div>
+
+    <section class="panel on" id="panel-dicas">
+      <div class="tips">
+        <article class="tip"><span class="tag">Segurança</span><h2>Antes de confirmar um PIX</h2><p>Olhe o nome de quem vai receber e o valor. Se algo estiver estranho, não confirme. PIX não tem “desfazer”.</p></article>
+        <article class="tip"><span class="tag">Remédio</span><h2>Não pule a confirmação</h2><p>Quando o alarme tocar, toque em “Já tomei”. Assim o aplicativo sabe que a dose foi feita.</p></article>
+        <article class="tip"><span class="tag">Consulta</span><h2>Leve a ficha pronta</h2><p>Preencha a pré-consulta antes de sair de casa: motivo, remédios e o que você quer perguntar ao médico.</p></article>
+        <article class="tip"><span class="tag">Emergência</span><h2>O sino vermelho não substitui o 192</h2><p>Ele avisa o contato cadastrado. Em risco real, ligue também para o SAMU (192) ou Bombeiros (193).</p></article>
+        <article class="tip"><span class="tag">Celular</span><h2>Senha só sua</h2><p>Não passe a senha do TechSaúde nem do banco. Quem ajuda pode estar do lado, mas quem digita é você.</p></article>
+        <article class="tip"><span class="tag">Celular</span><h2>Som ligado no horário do remédio</h2><p>Se o celular estiver no mudo ou desligado, o lembrete não chega. Deixe o volume audível de dia.</p></article>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-tutoriais">
+      <div class="list" id="lista"></div>
+      <p class="note">Tutorial ensina o caminho. Dica só lembra o cuidado. Cada tutorial mostra a tela do celular, passo a passo. Pode repetir quantas vezes quiser.</p>
+    </section>
+  </div>
+</div>
+<div class="overlay" id="overlay" onclick="if(event.target===this) fechar()">
+  <div class="modal" role="dialog" aria-modal="true">
+    <header><h3 id="modal-title">Tutorial</h3><button type="button" onclick="fechar()" aria-label="Fechar">×</button></header>
+    <div class="guia" id="guia" aria-live="polite">
+      <div class="guia-fone" id="guia-fone" aria-hidden="true"></div>
+      <p class="guia-contagem" id="guia-contagem"></p>
+      <h4 class="guia-titulo" id="guia-titulo"></h4>
+      <p class="guia-texto" id="guia-texto"></p>
+      <div class="guia-pontos" id="guia-pontos" aria-hidden="true"></div>
+      <div class="guia-nav">
+        <button type="button" class="guia-btn sec" id="guia-voltar">Voltar</button>
+        <button type="button" class="guia-btn" id="guia-proximo">Próximo</button>
+      </div>
+    </div>
+    <details class="steps-todos"><summary>Ver todos os passos escritos</summary><div class="steps" id="modal-steps"></div></details>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<div id="modalAjuda" class="ajuda-overlay" hidden>
+  <div class="ajuda-modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button type="button" class="ajuda-fechar" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <p class="ajuda-tag">❔ Ajuda</p>
+    <h2 id="ajudaTitulo">Como usar esta tela</h2>
+    <p class="ajuda-intro" id="ajudaIntro"></p>
+    <ol class="ajuda-lista" id="ajudaLista"></ol>
+    <p class="ajuda-extra" id="ajudaExtra"></p>
+    <button type="button" class="ajuda-ok" id="ajudaOk">Entendi</button>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var AJUDA_TELA = [
+  {
+    "titulo": "Como usar os Tutoriais",
+    "intro": "Aqui você aprende fazendo, vendo a tela do celular passo a passo.",
+    "passos": [
+      "Toque em um tutorial e depois em <b>▶ Ver passo a passo</b>.",
+      "Siga a tela de exemplo: o dedinho mostra onde tocar. Use <b>Próximo</b> e <b>Voltar</b> para andar pelos passos.",
+      "Para fechar, toque no <b>×</b> no alto da janela.",
+      "Para voltar aos recados curtos, toque em <b>Dicas úteis</b>."
+    ],
+    "dica": "Em todas as telas existe o botão ❔ Ajuda. Toque nele sempre que tiver dúvida. 💚",
+    "quando": "#panel-tutoriais.on"
+  },
+  {
+    "titulo": "Como usar as Dicas Úteis",
+    "intro": "Dica é um recado curto para o dia a dia. Tutorial é a aula, com a tela do celular passo a passo.",
+    "passos": [
+      "Leia os cartões de <b>dicas</b>: cada um traz um cuidado importante.",
+      "Toque em <b>Tutoriais</b> para aprender a fazer um PIX, uma vídeo chamada e muito mais."
+    ],
+    "dica": "Em todas as telas existe o botão ❔ Ajuda. Toque nele sempre que tiver dúvida. 💚"
+  }
+];
+  var PASSO_LETRA = 'Letra pequena? Toque em <b>A+</b> ou <b>A++</b>, logo acima, para aumentar. Sua escolha fica salva para todas as telas.';
+  var CHAVE_FONTE = 'techsaude_fonte';
+  var botoesFonte = document.querySelectorAll('.toolbar-acessibilidade .font-btn');
+  function escalaAtual(){ return parseFloat(document.documentElement.style.fontSize) || 100; }
+  function marcarBotaoFonte(){
+    var atual = escalaAtual();
+    botoesFonte.forEach(function(b){ var ativo = Number(b.dataset.scale) === atual; b.classList.toggle('active', ativo); b.setAttribute('aria-pressed', ativo ? 'true' : 'false'); });
+  }
+  function aplicarFonte(escala, salvar){
+    document.documentElement.style.fontSize = escala + '%';
+    if(salvar){ try{ localStorage.setItem(CHAVE_FONTE, String(escala)); }catch(e){} }
+    marcarBotaoFonte();
+    window.dispatchEvent(new Event('techsaude:fonte'));
+  }
+  window.aplicarFonteTechSaude = aplicarFonte;
+  botoesFonte.forEach(function(btn){ btn.addEventListener('click', function(){ aplicarFonte(Number(btn.dataset.scale), true); }); });
+  window.addEventListener('techsaude:fonte', marcarBotaoFonte);
+  window.addEventListener('storage', function(e){ if(e.key === CHAVE_FONTE && e.newValue){ aplicarFonte(parseFloat(e.newValue) || 100, false); } });
+  marcarBotaoFonte();
+
+  var modal = document.getElementById('modalAjuda');
+  var focoAnterior = null;
+  function conteudoAtual(){
+    for(var i = 0; i < AJUDA_TELA.length; i++){ var item = AJUDA_TELA[i]; if(!item.quando || document.querySelector(item.quando)) return item; }
+    return AJUDA_TELA[AJUDA_TELA.length - 1];
+  }
+  function abrirAjuda(){
+    var c = conteudoAtual();
+    document.getElementById('ajudaTitulo').textContent = c.titulo;
+    var intro = document.getElementById('ajudaIntro'); intro.innerHTML = c.intro || ''; intro.hidden = !c.intro;
+    document.getElementById('ajudaLista').innerHTML = c.passos.concat([PASSO_LETRA]).map(function(p){ return '<li>' + p + '</li>'; }).join('');
+    var extra = document.getElementById('ajudaExtra'); extra.innerHTML = c.dica || ''; extra.hidden = !c.dica;
+    focoAnterior = document.activeElement; modal.hidden = false;
+    document.getElementById('ajudaOk').focus({ preventScroll: true });
+    modal.querySelector('.ajuda-modal').scrollTop = 0;
+  }
+  function fecharAjuda(){ modal.hidden = true; if(focoAnterior && focoAnterior.focus){ focoAnterior.focus(); } }
+  document.getElementById('btnAjuda').addEventListener('click', abrirAjuda);
+  document.getElementById('fecharAjuda').addEventListener('click', fecharAjuda);
+  document.getElementById('ajudaOk').addEventListener('click', fecharAjuda);
+  modal.addEventListener('click', function(e){ if(e.target === modal) fecharAjuda(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.hidden) fecharAjuda(); });
+})();
+</script>
+<script>const IC = {"pix": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"2.5\" y=\"6\" width=\"19\" height=\"12\" rx=\"2\"/><circle cx=\"12\" cy=\"12\" r=\"2.8\"/><path d=\"M6 9.5v.01M18 14.5v.01\"/></svg>", "video": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"2.5\" y=\"6.5\" width=\"12.5\" height=\"11\" rx=\"2.5\"/><path d=\"M15 10.5l6-3.5v10l-6-3.5\"/></svg>", "download": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3v12\"/><path d=\"M7 11l5 5 5-5\"/><path d=\"M4 20h16\"/></svg>", "pill": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><g transform=\"rotate(-45 12 12)\"><rect x=\"2.5\" y=\"8.5\" width=\"19\" height=\"7\" rx=\"3.5\"/><line x1=\"12\" y1=\"8.5\" x2=\"12\" y2=\"15.5\"/></g></svg>", "calendar": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2.5\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/></svg>"};
+
+const A=(t,k)=>Object.assign({t:t,k:k});
+const TUTORIAIS = [
+  {id:'pix', titulo:'Aprenda a fazer um PIX', botao:'Ver passo a passo', icon:IC.pix,
+   passos:'<ol><li>Abra o aplicativo do banco.</li><li>Toque em Pix.</li><li>Escolha chave, QR Code ou copiar e colar.</li><li>Confira nome e valor antes de confirmar.</li></ol>',
+   guia:[
+    {titulo:'Abra o app do banco', texto:'Na tela do celular, toque no ícone verde do seu banco.', tela:{barra:'Tela inicial', itens:[{k:'apps', lista:[['Banco',1],['Fotos'],['Relógio'],['Câmera'],['Mensagens'],['Contatos']]}]}},
+    {titulo:'Toque em Pix', texto:'Dentro do app, procure o botão <b>Pix</b>. Ele fica no começo da tela.', tela:{barra:'Meu Banco', itens:[{k:'linha',t:'Saldo: R$ 1.250,00'},{k:'btn',t:'Pix',alvo:1},{k:'btn',t:'Pagar conta'},{k:'btn',t:'Extrato'}]}},
+    {titulo:'Escolha como pagar', texto:'Use <b>Chave</b> se alguém passou um telefone ou CPF. Use <b>QR Code</b> para apontar a câmera. Use <b>Copiar e colar</b> se recebeu um código.', tela:{barra:'Pix', itens:[{k:'btn',t:'Pagar com chave',alvo:1},{k:'btn',t:'Ler QR Code'},{k:'btn',t:'Copiar e colar'}]}},
+    {titulo:'Digite a chave e o valor', texto:'Escreva a chave da pessoa e depois o valor. Toque em continuar.', tela:{barra:'Pagar com chave', itens:[{k:'campo',l:'Chave',v:'(11) 98888-7777',alvo:1},{k:'campo',l:'Valor',v:'R$ 50,00'},{k:'btn',t:'Continuar'}]}},
+    {titulo:'Confira antes de confirmar', texto:'Leia o <b>nome</b> e o <b>valor</b>. Se algo estiver estranho, <b>não confirme</b>. O Pix não tem “desfazer”.', tela:{barra:'Confirmar Pix', itens:[{k:'campo',l:'Para',v:'Maria Souza',alvo:1},{k:'campo',l:'Valor',v:'R$ 50,00'},{k:'aviso',t:'Pix não tem desfazer. Confira!'},{k:'btn',t:'Confirmar'}]}}
+   ]},
+  {id:'video', titulo:'Como fazer uma vídeo chamada', botao:'Ver passo a passo', icon:IC.video,
+   passos:'<ol><li>Abra a conversa no WhatsApp.</li><li>Toque no ícone de câmera.</li><li>Espere atender.</li><li>Para sair, toque no botão vermelho.</li></ol>',
+   guia:[
+    {titulo:'Abra o WhatsApp', texto:'Toque no ícone verde do WhatsApp.', tela:{barra:'Tela inicial', itens:[{k:'apps', lista:[['WhatsApp',1],['Fotos'],['Relógio'],['Câmera'],['Banco'],['Contatos']]}]}},
+    {titulo:'Abra a conversa', texto:'Toque no nome da pessoa para quem quer ligar.', tela:{barra:'WhatsApp', itens:[{k:'linha',t:'Filha Ana',alvo:1},{k:'linha',t:'Neto Pedro'},{k:'linha',t:'Vizinha Lúcia'}]}},
+    {titulo:'Toque na câmera', texto:'No alto da conversa, toque no ícone da <b>câmera</b>. O de telefone é só para voz.', tela:{barra:'Filha Ana', itens:[{k:'icones', lista:[['Vídeo',1],['Voz']]},{k:'linha',t:'Oi, vó! Posso ligar?'}]}},
+    {titulo:'Espere atender', texto:'O celular vai chamar. Aguarde a pessoa atender. Segure o celular na altura do rosto.', tela:{barra:'Chamando…', itens:[{k:'linha',t:'Chamando Filha Ana…'},{k:'aviso',t:'Aguarde a pessoa atender'}]}},
+    {titulo:'Para sair, toque no vermelho', texto:'Quando terminar a conversa, toque no botão <b>vermelho</b> para desligar.', tela:{barra:'Filha Ana', itens:[{k:'linha',t:'Em chamada · 02:15'},{k:'btn',t:'Encerrar chamada',cor:'verm',alvo:1}]}}
+   ]},
+  {id:'update', titulo:'Como atualizar seus aplicativos', botao:'Ver passo a passo', icon:IC.download,
+   passos:'<ol><li>Abra a Play Store ou a App Store.</li><li>Toque na sua foto ou em Gerenciar.</li><li>Escolha Atualizar.</li><li>Espere terminar.</li></ol>',
+   guia:[
+    {titulo:'Abra a loja de aplicativos', texto:'No Android, toque em <b>Play Store</b>. No iPhone, toque em <b>App Store</b>.', tela:{barra:'Tela inicial', itens:[{k:'apps', lista:[['Play Store',1],['Fotos'],['Relógio'],['Câmera'],['Banco'],['Contatos']]}]}},
+    {titulo:'Toque na sua foto', texto:'No canto de cima fica a sua foto ou a sua inicial. Toque nela.', tela:{barra:'Play Store', itens:[{k:'icones', lista:[['Sua foto',1]]},{k:'linha',t:'Apps em destaque'}]}},
+    {titulo:'Gerenciar apps', texto:'Toque em <b>Gerenciar apps e dispositivo</b>.', tela:{barra:'Conta', itens:[{k:'linha',t:'Gerenciar apps e dispositivo',alvo:1},{k:'linha',t:'Pagamentos'},{k:'linha',t:'Configurações'}]}},
+    {titulo:'Toque em Atualizar tudo', texto:'Se houver novidades, aparece o botão <b>Atualizar tudo</b>. Toque nele.', tela:{barra:'Gerenciar', itens:[{k:'linha',t:'3 atualizações disponíveis'},{k:'btn',t:'Atualizar tudo',alvo:1}]}},
+    {titulo:'Espere terminar', texto:'Aguarde as barras completarem. Se o celular pedir, deixe ligado no Wi-Fi.', tela:{barra:'Atualizando…', itens:[{k:'linha',t:'WhatsApp · atualizando'},{k:'linha',t:'Banco · atualizando'},{k:'aviso',t:'Não desligue o celular'}]}}
+   ]},
+  {id:'medicamento', titulo:'Como usar o alarme de remédio', botao:'Ver passo a passo', icon:IC.pill,
+   passos:'<ol><li>Na Home, toque em Alarme de Medicamento.</li><li>Adicione nome e horário.</li><li>Quando tocar, confirme “Já tomei”.</li></ol>',
+   guia:[
+    {titulo:'Abra o Alarme de Medicamento', texto:'Na tela inicial do TechSaúde, toque em <b>Alarme de Medicamento</b>.', tela:{barra:'TechSaúde', itens:[{k:'btn',t:'Lembrete de Consultas'},{k:'btn',t:'Alarme de Medicamento',alvo:1},{k:'btn',t:'Dicas úteis'}]}},
+    {titulo:'Escreva o nome do remédio', texto:'Digite o nome do remédio e a dose, do jeito que está na caixa.', tela:{barra:'Novo alarme', itens:[{k:'campo',l:'Remédio',v:'Losartana 50 mg',alvo:1},{k:'campo',l:'Horário',v:'08:00'},{k:'btn',t:'Salvar'}]}},
+    {titulo:'Escolha o horário e salve', texto:'Escolha a hora em que precisa tomar e toque em <b>Salvar</b>.', tela:{barra:'Novo alarme', itens:[{k:'campo',l:'Remédio',v:'Losartana 50 mg'},{k:'campo',l:'Horário',v:'08:00',alvo:1},{k:'btn',t:'Salvar',alvo:1}]}},
+    {titulo:'Quando tocar, confirme', texto:'Na hora do alarme, tome o remédio e toque em <b>Já tomei</b>. Assim o app sabe que a dose foi feita.', tela:{barra:'Hora do remédio', itens:[{k:'aviso',t:'Losartana 50 mg · 08:00'},{k:'btn',t:'Já tomei',alvo:1},{k:'btn',t:'Lembrar depois'}]}}
+   ]},
+  {id:'consulta', titulo:'Como incluir uma consulta', botao:'Ver passo a passo', icon:IC.calendar,
+   passos:'<ol><li>Na Home, toque em Lembrete de Consultas.</li><li>Preencha local, médico, data e hora (ou escaneie o papel da consulta).</li><li>Salve e configure os avisos, se quiser.</li></ol>',
+   guia:[
+    {titulo:'Abra Lembrete de Consultas', texto:'Na tela inicial do TechSaúde, toque em <b>Lembrete de Consultas</b>.', tela:{barra:'TechSaúde', itens:[{k:'btn',t:'Lembrete de Consultas',alvo:1},{k:'btn',t:'Alarme de Medicamento'},{k:'btn',t:'Dicas úteis'}]}},
+    {titulo:'Tem o papel? Escaneie', texto:'Toque em <b>Escanear</b>, tire uma foto da guia ou do encaminhamento e o app preenche os campos para você.', tela:{barra:'Incluir consulta', itens:[{k:'btn',t:'Escanear guia ou encaminhamento',alvo:1},{k:'campo',l:'Local',v:''},{k:'campo',l:'Médico',v:''}]}},
+    {titulo:'Ou preencha à mão', texto:'Escreva o local, o médico, o dia e a hora. Confira o que o app leu.', tela:{barra:'Incluir consulta', itens:[{k:'campo',l:'Local',v:'Clínica Vida Saudável'},{k:'campo',l:'Médico',v:'Dra. Ana Souza',alvo:1},{k:'campo',l:'Dia e hora',v:'05/11 · 14:30'}]}},
+    {titulo:'Escolha os avisos e salve', texto:'Marque quando quer ser avisado (por exemplo, 1 dia antes) e toque em <b>Salvar na Agenda</b>.', tela:{barra:'Incluir consulta', itens:[{k:'linha',t:'Avisar: 1 dia antes'},{k:'btn',t:'Salvar na Agenda',alvo:1}]}}
+   ]}
+];
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function telaHTML(tl){
+  const corpo=tl.itens.map(i=>{
+    const al=i.alvo?' alvo':'';
+    if(i.k==='apps') return '<div class="gf-apps">'+i.lista.map(a=>'<div class="gf-app'+(a[1]?' alvo':'')+'"><i></i>'+esc(a[0])+'</div>').join('')+'</div>';
+    if(i.k==='icones') return '<div class="gf-icones">'+i.lista.map(a=>'<div class="gf-ico'+(a[1]?' alvo':'')+'"><i></i>'+esc(a[0])+'</div>').join('')+'</div>';
+    if(i.k==='btn') return '<div class="gf-btn'+(i.cor==='verm'?' verm':'')+al+'">'+esc(i.t)+'</div>';
+    if(i.k==='campo') return '<div class="gf-campo'+al+'"><small>'+esc(i.l)+'</small>'+(esc(i.v)||'&nbsp;')+'</div>';
+    if(i.k==='aviso') return '<div class="gf-aviso">'+esc(i.t)+'</div>';
+    return '<div class="gf-linha'+al+'">'+esc(i.t)+'</div>';
+  }).join('');
+  return '<div class="gf-barra">'+esc(tl.barra)+'</div><div class="gf-corpo">'+corpo+'</div>';
+}
+let guiaAtual=null, guiaPasso=0;
+function mostrarPasso(){
+  const g=guiaAtual.guia, p=g[guiaPasso];
+  document.getElementById('guia-fone').innerHTML=telaHTML(p.tela);
+  document.getElementById('guia-contagem').textContent='Passo '+(guiaPasso+1)+' de '+g.length;
+  document.getElementById('guia-titulo').textContent=p.titulo;
+  document.getElementById('guia-texto').innerHTML=p.texto;
+  document.getElementById('guia-pontos').innerHTML=g.map((_,i)=>'<span class="'+(i===guiaPasso?'on':'')+'"></span>').join('');
+  document.getElementById('guia-voltar').disabled=guiaPasso===0;
+  const ult=guiaPasso===g.length-1;
+  const bp=document.getElementById('guia-proximo'); bp.textContent=ult?'Concluir':'Próximo';
+}
+function proximoPasso(){ if(guiaPasso<guiaAtual.guia.length-1){ guiaPasso++; mostrarPasso(); } else { fechar(); } }
+function passoAnterior(){ if(guiaPasso>0){ guiaPasso--; mostrarPasso(); } }
+document.getElementById('guia-proximo').addEventListener('click',proximoPasso);
+document.getElementById('guia-voltar').addEventListener('click',passoAnterior);
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('overlay').classList.contains('show')) return;
+  if(!document.getElementById('modalAjuda').hidden) return;
+  if(e.key==='ArrowRight') proximoPasso(); else if(e.key==='ArrowLeft') passoAnterior(); else if(e.key==='Escape') fechar();
+  else if(e.key==='Tab'){
+    const f=[...document.querySelectorAll('#overlay button, #overlay summary')].filter(x=>!x.disabled && x.offsetParent!==null);
+    if(!f.length) return;
+    const ini=f[0], fim=f[f.length-1], at=document.activeElement;
+    if(!document.getElementById('overlay').contains(at)){ e.preventDefault(); ini.focus(); }
+    else if(e.shiftKey && at===ini){ e.preventDefault(); fim.focus(); }
+    else if(!e.shiftKey && at===fim){ e.preventDefault(); ini.focus(); }
+  }
+});
+function render(){
+  document.getElementById('lista').innerHTML = TUTORIAIS.map(t =>
+    `<article class="card" id="${t.id}"><div class="thumb">${t.icon}</div><div><h2>${t.titulo}</h2><button type="button" class="btn-play" onclick="abrir('${t.id}')">▶ ${t.botao}</button></div></article>`
+  ).join('');
+}
+function aba(nome){
+  document.getElementById('panel-dicas').classList.toggle('on', nome==='dicas');
+  document.getElementById('panel-tutoriais').classList.toggle('on', nome==='tutoriais');
+  document.getElementById('tab-dicas').classList.toggle('on', nome==='dicas');
+  document.getElementById('tab-tutoriais').classList.toggle('on', nome==='tutoriais');
+  document.getElementById('tab-dicas').setAttribute('aria-selected', String(nome==='dicas'));
+  document.getElementById('tab-tutoriais').setAttribute('aria-selected', String(nome==='tutoriais'));
+}
+function abrir(id){
+  const t = TUTORIAIS.find(x => x.id===id); if(!t) return;
+  aba('tutoriais');
+  guiaAtual=t; guiaPasso=0;
+  document.getElementById('modal-title').textContent = t.titulo;
+  document.getElementById('modal-steps').innerHTML = '<ol>'+t.guia.map(g=>'<li><b>'+g.titulo+'.</b> '+g.texto+'</li>').join('')+'</ol>';
+  document.querySelector('.steps-todos').open=false;
+  mostrarPasso();
+  focoTutorial=document.activeElement;
+  document.getElementById('overlay').classList.add('show');
+  document.body.style.overflow='hidden';
+  document.getElementById('guia-proximo').focus({preventScroll:true});
+}
+let focoTutorial=null;
+function fechar(){ document.getElementById('overlay').classList.remove('show'); document.body.style.overflow=''; if(focoTutorial && focoTutorial.focus){ focoTutorial.focus(); } focoTutorial=null; }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 2600); }
+const dias=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function clock(){
+  const n=new Date();
+  document.getElementById('datetime').textContent = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' - '+dias[n.getDay()]+', '+n.getDate()+' de '+meses[n.getMonth()]+' de '+n.getFullYear();
+}
+render(); clock(); setInterval(clock,30000);
+if(location.hash.replace('#','')) aba('tutoriais');
+</script>
+</body>
+</html>

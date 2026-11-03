@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<script>
+  /* Sessão e Termos: sem login volta para a entrada; com Termos de Uso pendentes, abre os Termos antes de tudo. */
+  (function(){
+    try{
+      var s = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');
+      if(!s){ location.replace('index.html'); return; }
+      if(!s.termos || s.termos.pendente !== false) location.replace('sobre-o-app.html?doc=termos&de=home.html');
+    }catch(e){ location.replace('index.html'); }
+  })();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde – Consultas e Lembretes</title>
+<script src="navegacao-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="lembretes-app.js"></script>
+<style>
+:root{
+  --green-deep:#1e5631;
+  --green-mid:#2d7a3e;
+  --green-soft:#e8f5e9;
+  --cream:#f3efdc;
+  --cream-deep:#ece5c9;
+  --green-deep:#1b3a26;
+  --green-mid:#2f6b46;
+  --green-soft:#dcefdf;
+  --teal:#2f9e8f;
+  --danger:#c41e3a;
+  --bg-field:#ffffff;
+  --border:#cdbf95;
+  --text:#26332a;
+  --text-soft:#55604f;
+  --shadow-outer:0 30px 60px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100%;}
+body{
+  font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+  color:var(--green-deep);
+  background:radial-gradient(circle at 20% 15%,rgba(255,255,255,.06),transparent 40%),linear-gradient(160deg,#16412b 0%,#0f2e1c 100%);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:48px 24px;
+}
+.container{
+  width:100%;
+  max-width:480px;
+  background:var(--cream);
+  border-radius:28px;
+  box-shadow:var(--shadow-outer);
+  overflow:hidden;
+  min-height:min(720px,calc(100vh - 32px));
+  display:flex;
+  flex-direction:column;
+}
+
+/* ===== HEADER ===== */
+.header{
+  background:linear-gradient(160deg,#12583a,#0b3423);
+  padding:20px 20px 18px;
+  color:var(--cream);
+  flex-shrink:0;
+}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.header-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:2px;min-width:56px;color:var(--cream);font-family:inherit;}
+.header-btn[hidden]{display:none;}
+.header-btn:hover{transform:scale(1.05);}
+.header-btn.emergencia .icon,.header-btn.inicio .icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.375rem;}
+.header-btn.emergencia .icon{background:#c0392b;}
+.header-btn.emergencia .icon svg{width:20px;height:20px;display:block;}
+.header-btn.inicio .icon{width:40px;height:40px;background:rgba(255,255,255,.18);border:none;}
+.header-btn.inicio .icon svg{width:18px;height:18px;display:block;}
+.header-btn.voltar .icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);}
+.header-btn.voltar .icon svg{width:18px;height:18px;display:block;}
+.header-nav{display:flex;align-items:flex-start;gap:8px;flex-shrink:0;}
+.header-btn label{font-size:.625rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--cream);}
+.header-center{text-align:center;flex:1;min-width:0;}
+.logo-section{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px;}
+.logo-icon{width:200px;height:200px;display:block;flex-shrink:0;object-fit:contain;}
+.app-title{font-size:1.375rem;font-weight:800;letter-spacing:.5px;}
+.datetime{font-size:.75rem;color:rgba(244,238,219,.9);}
+
+/* ===== CONTENT / SCREENS ===== */
+.main-content{flex:1;overflow-y:auto;padding:24px 24px 36px;-webkit-overflow-scrolling:touch;background:var(--cream);}
+.screen{display:none;animation:fadeIn .25s ease;}
+.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.page-title{
+  font-size:1.125rem;
+  color:var(--green-deep);
+  font-weight:900;
+  margin-bottom:18px;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+}
+
+.form-group{margin-bottom:14px;}
+.field-label{
+  font-size:.6875rem;
+  color:var(--green-deep);
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  margin-bottom:6px;
+  display:block;
+}
+.form-field{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--bg-field);
+  padding:12px 14px;
+  border-radius:12px;
+  border:2px solid var(--border);
+  transition:border-color .2s, background .2s;
+}
+.form-field:focus-within{border-color:var(--green-mid);background:#f9fdf9;}
+.form-field.error{border-color:var(--danger);background:rgba(196,30,58,.05);}
+.form-field.success{border-color:#4caf50;background:rgba(76,175,80,.05);}
+.field-icon{
+  width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.125rem;flex-shrink:0;color:var(--green-mid);
+}
+.form-field input,.form-field textarea,.form-field select{
+  flex:1;
+  border:none;
+  background:transparent;
+  font-size:.9375rem;
+  font-family:inherit;
+  color:var(--text);
+  outline:none;
+  min-width:0;
+}
+.form-field select{cursor:pointer;}
+.form-field textarea{resize:vertical;min-height:72px;padding-top:2px;}
+.datetime-inputs{display:flex;gap:8px;}
+.datetime-inputs .form-field{flex:1;}
+.alarm-section{
+  background:var(--bg-field);
+  padding:14px;
+  border-radius:12px;
+  border:2px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.alarm-label{display:flex;align-items:center;gap:10px;min-width:0;}
+.alarm-title{font-size:.75rem;color:var(--green-deep);font-weight:700;text-transform:uppercase;}
+.alarm-subtitle{font-size:.6875rem;color:var(--text-soft);margin-top:2px;}
+.toggle-switch{
+  position:relative;
+  width:52px;height:28px;
+  background:#ddd;
+  border-radius:14px;
+  cursor:pointer;
+  border:none;
+  flex-shrink:0;
+  transition:background .25s;
+}
+.toggle-switch.active{background:#4caf50;}
+.toggle-switch::after{
+  content:'';
+  position:absolute;
+  width:24px;height:24px;
+  background:#fff;
+  border-radius:50%;
+  top:2px;left:2px;
+  transition:left .25s;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.toggle-switch.active::after{left:26px;}
+
+/* ===== BUTTONS ===== */
+.buttons-section{margin-top:20px;display:grid;gap:12px;}
+.primary-row{display:flex;gap:10px;align-items:stretch;}
+.btn-save{
+  flex:1;
+  background:var(--green-mid);
+  color:#fff;
+  border:none;
+  padding:14px 16px;
+  border-radius:50px;
+  font-size:.875rem;
+  font-weight:700;
+  cursor:pointer;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:background .2s, transform .1s;
+}
+.btn-save:hover{background:var(--green-deep);}
+.btn-save:active{transform:scale(.98);}
+.btn-clear{
+  background:var(--bg-field);
+  color:var(--danger);
+  border:2px solid var(--danger);
+  padding:12px 14px;
+  border-radius:12px;
+  font-size:.75rem;
+  font-weight:700;
+  cursor:pointer;
+  text-transform:uppercase;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+}
+.btn-clear:hover{background:var(--danger);color:#fff;}
+.secondary-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-secondary{
+  background:var(--bg-field);
+  color:var(--green-deep);
+  border:2px solid var(--border);
+  padding:12px;
+  border-radius:12px;
+  font-size:.75rem;
+  font-weight:700;
+  cursor:pointer;
+  text-transform:uppercase;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+.btn-secondary:hover{border-color:var(--green-mid);}
+.btn-block{
+  display:block;
+  width:100%;
+  background:var(--green-mid);
+  color:#fff;
+  border:none;
+  padding:14px 18px;
+  border-radius:50px;
+  font-size:.875rem;
+  font-weight:700;
+  cursor:pointer;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+  text-align:center;
+  margin-top:8px;
+}
+.btn-block:hover{background:var(--green-deep);}
+.btn-block.outline{
+  background:#fff;
+  color:var(--green-mid);
+  border:2px solid var(--green-mid);
+}
+.btn-ghost-block{
+  display:block;
+  width:100%;
+  background:transparent;
+  color:var(--green-deep);
+  border:none;
+  padding:12px;
+  font-size:.875rem;
+  font-weight:700;
+  cursor:pointer;
+  text-align:center;
+  margin-top:6px;
+  text-decoration:underline;
+}
+
+/* ===== CARDS ===== */
+.card{
+  background:var(--bg-field);
+  border:2px solid var(--border);
+  border-radius:14px;
+  padding:14px 16px;
+  margin-bottom:12px;
+  transition:border-color .2s;
+}
+.card:hover{border-color:var(--green-mid);}
+.card-title{
+  font-size:.9375rem;
+  font-weight:700;
+  color:var(--green-deep);
+  margin-bottom:8px;
+  line-height:1.3;
+}
+.card-line{
+  font-size:.875rem;
+  color:var(--text);
+  margin:4px 0;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.card-line .lbl{font-weight:700;color:var(--text-soft);min-width:58px;}
+.badge{
+  display:inline-block;
+  font-size:.6875rem;
+  font-weight:700;
+  padding:4px 10px;
+  border-radius:999px;
+  margin-top:8px;
+}
+.badge-ok{background:var(--green-soft);color:var(--green-deep);border:1px solid #a5d6a7;}
+.badge-warn{background:#fff3e0;color:#e65100;border:1px solid #ffcc80;}
+.card-actions{
+  margin-top:12px;
+  display:flex;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.btn-sm{
+  background:var(--green-mid);
+  color:#fff;
+  border:none;
+  border-radius:50px;
+  padding:10px 16px;
+  font-weight:700;
+  font-size:.75rem;
+  text-transform:uppercase;
+  cursor:pointer;
+  letter-spacing:.3px;
+}
+.btn-sm:hover{background:var(--green-deep);}
+.btn-sm.outline{
+  background:#fff;
+  color:var(--green-mid);
+  border:2px solid var(--green-mid);
+}
+.btn-sm.danger{
+  background:var(--danger);
+  color:#fff;
+  border:2px solid var(--danger);
+}
+.btn-sm.danger:hover{background:#8f1029;}
+
+/* ===== EMPTY / LINKS ===== */
+.empty-state{
+  text-align:center;
+  padding:32px 16px;
+  background:var(--bg-field);
+  border:2px dashed var(--border);
+  border-radius:14px;
+  color:var(--text-soft);
+}
+.empty-state .icon{font-size:2.2rem;margin-bottom:10px;}
+.empty-state p{margin:0 0 16px;font-size:.875rem;line-height:1.45;}
+.section-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 16px;
+  background:var(--bg-field);
+  border:2px solid var(--border);
+  border-radius:12px;
+  text-decoration:none;
+  color:var(--text);
+  font-weight:700;
+  font-size:.875rem;
+  margin-top:8px;
+}
+.section-link .arrow{margin-left:auto;color:var(--green-mid);font-size:1.25rem;}
+.footer-nav{
+  margin-top:20px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+/* ===== OVERLAYS ===== */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:100;
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+}
+.overlay.show{display:flex;}
+.sheet{
+  background:#fff;
+  border-radius:20px 20px 0 0;
+  width:100%;
+  max-width:480px;
+  padding:22px 18px 28px;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{
+  from{transform:translateY(40px);opacity:0;}
+  to{transform:translateY(0);opacity:1;}
+}
+.sheet h3{
+  margin:0 0 4px;
+  font-size:1rem;
+  color:var(--green-deep);
+  font-weight:700;
+  text-align:center;
+  text-transform:uppercase;
+}
+.sheet .sub{text-align:center;font-size:.8125rem;color:var(--text-soft);margin:0 0 16px;}
+.opcao{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px 14px;
+  border:2px solid var(--border);
+  border-radius:12px;
+  margin-bottom:8px;
+  cursor:pointer;
+  background:var(--bg-field);
+}
+.opcao.selected{border-color:var(--green-mid);background:var(--green-soft);}
+.opcao input{display:none;}
+.opcao .radio{
+  width:20px;height:20px;
+  border-radius:50%;
+  border:2px solid #ccc;
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.opcao.selected .radio{border-color:var(--green-mid);background:var(--green-mid);}
+.opcao.selected .radio::after{
+  content:'';
+  width:8px;height:8px;
+  border-radius:50%;
+  background:#fff;
+}
+.opcao .texto{font-weight:700;font-size:.875rem;color:var(--text);}
+.sheet-actions{margin-top:16px;display:flex;gap:10px;}
+.btn{
+  flex:1;
+  padding:13px;
+  border-radius:50px;
+  font-weight:700;
+  font-size:.8125rem;
+  text-transform:uppercase;
+  cursor:pointer;
+  border:none;
+}
+.btn-primary{background:var(--green-mid);color:#fff;}
+.btn-primary:hover{background:var(--green-deep);}
+.btn-ghost{background:var(--bg-field);color:var(--green-deep);border:2px solid var(--border);}
+.btn-danger{background:var(--danger);color:#fff;}
+
+.popup-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  z-index:120;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.popup-overlay.show{display:flex;}
+.popup-card{
+  background:#fff;
+  border-radius:18px;
+  padding:26px 20px 22px;
+  max-width:360px;
+  width:100%;
+  text-align:center;
+  animation:popIn .25s ease;
+  box-shadow:0 12px 40px rgba(0,0,0,.25);
+}
+@keyframes popIn{
+  from{transform:scale(.92);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+.popup-card .icon-pop{
+  width:56px;height:56px;
+  margin:0 auto 12px;
+  background:var(--green-soft);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;
+}
+.popup-card h2{
+  margin:0 0 10px;
+  font-size:1rem;
+  color:var(--green-deep);
+  font-weight:700;
+  text-transform:uppercase;
+}
+.popup-card p{
+  margin:0 0 20px;
+  font-size:.875rem;
+  line-height:1.5;
+  color:var(--text);
+}
+.popup-actions{display:flex;flex-direction:column;gap:10px;}
+
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--green-deep);
+  color:#fff;
+  padding:12px 18px;
+  border-radius:50px;
+  font-weight:700;
+  font-size:.8125rem;
+  opacity:0;
+  transition:all .3s;
+  z-index:200;
+  pointer-events:none;
+  max-width:90%;
+  text-align:center;
+  box-shadow:0 6px 18px rgba(0,0,0,.25);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ===== DESKTOP / TABLET ===== */
+@media (min-width:768px){
+  body{
+    align-items:center;
+    padding:28px 24px;
+  }
+  .container{
+    max-width:720px;
+    min-height:640px;
+    border-radius:24px;
+  }
+  .header{padding:20px 28px 16px;}
+  .app-title{font-size:1.625rem;}
+  .logo-icon{width:200px;}
+  .main-content{padding:28px 36px 36px;}
+  .page-title{font-size:1.375rem;margin-bottom:24px;}
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px 20px;
+  }
+  .form-grid .form-group.full{grid-column:1 / -1;}
+  .secondary-row{max-width:420px;}
+  .cards-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .cards-grid .card{margin-bottom:0;}
+  .sheet{border-radius:20px;margin-bottom:24px;max-width:420px;}
+  .overlay{align-items:center;}
+}
+@media (min-width:1024px){
+  .container{max-width:880px;}
+  .main-content{padding:32px 48px 40px;}
+}
+@media (max-width:480px){
+  body{padding:0;}
+  .container{
+    max-width:100%;
+    border-radius:0;
+    min-height:100vh;
+    box-shadow:none;
+  }
+  .header{padding:14px 12px 12px;}
+  .app-title{font-size:1.25rem;}
+  .logo-icon{width:200px;}
+  .header-btn .icon{width:38px!important;height:38px!important;font-size:1.25rem!important;}
+  .main-content{padding:16px 14px 24px;}
+  .secondary-row{grid-template-columns:1fr;}
+  .primary-row{flex-direction:column;}
+  .btn-clear{justify-content:center;}
+}
+@media (max-width:440px){
+  .header.tem-voltar{padding-left:8px;padding-right:8px;}
+  .header.tem-voltar .logo-icon{width:120px;max-width:100%;}
+  .header.tem-voltar .header-btn{min-width:48px;}
+  .header-nav{gap:2px;}
+}
+
+/* ===== TECHSAUDE VISUAL SYSTEM ===== */
+:root{
+  --cream:#f3efdc;
+  --cream-deep:#ece5c9;
+  --green-deep:#1b3a26;
+  --green-mid:#2f6b46;
+  --green-soft:#dcefdf;
+  --teal:#2f9e8f;
+  --danger:#c41e3a;
+  --bg-field:#ffffff;
+  --border:#cdbf95;
+  --text:#26332a;
+  --text-soft:#55604f;
+}
+body{
+  font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+  background:radial-gradient(circle at 20% 15%,rgba(255,255,255,.06),transparent 40%),linear-gradient(160deg,#16412b 0%,#0f2e1c 100%);
+  color:var(--text);
+}
+input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;}
+.container{background:var(--cream);border-radius:28px;box-shadow:0 30px 60px rgba(0,0,0,.35);}
+.header{background:linear-gradient(160deg,#12583a,#0b3423);color:var(--cream);}
+.header-btn{color:var(--cream);font-family:inherit;}
+.header-btn label{color:var(--cream);}
+.main-content{background:var(--cream);}
+.page-title,.field-label,.alarm-title,.card-title,.sheet h3,.popup-card h2{color:var(--green-deep);font-weight:900;}
+.form-field{background:#fff;border:2.5px solid var(--green-deep);border-radius:999px;}
+.form-field:focus-within{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(47,158,143,.25);}
+.form-field textarea{min-height:90px;}
+.form-field:has(textarea){border-radius:18px;}
+.alarm-section{background:var(--cream-deep);border:2px solid var(--border);border-radius:18px;}
+.btn-save,.btn-block,.btn-sm,.btn-primary{background:linear-gradient(180deg,#234a34,#1b3a26);color:var(--cream);}
+.btn-save:hover,.btn-block:hover,.btn-sm:hover,.btn-primary:hover{background:linear-gradient(180deg,#2f6b46,#1b3a26);}
+.btn-clear,.btn-secondary{background:#fff;border-radius:999px;}
+.btn-secondary{border-color:var(--green-deep);}
+.btn-block.outline,.btn-sm.outline{background:#fff;color:var(--green-deep);border-color:var(--green-deep);}
+.card{background:#faf7ec;border:2px solid var(--border);border-radius:20px;box-shadow:0 6px 16px rgba(27,58,38,.08);}
+.card:hover{border-color:var(--teal);transform:translateY(-2px);}
+.empty-state{background:var(--cream-deep);border-color:var(--border);border-radius:18px;}
+.section-link{background:#fff;border-color:var(--border);border-radius:999px;}
+.sheet{background:var(--cream);border:2px solid var(--border);border-bottom:0;box-shadow:0 -12px 30px rgba(27,58,38,.18);}
+.opcao{background:#fff;border-color:var(--border);border-radius:999px;}
+.opcao.selected{background:var(--green-soft);border-color:var(--green-mid);}
+.btn-ghost{background:#fff;color:var(--green-deep);border-color:var(--green-deep);}
+.popup-card{background:var(--cream);border:2px solid var(--border);border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+.popup-card .icon-pop{background:var(--cream-deep);}
+.toast{background:var(--green-deep);}
+@media (min-width:768px){
+  .container{max-width:720px;min-height:640px;border-radius:24px;}
+  .main-content{padding:28px 36px 36px;}
+}
+@media (min-width:1024px){.container{max-width:880px;}.main-content{padding:32px 48px 40px;}}
+@media (max-width:480px){
+  body{padding:0;}
+  .container{max-width:100%;border-radius:0;min-height:100vh;box-shadow:none;}
+  .main-content{padding:16px 14px 24px;}
+}
+
+/* ===== AJUSTES 2026-10 (testes de usabilidade) ===== */
+.datetime-bar{text-align:center;font-weight:800;font-size:.9rem;color:var(--green-deep);padding:4px 8px 12px;margin:0 0 16px;border-bottom:1px solid var(--border);}
+.datetime-inputs{flex-wrap:wrap;}
+.datetime-inputs .form-field{flex:1 1 210px;min-width:0;}
+.alarm-section .alarm-label{flex:1 1 180px;}
+.form-field input[type="date"],.form-field input[type="time"]{min-width:0;width:100%;}
+.campo-erro{display:none;margin:6px 4px 0 14px;font-size:.8125rem;font-weight:700;color:var(--danger);}
+.form-group.invalido .campo-erro{display:block;}
+.form-group.invalido .form-field{border-color:var(--danger);background:rgba(196,30,58,.05);}
+.toggle-switch{width:60px;height:34px;border-radius:17px;}
+.toggle-switch::after{width:28px;height:28px;top:3px;left:3px;}
+.toggle-switch.active::after{left:29px;}
+.toggle-switch:focus-visible{outline:3px solid var(--teal);outline-offset:3px;}
+.lembrete-opcoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.lembrete-opcoes[hidden]{display:none;}
+.chip-lembrete{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border:2px solid var(--border);border-radius:999px;background:#fff;font-weight:800;font-size:.875rem;color:var(--green-deep);cursor:pointer;user-select:none;}
+.chip-lembrete input{width:20px;height:20px;accent-color:var(--green-mid);margin:0;}
+.chip-lembrete:has(input:checked){background:var(--green-soft);border-color:var(--green-mid);}
+.lembrete-dica{width:100%;font-size:.8125rem;color:var(--text-soft);font-weight:600;margin:2px 4px 0;}
+.edicao-aviso{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#fff3e0;border:2px solid #ffcc80;border-radius:16px;padding:10px 14px;margin:0 0 16px;font-weight:700;color:#8a4b00;}
+.edicao-aviso[hidden]{display:none;}
+.btn-sm{min-height:44px;padding:10px 18px;}
+.btn-block,.btn-save,.btn-clear,.btn-ghost-block,.section-link,.btn{min-height:48px;}
+.cards-grid{margin-top:14px;}
+.secao-titulo{font-size:.9375rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:var(--green-deep);margin:22px 0 10px;}
+.card.passada{opacity:.75;background:#f1eee2;}
+.card .quando{font-size:1.05rem;font-weight:900;color:var(--green-deep);margin:2px 0 6px;}
+.badge-info{background:#e3f2fd;color:#0d47a1;border:1px solid #90caf9;}
+.badge + .badge{margin-left:6px;}
+.section-link[hidden]{display:none;}
+.section-link{width:100%;border:2px solid var(--border);cursor:pointer;font-family:inherit;text-align:left;}
+.section-link .arrow{transition:transform .2s;}
+.section-link[aria-expanded="true"] .arrow{transform:rotate(90deg);}
+.aviso-notif{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;background:#e8f5e9;border:2px solid #a5d6a7;border-radius:16px;padding:10px 14px;margin:0 0 16px;font-weight:700;font-size:.875rem;color:#1b4332;}
+.aviso-notif[hidden]{display:none;}
+.opcao input[type="checkbox"]{display:none;}
+.opcao .radio{border-radius:6px;}
+.opcao.selected .radio::after{content:'✓';width:auto;height:auto;background:none;color:#fff;font-size:.8rem;font-weight:900;border-radius:0;}
+/* Avisos: duas chaves + prazos */
+.avisos-box{flex-direction:column;align-items:stretch;gap:0;padding:6px 14px 14px;}
+.aviso-linha{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.aviso-linha .alarm-label{flex:1 1 auto;}
+.prazos{padding-top:12px;}
+.prazos[hidden]{display:none;}
+.prazos-titulo{margin:0;font-size:.8125rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:var(--green-deep);}
+.prazos-titulo span{font-weight:700;text-transform:none;letter-spacing:0;color:var(--text-soft);}
+.avisos-desligados{margin:12px 0 0;font-size:.875rem;font-weight:700;color:var(--text-soft);}
+.avisos-desligados[hidden]{display:none;}
+.form-group.invalido .avisos-box{border-color:var(--danger);}
+.sheet .avisos-box{background:#fff;border:2px solid var(--border);border-radius:18px;margin-bottom:6px;}
+/* Confirmação (substitui o confirm() do navegador) */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;display:flex;align-items:center;justify-content:center;padding:20px;}
+.confirm-overlay[hidden]{display:none;}
+@media (min-width:768px){ .cards-grid{margin-top:16px;} }
+
+/* ===== Escanear consulta ===== */
+.scan-box{margin:0 0 16px;}
+.scan-btn{width:100%;padding:14px;font-size:.85rem;}
+.scan-dica{margin:8px 4px 0;font-size:.82rem;line-height:1.4;color:var(--text-soft,#55604f);text-align:center;font-weight:600;}
+.scan-progresso{height:12px;border-radius:999px;background:#e4dbbd;overflow:hidden;margin:0 0 14px;}
+.scan-barra{height:100%;width:0;background:var(--green-mid);transition:width .25s;}
+.campo-lido .form-field{border-color:var(--green-mid);}
+</style>
+<!-- ===== PADRÃO TECHSAÚDE: ACESSIBILIDADE (tamanho da letra + Ajuda) ===== -->
+<script>
+  /* Aplica o tamanho de letra salvo ANTES da tela aparecer (evita "piscar") */
+  (function(){
+    try{
+      var f = parseFloat(localStorage.getItem('techsaude_fonte'));
+      if(f >= 85 && f <= 150){ document.documentElement.style.fontSize = f + '%'; }
+    }catch(e){}
+  })();
+</script>
+<style>
+  /* Barra de acessibilidade (mesmo visual da tela Mini Jogos) */
+  .toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin:0 0 22px; }
+  .toolbar-acessibilidade .font-group{ display:inline-flex; border:2px solid #cdbf95; border-radius:999px; overflow:hidden; background:#fff; }
+  .toolbar-acessibilidade .font-btn{
+    border:none; background:#fff; color:#1b3a26; font-weight:800; padding:9px 13px; cursor:pointer;
+    font-size:.75rem; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; min-width:44px; min-height:40px; margin:0;
+  }
+  .toolbar-acessibilidade .font-btn + .font-btn{ border-left:1px solid #e4dbbd; }
+  .toolbar-acessibilidade .font-btn.active{ background:#1b3a26; color:#f3efdc; }
+  .toolbar-acessibilidade .font-btn:focus-visible,
+  .toolbar-acessibilidade .chip-btn:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+  .toolbar-acessibilidade .chip-btn{
+    background:#fff; border:2px solid #cdbf95; border-radius:999px; padding:9px 15px; font-size:.75rem; min-height:40px; margin:0;
+    font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:#1b3a26; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+  }
+  .toolbar-acessibilidade .chip-btn:hover{ border-color:#2f9e8f; }
+
+  /* Pop-up de Ajuda */
+  .ajuda-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:10000; }
+  .ajuda-overlay[hidden]{ display:none !important; }
+  .ajuda-modal{
+    background:#f3efdc; border:2px solid #cdbf95; border-radius:22px; padding:2rem 1.6rem 1.5rem; max-width:460px; width:100%;
+    position:relative; box-shadow:0 30px 60px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto; text-align:left;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; color:#26332a; animation:ajudaPop .2s ease;
+  }
+  @keyframes ajudaPop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .ajuda-modal .ajuda-fechar{
+    position:absolute; top:.75rem; right:.75rem; background:#ece5c9; border:none; width:2.6rem; height:2.6rem;
+    border-radius:50%; font-size:1.1rem; cursor:pointer; color:#1b3a26; margin:0; padding:0;
+  }
+  .ajuda-modal .ajuda-tag{ margin:0 0 .3rem; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#2f6b46; }
+  .ajuda-modal h2{ margin:0 2.6rem .5rem 0; padding:0; font-size:1.3rem; line-height:1.2; color:#1b3a26; font-weight:900; text-transform:uppercase; text-align:left; font-family:inherit; }
+  .ajuda-modal .ajuda-intro{ margin:0 0 1rem; font-size:.98rem; font-weight:600; color:#55604f; line-height:1.45; }
+  .ajuda-modal .ajuda-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.7rem; counter-reset:passo; }
+  .ajuda-modal .ajuda-lista li{
+    counter-increment:passo; position:relative; padding:0 0 0 2.5rem; margin:0; min-height:1.9rem;
+    font-size:1rem; font-weight:600; line-height:1.45; color:#26332a;
+  }
+  .ajuda-modal .ajuda-lista li::before{
+    content:counter(passo); position:absolute; left:0; top:-.05rem; width:1.9rem; height:1.9rem; border-radius:50%;
+    background:#1b3a26; color:#f3efdc; font-weight:800; font-size:.95rem; display:flex; align-items:center; justify-content:center;
+  }
+  .ajuda-modal .ajuda-lista b{ color:#1b3a26; }
+  .ajuda-modal .ajuda-extra{ margin:1.1rem 0 0; padding:.8rem 1rem; background:#dcefdf; border:1.5px solid #a5d6a7; border-radius:14px; font-size:.95rem; font-weight:600; color:#1b4332; line-height:1.4; }
+  .ajuda-modal .ajuda-ok{
+    display:block; width:100%; margin:1.2rem 0 0; padding:.9rem; border:none; border-radius:999px; cursor:pointer;
+    background:linear-gradient(180deg,#234a34,#1b3a26); color:#f3efdc; font-weight:800; font-size:1rem; text-transform:uppercase;
+    letter-spacing:.4px; font-family:inherit; box-shadow:0 5px 0 #0e2416;
+  }
+  .ajuda-modal .ajuda-ok:active{ transform:translateY(3px); box-shadow:0 2px 0 #0e2416; }
+  .ajuda-modal button:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+</style>
+<!-- ===== FIM DO PADRÃO TECHSAÚDE (head) ===== -->
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <div class="header-top">
+      <button type="button" class="header-btn emergencia" onclick="window.location.href='emergencia.html'" aria-label="Emergência">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a5 5 0 0 0-5 5v3.5c0 1-.4 1.9-1.1 2.6L4 16h16l-1.9-1.9c-.7-.7-1.1-1.6-1.1-2.6V8a5 5 0 0 0-5-5Z"/>
+            <path d="M9.5 19a2.5 2.5 0 0 0 5 0"/>
+          </svg>
+        </div>
+        <label>Emergência</label>
+      </button>
+      <div class="header-center">
+        <div class="logo-section">
+          <img class="logo-icon" src="img/logo.png" alt="TechSaúde">
+        </div>
+      </div>
+      <div class="header-nav">
+      <button type="button" class="header-btn voltar" id="btnVoltarTela" onclick="voltarTela()" aria-label="Voltar para a tela anterior">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        </div>
+        <label>Voltar</label>
+      </button>
+      <button type="button" class="header-btn inicio" onclick="window.location.href='home.html'" aria-label="Início">
+        <div class="icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 11.5 12 4l9 7.5"/>
+            <path d="M5 10v10h14V10"/>
+            <path d="M9.5 20v-6h5v6"/>
+          </svg>
+        </div>
+        <label>Início</label>
+      </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="datetime-bar" id="datetime" aria-live="off"></div>
+    <!-- PADRÃO TECHSAÚDE: barra de acessibilidade -->
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho da letra">
+        <button type="button" class="font-btn" data-scale="100" aria-label="Letra tamanho normal">A</button>
+        <button type="button" class="font-btn" data-scale="115" aria-label="Letra grande">A+</button>
+        <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
+      </div>
+      <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
+    </div>
+
+    <!-- ========== TELA 1: INCLUIR / EDITAR CONSULTA ========== -->
+    <section class="screen" id="screen-incluir">
+      <h1 class="page-title" id="tituloForm">Incluir Consulta em Agenda</h1>
+      <div class="edicao-aviso" id="avisoEdicao" hidden>
+        <span>✏️ Você está alterando uma consulta.</span>
+        <button type="button" class="btn-sm outline" onclick="cancelarEdicao()">Cancelar alteração</button>
+      </div>
+      <input type="hidden" id="c-id">
+
+      <div class="scan-box" id="scanBox">
+        <button type="button" class="btn-secondary scan-btn" id="btnEscanear" aria-haspopup="dialog">📷 Escanear guia ou encaminhamento</button>
+        <p class="scan-dica">Tire uma foto do papel da consulta. O app lê o texto e preenche o formulário. Você confere tudo antes de salvar.</p>
+        <input type="file" id="scanCamera" accept="image/*" capture="environment" hidden>
+        <input type="file" id="scanGaleria" accept="image/*" hidden>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group" id="g-local">
+          <label class="field-label" for="c-local">Local (Clínica/Hospital)</label>
+          <div class="form-field">
+            <div class="field-icon" aria-hidden="true">🏥</div>
+            <input type="text" id="c-local" placeholder="Ex: Hospital de Olhos" autocomplete="off">
+          </div>
+          <p class="campo-erro">Escreva o nome da clínica ou do hospital.</p>
+        </div>
+        <div class="form-group" id="g-especialidade">
+          <label class="field-label" for="c-especialidade">Especialidade</label>
+          <div class="form-field">
+            <div class="field-icon" aria-hidden="true">🩺</div>
+            <select id="c-especialidade">
+              <option value="">Selecione uma especialidade</option>
+              <option value="Angiologia / Vascular">Angiologia / Vascular (varizes, circulação)</option>
+              <option value="Cardiologia">Cardiologia (coração)</option>
+              <option value="Clínica Geral">Clínica Geral</option>
+              <option value="Dermatologia">Dermatologia (pele)</option>
+              <option value="Endocrinologia">Endocrinologia (diabetes, tireoide)</option>
+              <option value="Fisioterapia">Fisioterapia</option>
+              <option value="Fonoaudiologia">Fonoaudiologia (audição, fala)</option>
+              <option value="Gastroenterologia">Gastroenterologia (estômago, intestino)</option>
+              <option value="Geriatria">Geriatria (saúde do idoso)</option>
+              <option value="Ginecologia">Ginecologia</option>
+              <option value="Nefrologia">Nefrologia (rins)</option>
+              <option value="Neurologia">Neurologia (memória, nervos)</option>
+              <option value="Nutrição">Nutrição</option>
+              <option value="Odontologia">Odontologia (dentista)</option>
+              <option value="Oftalmologia">Oftalmologia (olhos)</option>
+              <option value="Oncologia">Oncologia</option>
+              <option value="Ortopedia">Ortopedia (ossos, articulações)</option>
+              <option value="Otorrinolaringologia">Otorrino (ouvido, nariz, garganta)</option>
+              <option value="Pneumologia">Pneumologia (pulmão)</option>
+              <option value="Psicologia">Psicologia</option>
+              <option value="Psiquiatria">Psiquiatria</option>
+              <option value="Reumatologia">Reumatologia (artrite, artrose)</option>
+              <option value="Urologia">Urologia (próstata, bexiga)</option>
+              <option value="__outra__">Outra especialidade</option>
+            </select>
+          </div>
+          <p class="campo-erro">Escolha a especialidade.</p>
+        </div>
+        <div class="form-group" id="g-especialidade-outra" hidden>
+          <label class="field-label" for="c-especialidade-outra">Informe a especialidade</label>
+          <div class="form-field">
+            <div class="field-icon" aria-hidden="true">🩺</div>
+            <input type="text" id="c-especialidade-outra" placeholder="Digite a especialidade" autocomplete="off">
+          </div>
+          <p class="campo-erro">Escreva qual é a especialidade.</p>
+        </div>
+        <div class="form-group" id="g-medico">
+          <label class="field-label" for="c-medico">Médico ou profissional</label>
+          <div class="form-field">
+            <div class="field-icon" aria-hidden="true">👨‍⚕️</div>
+            <input type="text" id="c-medico" placeholder="Ex: Dra. Ana Silva" autocomplete="off">
+          </div>
+          <p class="campo-erro">Escreva o nome do médico ou profissional.</p>
+        </div>
+        <div class="form-group" id="g-quando">
+          <span class="field-label" id="lbl-quando">Dia e Hora</span>
+          <div class="datetime-inputs" role="group" aria-labelledby="lbl-quando">
+            <div class="form-field">
+              <div class="field-icon" aria-hidden="true">📅</div>
+              <input type="date" id="c-data" aria-label="Dia da consulta">
+            </div>
+            <div class="form-field">
+              <div class="field-icon" aria-hidden="true">🕐</div>
+              <input type="time" id="c-hora" aria-label="Hora da consulta">
+            </div>
+          </div>
+          <p class="campo-erro" id="erro-quando">Escolha o dia e a hora da consulta.</p>
+        </div>
+        <div class="form-group full" id="g-avisos">
+          <span class="field-label">Avisos da consulta</span>
+          <div class="alarm-section avisos-box" id="avisosForm"></div>
+          <p class="campo-erro">Marque pelo menos um prazo, ou desligue os dois avisos.</p>
+        </div>
+        <div class="form-group full">
+          <label class="field-label" for="c-obs">Observações (Opcional)</label>
+          <div class="form-field" style="align-items:flex-start;">
+            <div class="field-icon" aria-hidden="true">✏️</div>
+            <textarea id="c-obs" placeholder="Ex: Jejum de 8h, levar exames anteriores"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="buttons-section">
+        <div class="primary-row">
+          <button type="button" class="btn-save" id="btnSalvar" onclick="salvarConsulta()">➕ Salvar na Agenda</button>
+          <button type="button" class="btn-clear" id="btnLimpar" onclick="limparFormulario()">🗑️ Limpar</button>
+        </div>
+      </div>
+
+      <div class="footer-nav">
+        <button type="button" class="btn-block outline" onclick="goTo('consultas')">Minhas Consultas</button>
+        <button type="button" class="btn-ghost-block" onclick="goTo('lembretes')">Ver Meus Lembretes</button>
+      </div>
+    </section>
+
+    <!-- ========== TELA 2: MINHAS CONSULTAS ========== -->
+    <section class="screen" id="screen-consultas">
+      <h1 class="page-title">Minhas Consultas</h1>
+      <button type="button" class="btn-block" onclick="novaConsulta()">➕ Incluir Nova Consulta</button>
+      <button type="button" class="btn-block outline" onclick="window.location.href='calendario-saude.html'">📅 Ver no Calendário de Saúde</button>
+      <h2 class="secao-titulo" id="tituloProximas">Próximas consultas</h2>
+      <div id="lista-consultas" class="cards-grid"></div>
+      <button type="button" class="section-link" id="btnAnteriores" aria-expanded="false" aria-controls="lista-anteriores" onclick="alternarAnteriores()">
+        <span>🕒 Ver consultas anteriores <span id="qtdAnteriores"></span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </button>
+      <div id="lista-anteriores" class="cards-grid" hidden></div>
+      <div class="footer-nav">
+        <button type="button" class="btn-block outline" onclick="goTo('lembretes')">🔔 Meus Lembretes</button>
+      </div>
+    </section>
+
+    <!-- ========== TELA 3: MEUS LEMBRETES ========== -->
+    <section class="screen" id="screen-lembretes">
+      <h1 class="page-title">Meus Lembretes<br>de Consultas</h1>
+      <div id="lista-lembretes" class="cards-grid"></div>
+      <div class="footer-nav">
+        <button type="button" class="btn-block outline" onclick="goTo('consultas')">Voltar para Minhas Consultas</button>
+        <button type="button" class="btn-ghost-block" onclick="novaConsulta()">Incluir nova consulta</button>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- CONFIGURAR LEMBRETES (vários ao mesmo tempo) -->
+<div class="overlay" id="dropdown-lembrete" onclick="fecharDropdown(event)">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitulo" onclick="event.stopPropagation()">
+    <h3 id="sheetTitulo">Avisos da consulta</h3>
+    <p class="sub" id="dropdown-sub"></p>
+    <div class="alarm-section avisos-box" id="avisosSheet"></div>
+    <div class="sheet-actions">
+      <button type="button" class="btn btn-ghost" onclick="fecharDropdown()">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="salvarLembrete()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- POP-UP ESCANEAR -->
+<div class="popup-overlay" id="popup-scan">
+  <div class="popup-card" role="dialog" aria-modal="true" aria-labelledby="scanTitulo">
+    <div class="icon-pop" aria-hidden="true" id="scanIcone">📷</div>
+    <h2 id="scanTitulo">Escanear consulta</h2>
+    <p id="scanTexto">Tire uma foto do papel com a data, a hora e o médico. Deixe a folha reta e bem iluminada.</p>
+    <div class="scan-progresso" id="scanProgresso" hidden><div class="scan-barra" id="scanBarra"></div></div>
+    <div class="popup-actions" id="scanAcoes">
+      <button type="button" class="btn btn-primary" id="scanTirarFoto">📷 Tirar foto</button>
+      <button type="button" class="btn btn-ghost" id="scanEscolher">🖼️ Escolher da galeria</button>
+      <button type="button" class="btn btn-ghost" id="scanCancelar">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- POP-UP SUCESSO -->
+<div class="popup-overlay" id="popup-sucesso">
+  <div class="popup-card" role="dialog" aria-modal="true" aria-labelledby="sucessoTitulo">
+    <div class="icon-pop" aria-hidden="true">✅</div>
+    <h2 id="sucessoTitulo">Consulta salva!</h2>
+    <p id="sucessoTexto">Sua consulta foi adicionada à agenda com sucesso.</p>
+    <div class="popup-actions">
+      <button type="button" class="btn btn-primary" onclick="fecharSucesso(); goTo('consultas')">Visualizar consultas</button>
+      <button type="button" class="btn btn-ghost" onclick="fecharSucesso(); window.location.href='calendario-saude.html'">Ver no calendário</button>
+      <button type="button" class="btn btn-ghost" onclick="fecharSucesso()">Incluir outra consulta</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMAÇÃO (excluir, data no passado) -->
+<div class="confirm-overlay" id="popup-confirmar" hidden>
+  <div class="popup-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmarTitulo" aria-describedby="confirmarTexto">
+    <div class="icon-pop" aria-hidden="true" id="confirmarIcone">⚠️</div>
+    <h2 id="confirmarTitulo">Tem certeza?</h2>
+    <p id="confirmarTexto"></p>
+    <div class="popup-actions">
+      <button type="button" class="btn btn-primary" id="confirmarSim">Sim</button>
+      <button type="button" class="btn btn-ghost" id="confirmarNao">Não, voltar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const L = window.TechSaudeLembretes;
+
+// ---------- SESSÃO: sem login, volta para a tela de entrada ----------
+function obterIdUsuario(){
+  try{
+    const usuario = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');
+    const registro = Array.isArray(usuario) ? usuario[0] : usuario;
+    const id = Number(registro?.id ?? registro?.id_usuario);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }catch(e){ return null; }
+}
+const userId = obterIdUsuario();
+if(!userId) window.location.replace('index.html');
+
+function normalizarConsulta(c){
+  return {
+    id: Number(c.id ?? c.id_consulta),
+    usuario_id: Number(c.usuario_id ?? c.id_usuario ?? userId),
+    medico: c.medico || '',
+    especialidade: c.especialidade || '',
+    data: String(c.data_consulta ?? c.data ?? '').slice(0, 10),
+    hora: String(c.hora_consulta ?? c.hora ?? '').slice(0, 5),
+    local_atendimento: c.local_atendimento ?? c.local ?? '',
+    obs: c.observacoes ?? c.obs ?? '',
+    lembrete: c.lembrete || null,
+    popup: c.aviso_popup ?? c.popup ?? true,
+    notificacao: c.aviso_notificacao ?? c.notificacao ?? false,
+    confirmado: Boolean(c.confirmado)
+  };
+}
+
+const STORAGE_KEY = 'techsaude_consultas_v2';
+function lerCacheLocal(){
+  try{
+    const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    return Array.isArray(d) ? d.map(normalizarConsulta).filter(c => c.usuario_id === userId) : [];
+  }catch(e){ return []; }
+}
+let consultas = lerCacheLocal();
+let atualId = null;
+let carregado = false;
+
+// O cache usa os nomes das colunas do banco (o Calendário e os lembretes leem daqui).
+function salvarStorage(){
+  const linhas = consultas.map(c => ({
+    id: c.id, usuario_id: c.usuario_id, medico: c.medico, especialidade: c.especialidade,
+    data_consulta: c.data, hora_consulta: c.hora, local_atendimento: c.local_atendimento,
+    observacoes: c.obs, lembrete: c.lembrete, aviso_popup: c.popup, aviso_notificacao: c.notificacao, confirmado: c.confirmado
+  }));
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(linhas)); }catch(e){}
+}
+
+function mensagemErroBanco(error){
+  console.error('Erro do Supabase:', error);
+  if(!navigator.onLine) return 'Sem internet. Verifique a conexão e tente de novo.';
+  return 'Não foi possível salvar agora. Tente de novo em instantes.';
+}
+
+async function carregarConsultasSupabase(){
+  if(supabaseClient && userId){
+    try{
+      const { data, error } = await supabaseClient.from('consulta').select('*').eq('usuario_id', userId);
+      if(error) throw error;
+      if(Array.isArray(data)){ consultas = data.map(normalizarConsulta); salvarStorage(); }
+    }catch(error){
+      console.warn('Consultas disponíveis apenas localmente:', error);
+    }
+  }
+  carregado = true;
+  renderConsultas();
+  renderLembretes();
+}
+
+// ---------- NAVEGAÇÃO ENTRE AS PARTES DA TELA ----------
+let telaHistorico = [];
+
+function voltarTela(){
+  if(telaHistorico.length > 1){
+    telaHistorico.pop();
+    goTo(telaHistorico[telaHistorico.length - 1], true);
+    return;
+  }
+  window.voltarTelaApp();
+}
+
+function goTo(name, viaVoltar){
+  if(!viaVoltar){
+    const posicaoExistente = telaHistorico.indexOf(name);
+    if(posicaoExistente >= 0) telaHistorico = telaHistorico.slice(0, posicaoExistente + 1);
+    else telaHistorico.push(name);
+  }
+  document.querySelector('.header').classList.add('tem-voltar');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if(el) el.classList.add('active');
+  if(name === 'consultas') renderConsultas();
+  if(name === 'lembretes') renderLembretes();
+  document.querySelector('.main-content').scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+// ---------- FORMATOS ----------
+const DIAS_SEMANA = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+function fmtData(iso){
+  if(!iso) return '—';
+  const p = iso.split('-');
+  if(p.length !== 3) return iso;
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+function dataHora(c){ return new Date(c.data + 'T' + (c.hora || '00:00') + ':00'); }
+function quandoTexto(c){
+  const d = dataHora(c);
+  if(isNaN(d)) return fmtData(c.data);
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const dia = new Date(d); dia.setHours(0,0,0,0);
+  const dif = Math.round((dia - hoje) / 86400000);
+  const rel = dif === 0 ? 'Hoje' : dif === 1 ? 'Amanhã' : dif === -1 ? 'Ontem' : DIAS_SEMANA[d.getDay()].replace(/^./, s => s.toUpperCase());
+  return rel + ', ' + fmtData(c.data) + ' às ' + (c.hora || '—');
+}
+function ehPassada(c){ return dataHora(c) < new Date(); }
+
+function escapeHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ---------- LISTAS ----------
+// "🔔 App e 📲 notificação · 1 dia e 2 horas antes"
+function textoAvisos(c){
+  const prazos = L.texto(c.lembrete);
+  if(!prazos || (!c.popup && !c.notificacao)) return '';
+  const canais = [c.popup ? '🔔 Aviso no app' : '', c.notificacao ? '📲 Notificação' : ''].filter(Boolean).join(' + ');
+  return canais + ' · ' + prazos;
+}
+function temAvisos(c){ return Boolean(textoAvisos(c)); }
+
+function cardConsulta(c, passada){
+  const lemb = textoAvisos(c);
+  const badges = (passada
+      ? '<span class="badge badge-info">Já aconteceu</span>'
+      : (lemb ? '<span class="badge badge-ok">' + escapeHtml(lemb) + '</span>' : '<span class="badge badge-warn">Sem avisos</span>')) +
+    (c.confirmado && !passada ? '<span class="badge badge-ok">✅ Presença confirmada</span>' : '');
+  return '<article class="card' + (passada ? ' passada' : '') + '" data-id="' + c.id + '">' +
+    '<div class="card-title">' + escapeHtml(c.medico) + (c.especialidade ? ' (' + escapeHtml(c.especialidade) + ')' : '') + '</div>' +
+    '<p class="quando">' + escapeHtml(quandoTexto(c)) + '</p>' +
+    '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local_atendimento) + '</div>' +
+    (c.obs ? '<div class="card-line"><span class="lbl">Obs.:</span> ' + escapeHtml(c.obs) + '</div>' : '') +
+    badges +
+    '<div class="card-actions">' +
+      '<button type="button" class="btn-sm outline" onclick="editarConsulta(' + c.id + ')">✏️ Editar</button>' +
+      (passada ? '' : '<button type="button" class="btn-sm" onclick="abrirConfig(' + c.id + ')">🔔 Avisos</button>') +
+      '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id + ')">Excluir</button>' +
+    '</div>' +
+  '</article>';
+}
+
+function ordenadas(){ return consultas.slice().sort((a, b) => dataHora(a) - dataHora(b)); }
+
+function renderConsultas(){
+  const el = document.getElementById('lista-consultas');
+  const anteriores = ordenadas().filter(ehPassada).reverse();       // mais recente primeiro
+  const proximas = ordenadas().filter(c => !ehPassada(c));
+  if(!proximas.length){
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">📋</div><p>' +
+      (consultas.length ? 'Você não tem consultas marcadas daqui para frente.' : 'Nenhuma consulta cadastrada ainda.') +
+      '</p><button type="button" class="btn-block" style="max-width:260px;margin:0 auto" onclick="novaConsulta()">Incluir Consulta</button></div>';
+  } else {
+    el.innerHTML = proximas.map(c => cardConsulta(c, false)).join('');
+  }
+  const btn = document.getElementById('btnAnteriores');
+  btn.hidden = !anteriores.length;
+  document.getElementById('qtdAnteriores').textContent = anteriores.length ? '(' + anteriores.length + ')' : '';
+  const ant = document.getElementById('lista-anteriores');
+  ant.innerHTML = anteriores.map(c => cardConsulta(c, true)).join('');
+  if(!anteriores.length){ ant.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+}
+
+function alternarAnteriores(){
+  const ant = document.getElementById('lista-anteriores');
+  const btn = document.getElementById('btnAnteriores');
+  ant.hidden = !ant.hidden;
+  btn.setAttribute('aria-expanded', String(!ant.hidden));
+}
+
+function renderLembretes(){
+  const el = document.getElementById('lista-lembretes');
+  const com = ordenadas().filter(c => !ehPassada(c) && temAvisos(c));
+  if(!com.length){
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔔</div><p>Nenhum aviso para as próximas consultas.<br>Vá em Minhas Consultas e toque em Avisos.</p><button type="button" class="btn-block" style="max-width:260px;margin:0 auto" onclick="goTo(\'consultas\')">Minhas Consultas</button></div>';
+    return;
+  }
+  el.innerHTML = com.map(c =>
+    '<article class="card">' +
+    '<div class="card-title">' + escapeHtml(c.medico) + (c.especialidade ? ' (' + escapeHtml(c.especialidade) + ')' : '') + '</div>' +
+    '<p class="quando">' + escapeHtml(quandoTexto(c)) + '</p>' +
+    '<div class="card-line"><span class="lbl">Local:</span> ' + escapeHtml(c.local_atendimento) + '</div>' +
+    '<span class="badge badge-ok">' + escapeHtml(textoAvisos(c)) + '</span>' +
+    '<div class="card-actions">' +
+    '<button type="button" class="btn-sm outline" onclick="abrirConfig(' + c.id + ')">Alterar</button>' +
+    '<button type="button" class="btn-sm danger" onclick="removerConsulta(' + c.id + ')">Excluir</button>' +
+    '</div>' +
+    '</article>'
+  ).join('');
+}
+
+// ---------- CONFIRMAÇÃO (no lugar do confirm() do navegador) ----------
+function confirmar(titulo, texto, sim, icone){
+  return new Promise(resolve => {
+    const ov = document.getElementById('popup-confirmar');
+    document.getElementById('confirmarTitulo').textContent = titulo;
+    document.getElementById('confirmarTexto').textContent = texto;
+    document.getElementById('confirmarIcone').textContent = icone || '⚠️';
+    const bSim = document.getElementById('confirmarSim'), bNao = document.getElementById('confirmarNao');
+    bSim.textContent = sim || 'Sim';
+    const fechar = r => { ov.hidden = true; bSim.onclick = bNao.onclick = null; resolve(r); };
+    bSim.onclick = () => fechar(true);
+    bNao.onclick = () => fechar(false);
+    ov.hidden = false;
+    bNao.focus();
+  });
+}
+
+async function removerConsulta(id){
+  const consulta = consultas.find(item => Number(item.id) === Number(id));
+  if(!consulta) return;
+  const ok = await confirmar('Excluir consulta?', 'A consulta com ' + consulta.medico + ' (' + quandoTexto(consulta) + ') será apagada.', 'Sim, excluir', '🗑️');
+  if(!ok) return;
+  if(supabaseClient){
+    const { error } = await supabaseClient.from('consulta').delete().eq('id', Number(id)).eq('usuario_id', userId);
+    if(error){ mostrarToast('Não foi possível excluir agora. Tente de novo.'); console.error(error); return; }
+  }
+  consultas = consultas.filter(item => Number(item.id) !== Number(id));
+  salvarStorage();
+  renderConsultas();
+  renderLembretes();
+  mostrarToast('Consulta excluída');
+}
+
+// ---------- FORMULÁRIO ----------
+const campos = ['c-local','c-especialidade','c-especialidade-outra','c-medico','c-data','c-hora','c-obs'];
+const ESPECIALIDADES = Array.from(document.querySelectorAll('#c-especialidade option')).map(o => o.value).filter(v => v && v !== '__outra__');
+
+// ---------- AVISOS: chave do app, chave da notificação e prazos (valem para as duas) ----------
+function montarAvisos(container, pref){
+  const p = container.id;
+  container.innerHTML =
+    '<div class="aviso-linha">' +
+      '<div class="alarm-label"><div class="field-icon" aria-hidden="true">🔔</div><div>' +
+        '<div class="alarm-title" id="' + p + '-lbl-popup">Aviso no app</div>' +
+        '<div class="alarm-subtitle">Janela com som, com o app aberto</div></div></div>' +
+      '<button type="button" class="toggle-switch" data-canal="popup" aria-labelledby="' + p + '-lbl-popup"></button>' +
+    '</div>' +
+    '<div class="aviso-linha">' +
+      '<div class="alarm-label"><div class="field-icon" aria-hidden="true">📲</div><div>' +
+        '<div class="alarm-title" id="' + p + '-lbl-notif">Notificação no celular</div>' +
+        '<div class="alarm-subtitle">Aparece na barra de notificações</div></div></div>' +
+      '<button type="button" class="toggle-switch" data-canal="notificacao" aria-labelledby="' + p + '-lbl-notif"></button>' +
+    '</div>' +
+    '<div class="prazos">' +
+      '<p class="prazos-titulo">Quando avisar? <span>(vale para o aviso no app e para a notificação)</span></p>' +
+      '<div class="lembrete-opcoes" role="group" aria-label="Quando avisar">' +
+        L.OPCOES.map(o => '<label class="chip-lembrete"><input type="checkbox" value="' + o.valor + '"' +
+          (pref.prazos.indexOf(o.valor) !== -1 ? ' checked' : '') + '> ' + o.texto + '</label>').join('') +
+        '<p class="lembrete-dica">Pode marcar mais de um.</p>' +
+      '</div>' +
+    '</div>' +
+    '<p class="avisos-desligados">Avisos desligados para esta consulta.</p>';
+  definirCanal(container, 'popup', pref.popup);
+  definirCanal(container, 'notificacao', pref.notificacao);
+  container.querySelectorAll('[data-canal]').forEach(btn => btn.addEventListener('click', () => alternarCanal(container, btn.dataset.canal)));
+  container.querySelectorAll('input[type="checkbox"]').forEach(i => i.addEventListener('change', () => {
+    const g = container.closest('.form-group'); if(g) g.classList.remove('invalido');
+  }));
+}
+function definirCanal(container, canal, ativo){
+  const btn = container.querySelector('[data-canal="' + canal + '"]');
+  btn.classList.toggle('active', ativo);
+  btn.setAttribute('aria-pressed', String(ativo));
+  const algum = container.querySelectorAll('[data-canal].active').length > 0;
+  container.querySelector('.prazos').hidden = !algum;
+  container.querySelector('.avisos-desligados').hidden = algum;
+}
+async function alternarCanal(container, canal){
+  const btn = container.querySelector('[data-canal="' + canal + '"]');
+  const ligar = !btn.classList.contains('active');
+  if(canal === 'notificacao' && ligar){
+    btn.disabled = true;
+    const r = await L.ligarNotificacao();
+    btn.disabled = false;
+    if(!r.ok){ mostrarToast(r.motivo); return; }
+  }
+  definirCanal(container, canal, ligar);
+  if(ligar && !container.querySelector('input[type="checkbox"]:checked')){
+    container.querySelectorAll('input[type="checkbox"]').forEach(i => { i.checked = L.PADRAO.indexOf(i.value) !== -1; });
+  }
+}
+function lerAvisos(container){
+  const popup = container.querySelector('[data-canal="popup"]').classList.contains('active');
+  const notificacao = container.querySelector('[data-canal="notificacao"]').classList.contains('active');
+  const prazos = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(i => i.value);
+  return { popup, notificacao, prazos, lembrete: (popup || notificacao) ? L.gravar(prazos) : null };
+}
+function prefPadrao(){
+  return { popup: true, notificacao: L.estadoNotificacao() === 'granted', prazos: L.PADRAO };
+}
+function prefDaConsulta(c){
+  const prazos = L.ler(c.lembrete);
+  return { popup: prazos.length ? c.popup : false, notificacao: prazos.length ? c.notificacao : false, prazos: prazos.length ? prazos : L.PADRAO };
+}
+
+function marcarCampo(grupoId, invalido){
+  const g = document.getElementById(grupoId);
+  g.classList.toggle('invalido', invalido);
+  const f = g.querySelector('.form-field');
+  if(f){ f.classList.remove('error'); f.classList.toggle('success', !invalido); }
+}
+
+function lerFormulario(){
+  const especialidadeSelecionada = document.getElementById('c-especialidade').value;
+  return {
+    local: document.getElementById('c-local').value.trim(),
+    especialidadeSelecionada,
+    especialidade: especialidadeSelecionada === '__outra__' ? document.getElementById('c-especialidade-outra').value.trim() : especialidadeSelecionada,
+    medico: document.getElementById('c-medico').value.trim(),
+    data: document.getElementById('c-data').value,
+    hora: document.getElementById('c-hora').value,
+    obs: document.getElementById('c-obs').value.trim(),
+    avisos: lerAvisos(document.getElementById('avisosForm'))
+  };
+}
+
+function validar(f){
+  const erros = [];
+  const regra = [
+    ['g-local', !f.local],
+    ['g-especialidade', !f.especialidadeSelecionada],
+    ['g-especialidade-outra', f.especialidadeSelecionada === '__outra__' && !f.especialidade],
+    ['g-medico', !f.medico],
+    ['g-quando', !f.data || !f.hora],
+    ['g-avisos', (f.avisos.popup || f.avisos.notificacao) && !f.avisos.prazos.length]
+  ];
+  regra.forEach(([g, invalido]) => { marcarCampo(g, invalido); if(invalido) erros.push(g); });
+  if(!f.data && f.hora) document.getElementById('erro-quando').textContent = 'Escolha o dia da consulta.';
+  else if(f.data && !f.hora) document.getElementById('erro-quando').textContent = 'Escolha a hora da consulta.';
+  else document.getElementById('erro-quando').textContent = 'Escolha o dia e a hora da consulta.';
+  return erros;
+}
+
+let salvando = false;
+async function salvarConsulta(){
+  if(salvando) return;
+  const f = lerFormulario();
+  const erros = validar(f);
+  if(erros.length){
+    const g = document.getElementById(erros[0]);
+    g.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const campo = g.querySelector('input, select');
+    if(campo) setTimeout(() => campo.focus({ preventScroll: true }), 300);
+    mostrarToast(erros.length === 1 ? 'Falta preencher 1 campo' : 'Faltam preencher ' + erros.length + ' campos');
+    return;
+  }
+  const quando = new Date(f.data + 'T' + f.hora + ':00');
+  if(quando < new Date()){
+    const ok = await confirmar('Essa data já passou', 'A consulta está marcada para ' + fmtData(f.data) + ' às ' + f.hora + ', que já passou. Quer salvar mesmo assim?', 'Sim, salvar', '📅');
+    if(!ok){ document.getElementById('c-data').focus(); return; }
+  }
+
+  const idEdicao = Number(document.getElementById('c-id').value) || null;
+  const payload = {
+    usuario_id: userId,
+    especialidade: f.especialidade,
+    medico: f.medico,
+    local_atendimento: f.local,
+    data_consulta: f.data,
+    hora_consulta: f.hora,
+    observacoes: f.obs || null,
+    lembrete: f.avisos.lembrete,
+    aviso_popup: f.avisos.popup,
+    aviso_notificacao: f.avisos.notificacao
+  };
+  if(!supabaseClient){ mostrarToast('Sem conexão com o servidor. Verifique a internet.'); return; }
+
+  salvando = true;
+  const btn = document.getElementById('btnSalvar');
+  btn.disabled = true;
+  let resposta;
+  if(idEdicao){
+    const anterior = consultas.find(c => c.id === idEdicao);
+    // Se mudou o dia/hora, a presença confirmada deixa de valer.
+    if(anterior && (anterior.data !== f.data || anterior.hora !== f.hora)) payload.confirmado = false;
+    resposta = await supabaseClient.from('consulta').update(payload).eq('id', idEdicao).eq('usuario_id', userId).select().single();
+  } else {
+    resposta = await supabaseClient.from('consulta').insert(payload).select().single();
+  }
+  salvando = false;
+  btn.disabled = false;
+  if(resposta.error){ mostrarToast(mensagemErroBanco(resposta.error)); return; }
+
+  const salva = normalizarConsulta({ ...payload, ...(resposta.data || {}), id: resposta.data?.id ?? idEdicao });
+  if(idEdicao) consultas = consultas.map(c => c.id === idEdicao ? salva : c);
+  else consultas.push(salva);
+  salvarStorage();
+  L.marcarVencidos({ ...salva, data_consulta: salva.data, hora_consulta: salva.hora });
+  limparFormulario();
+  document.getElementById('sucessoTitulo').textContent = idEdicao ? 'Consulta alterada!' : 'Consulta salva!';
+  document.getElementById('sucessoTexto').textContent = (idEdicao ? 'As alterações foram salvas. ' : 'Sua consulta foi adicionada à agenda. ') +
+    (temAvisos(salva) ? 'Avisos: ' + textoAvisos(salva) + '.' : 'Sem avisos.');
+  document.getElementById('popup-sucesso').classList.add('show');
+}
+
+function preencherFormulario(c){
+  document.getElementById('c-id').value = c ? c.id : '';
+  document.getElementById('c-local').value = c ? c.local_atendimento : '';
+  const sel = document.getElementById('c-especialidade');
+  const outra = document.getElementById('c-especialidade-outra');
+  if(c && c.especialidade && ESPECIALIDADES.indexOf(c.especialidade) === -1){
+    sel.value = '__outra__'; outra.value = c.especialidade;
+  } else { sel.value = c ? c.especialidade : ''; outra.value = ''; }
+  document.getElementById('g-especialidade-outra').hidden = sel.value !== '__outra__';
+  document.getElementById('c-medico').value = c ? c.medico : '';
+  document.getElementById('c-data').value = c ? c.data : '';
+  document.getElementById('c-hora').value = c ? c.hora : '';
+  document.getElementById('c-obs').value = c ? c.obs : '';
+  montarAvisos(document.getElementById('avisosForm'), c ? prefDaConsulta(c) : prefPadrao());
+  ['g-local','g-especialidade','g-especialidade-outra','g-medico','g-quando','g-avisos'].forEach(g => {
+    document.getElementById(g).classList.remove('invalido');
+    const ff = document.getElementById(g).querySelector('.form-field'); if(ff) ff.classList.remove('error','success');
+  });
+  document.getElementById('tituloForm').textContent = c ? 'Alterar Consulta' : 'Incluir Consulta em Agenda';
+  document.getElementById('avisoEdicao').hidden = !c;
+  document.getElementById('btnSalvar').textContent = c ? '💾 Salvar alterações' : '➕ Salvar na Agenda';
+  document.getElementById('btnLimpar').hidden = Boolean(c);
+  document.getElementById('scanBox').hidden = Boolean(c);
+}
+
+function limparFormulario(){ preencherFormulario(null); }
+function novaConsulta(){ limparFormulario(); goTo('incluir'); }
+function editarConsulta(id){
+  const c = consultas.find(x => x.id === Number(id));
+  if(!c) return;
+  preencherFormulario(c);
+  goTo('incluir');
+  setTimeout(() => document.getElementById('c-local').focus({ preventScroll: true }), 200);
+}
+function cancelarEdicao(){ limparFormulario(); goTo('consultas'); }
+
+document.getElementById('c-especialidade').addEventListener('change', function(){
+  const grupo = document.getElementById('g-especialidade-outra');
+  grupo.hidden = this.value !== '__outra__';
+  if(this.value === '__outra__') setTimeout(() => document.getElementById('c-especialidade-outra').focus(), 50);
+  else grupo.classList.remove('invalido');
+});
+// Corrigiu o campo: some o aviso de erro dele.
+document.querySelectorAll('.form-group input, .form-group select').forEach(el => {
+  el.addEventListener('input', () => { const g = el.closest('.form-group'); if(g && g.classList.contains('invalido')) g.classList.remove('invalido'); });
+});
+
+function fecharSucesso(){
+  document.getElementById('popup-sucesso').classList.remove('show');
+}
+
+// ---------- CONFIGURAR LEMBRETES ----------
+function abrirConfig(id){
+  atualId = Number(id);
+  const c = consultas.find(x => x.id === atualId);
+  if(!c) return;
+  document.getElementById('dropdown-sub').textContent = c.medico + ' • ' + fmtData(c.data) + ' às ' + c.hora;
+  montarAvisos(document.getElementById('avisosSheet'), prefDaConsulta(c));
+  document.getElementById('dropdown-lembrete').classList.add('show');
+}
+
+function fecharDropdown(e){
+  if(e && e.target !== document.getElementById('dropdown-lembrete')) return;
+  document.getElementById('dropdown-lembrete').classList.remove('show');
+  atualId = null;
+}
+
+async function salvarLembrete(){
+  if(atualId == null) return;
+  const a = lerAvisos(document.getElementById('avisosSheet'));
+  if((a.popup || a.notificacao) && !a.prazos.length){ mostrarToast('Marque pelo menos um prazo, ou desligue os dois avisos.'); return; }
+  const c = consultas.find(x => x.id === atualId);
+  if(c){
+    const mudanca = { lembrete: a.lembrete, aviso_popup: a.popup, aviso_notificacao: a.notificacao };
+    if(supabaseClient){
+      const { error } = await supabaseClient.from('consulta').update(mudanca).eq('id', c.id).eq('usuario_id', userId);
+      if(error){ mostrarToast(mensagemErroBanco(error)); return; }
+    }
+    c.lembrete = a.lembrete; c.popup = a.popup; c.notificacao = a.notificacao;
+    salvarStorage();
+    L.marcarVencidos({ ...c, data_consulta: c.data, hora_consulta: c.hora });
+    renderConsultas();
+    renderLembretes();
+    mostrarToast(temAvisos(c) ? 'Avisos salvos: ' + textoAvisos(c) : 'Avisos desligados para esta consulta');
+  }
+  fecharDropdown();
+}
+
+// Pop-up de lembrete (vem do lembretes-app.js) confirmou presença: atualiza a lista.
+window.addEventListener('techsaude:consultas-mudaram', () => { consultas = lerCacheLocal(); renderConsultas(); renderLembretes(); });
+
+function mostrarToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.classList.remove('show'); }, 4000);
+}
+
+function updateClock(){
+  const now = new Date();
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const dia = DIAS_SEMANA[now.getDay()].replace(/^./, s => s.toUpperCase());
+  document.getElementById('datetime').textContent =
+    hh + ':' + mm + ' - ' + dia + ', ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' de ' + now.getFullYear();
+}
+
+// ---------- INÍCIO ----------
+updateClock();
+setInterval(updateClock, 30000);
+limparFormulario();
+(async function iniciar(){
+  // Abre direto em "Minhas Consultas" quando a pessoa já tem consultas.
+  goTo(consultas.length ? 'consultas' : 'incluir');
+  await carregarConsultasSupabase();
+  const editar = new URLSearchParams(location.search).get('editar');
+  if(editar && consultas.some(c => c.id === Number(editar))){ telaHistorico = ['consultas']; editarConsulta(editar); return; }
+  if(document.getElementById('screen-incluir').classList.contains('active') && consultas.length && !document.getElementById('c-local').value){
+    telaHistorico = []; goTo('consultas');
+  }
+})();
+</script>
+<!-- ===== PADRÃO TECHSAÚDE: pop-up de Ajuda (o conteúdo vem de AJUDA_TELA, no script abaixo) ===== -->
+<div id="modalAjuda" class="ajuda-overlay" hidden>
+  <div class="ajuda-modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button type="button" class="ajuda-fechar" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <p class="ajuda-tag">❔ Ajuda</p>
+    <h2 id="ajudaTitulo">Como usar esta tela</h2>
+    <p class="ajuda-intro" id="ajudaIntro"></p>
+    <ol class="ajuda-lista" id="ajudaLista"></ol>
+    <p class="ajuda-extra" id="ajudaExtra"></p>
+    <button type="button" class="ajuda-ok" id="ajudaOk">Entendi</button>
+  </div>
+</div>
+
+<script>
+/* ===== PADRÃO TECHSAÚDE: tamanho da letra + Ajuda =====
+   Para mudar o texto da Ajuda desta tela, edite apenas AJUDA_TELA.
+   - "quando": seletor CSS que indica em qual parte da tela o usuário está
+     (o primeiro item que existir na tela é o usado; o último, sem "quando", é o padrão).
+   - "passos": lista curta, em ordem, do que fazer.                                  */
+(function(){
+  "use strict";
+
+  var AJUDA_TELA = [
+    {
+      quando: '#screen-incluir.active',
+      titulo: 'Como incluir uma consulta',
+      intro: 'Nesta parte você anota uma nova consulta médica na sua agenda.',
+      passos: [
+        'Tem o papel da consulta? Toque em <b>Escanear guia ou encaminhamento</b>, tire uma foto e o app preenche o formulário. Confira os dados antes de salvar.',
+        'Ou escreva o <b>local</b> (clínica ou hospital), a <b>especialidade</b> e o nome do <b>médico</b>.',
+        'Escolha uma especialidade na lista. Se não encontrar, selecione <b>Outra especialidade</b> e informe o nome.',
+        'Escolha o <b>dia</b> e a <b>hora</b> da consulta.',
+        'Em <b>Avisos da consulta</b>, ligue o <b>Aviso no app</b> (janela com som) e/ou a <b>Notificação no celular</b>. Depois marque quando quer ser avisado: 7 dias, 2 dias, 1 dia, 2 horas, 1 hora ou 30 minutos antes. Pode marcar mais de um.',
+        'Se quiser, escreva uma observação, como “levar exames”.',
+        'Toque em <b>Salvar na Agenda</b>. Para ver o que já foi salvo, toque em <b>Minhas Consultas</b>.'
+      ],
+      dica: 'O aviso no app aparece em qualquer tela do TechSaúde que estiver aberta. A notificação aparece na barra do celular enquanto o app estiver aberto ou em segundo plano.'
+    },
+    {
+      quando: '#screen-consultas.active',
+      titulo: 'Como ver suas consultas',
+      intro: 'Aqui aparecem todas as consultas que você salvou.',
+      passos: [
+        'As próximas consultas aparecem em ordem: a mais perto primeiro.',
+        'Toque em <b>Editar</b> para corrigir ou remarcar uma consulta.',
+        'Toque em <b>Avisos</b> para ligar o aviso no app, a notificação e escolher quando quer ser avisado.',
+        'Toque em <b>Excluir</b> para apagar uma consulta.',
+        'As consultas que já passaram ficam em <b>Ver consultas anteriores</b>, no fim da lista.'
+      ],
+      dica: 'Use o botão Voltar, no alto, para retornar à tela anterior.'
+    },
+    {
+      quando: '#screen-lembretes.active',
+      titulo: 'Como ver seus lembretes',
+      intro: 'Aqui aparecem as consultas que já têm um lembrete configurado.',
+      passos: [
+        'Cada cartão mostra a consulta e quando você será avisado.',
+        'Toque em <b>Alterar</b> para mudar quando quer ser lembrado.',
+        'Toque em <b>Excluir</b> para apagar a consulta.',
+        'Toque em <b>Voltar para Minhas Consultas</b> para ver a lista completa.'
+      ],
+      dica: 'Use o botão Voltar, no alto, para retornar à tela anterior.'
+    },
+    {
+      titulo: 'Como usar Consultas e Lembretes',
+      passos: [
+        'Use os botões no fim da tela para incluir consultas ou ver as que já salvou.'
+      ]
+    }
+  ];
+
+  // Passo comum a todas as telas (acessibilidade)
+  var PASSO_LETRA = 'Letra pequena? Toque em <b>A+</b> ou <b>A++</b>, logo acima, para aumentar. Sua escolha fica salva para todas as telas.';
+
+  // ---------- TAMANHO DA LETRA (salvo para todas as telas) ----------
+  var CHAVE_FONTE = 'techsaude_fonte';
+  var botoesFonte = document.querySelectorAll('.toolbar-acessibilidade .font-btn');
+
+  function escalaAtual(){ return parseFloat(document.documentElement.style.fontSize) || 100; }
+
+  function marcarBotaoFonte(){
+    var atual = escalaAtual();
+    botoesFonte.forEach(function(b){
+      var ativo = Number(b.dataset.scale) === atual;
+      b.classList.toggle('active', ativo);
+      b.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+    });
+  }
+
+  function aplicarFonte(escala, salvar){
+    document.documentElement.style.fontSize = escala + '%';
+    if(salvar){ try{ localStorage.setItem(CHAVE_FONTE, String(escala)); }catch(e){} }
+    marcarBotaoFonte();
+  }
+
+  botoesFonte.forEach(function(btn){
+    btn.addEventListener('click', function(){ aplicarFonte(Number(btn.dataset.scale), true); });
+  });
+  // Comando de voz ("aumentar letra") e outras abas também atualizam os botões
+  window.addEventListener('techsaude:fonte', marcarBotaoFonte);
+  window.addEventListener('storage', function(e){
+    if(e.key === CHAVE_FONTE && e.newValue){ aplicarFonte(parseFloat(e.newValue) || 100, false); }
+  });
+  marcarBotaoFonte();
+
+  // ---------- AJUDA ----------
+  var modal = document.getElementById('modalAjuda');
+  var focoAnterior = null;
+
+  function conteudoAtual(){
+    for(var i = 0; i < AJUDA_TELA.length; i++){
+      var item = AJUDA_TELA[i];
+      if(!item.quando || document.querySelector(item.quando)) return item;
+    }
+    return AJUDA_TELA[AJUDA_TELA.length - 1];
+  }
+
+  function abrirAjuda(){
+    var c = conteudoAtual();
+    document.getElementById('ajudaTitulo').textContent = c.titulo;
+    var intro = document.getElementById('ajudaIntro');
+    intro.innerHTML = c.intro || '';
+    intro.hidden = !c.intro;
+    document.getElementById('ajudaLista').innerHTML = c.passos.concat([PASSO_LETRA]).map(function(p){ return '<li>' + p + '</li>'; }).join('');
+    var extra = document.getElementById('ajudaExtra');
+    extra.innerHTML = c.dica || '';
+    extra.hidden = !c.dica;
+    focoAnterior = document.activeElement;
+    modal.hidden = false;
+    document.getElementById('ajudaOk').focus({ preventScroll: true });
+    modal.querySelector('.ajuda-modal').scrollTop = 0;
+  }
+
+  function fecharAjuda(){
+    modal.hidden = true;
+    if(focoAnterior && focoAnterior.focus){ focoAnterior.focus(); }
+  }
+
+  document.getElementById('btnAjuda').addEventListener('click', abrirAjuda);
+  document.getElementById('fecharAjuda').addEventListener('click', fecharAjuda);
+  document.getElementById('ajudaOk').addEventListener('click', fecharAjuda);
+  modal.addEventListener('click', function(e){ if(e.target === modal) fecharAjuda(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.hidden) fecharAjuda(); });
+})();
+
+/* =====================================================================
+   ESCANEAR CONSULTA: foto do papel -> leitura do texto (OCR) -> formulário
+   O app só PREENCHE. Quem confere e salva é a pessoa.
+   ===================================================================== */
+(function(){
+  'use strict';
+  var TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+  var overlay = document.getElementById('popup-scan');
+  var ocupado = false;
+
+  function semAcento(s){ return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  /* ---------- pop-up ---------- */
+  function estado(tipo, titulo, texto, pct){
+    document.getElementById('scanTitulo').textContent = titulo;
+    document.getElementById('scanTexto').textContent = texto;
+    document.getElementById('scanIcone').textContent = tipo === 'lendo' ? '🔎' : (tipo === 'erro' ? '⚠️' : '📷');
+    var prog = document.getElementById('scanProgresso');
+    prog.hidden = tipo !== 'lendo';
+    if(pct != null) document.getElementById('scanBarra').style.width = Math.max(4, Math.round(pct*100)) + '%';
+    document.getElementById('scanAcoes').hidden = tipo === 'lendo';
+  }
+  function abrir(){
+    if(ocupado) return;
+    estado('inicio','Escanear consulta','Tire uma foto do papel com a data, a hora e o médico. Deixe a folha reta e bem iluminada.');
+    overlay.classList.add('show');
+    document.getElementById('scanTirarFoto').focus({preventScroll:true});
+  }
+  function fechar(){ overlay.classList.remove('show'); }
+
+  /* ---------- imagem ---------- */
+  function prepararImagem(arquivo){
+    return new Promise(function(resolve, reject){
+      var url = URL.createObjectURL(arquivo), img = new Image();
+      img.onload = function(){
+        var max = 1800, esc = Math.min(1, max / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = Math.round(img.width * esc); c.height = Math.round(img.height * esc);
+        var ctx = c.getContext('2d');
+        ctx.filter = 'grayscale(1) contrast(1.25)';
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url); resolve(c);
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('imagem')); };
+      img.src = url;
+    });
+  }
+  function carregarOCR(){
+    if(window.Tesseract) return Promise.resolve();
+    return new Promise(function(resolve, reject){
+      var s = document.createElement('script'); s.src = TESSERACT_URL;
+      s.onload = resolve; s.onerror = function(){ reject(new Error('rede')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  /* ---------- interpretar o texto ---------- */
+  var MESES = {janeiro:1,fevereiro:2,marco:3,abril:4,maio:5,junho:6,julho:7,agosto:8,setembro:9,outubro:10,novembro:11,dezembro:12};
+  var ESPEC = [
+    ['angiolog|vascular','Angiologia / Vascular'],['cardio','Cardiologia'],['clinic[oa] geral|clinica medica','Clínica Geral'],
+    ['dermato','Dermatologia'],['endocrin','Endocrinologia'],['fisioterap','Fisioterapia'],['fonoaudio','Fonoaudiologia'],
+    ['gastro','Gastroenterologia'],['geriatr','Geriatria'],['gineco','Ginecologia'],['nefro','Nefrologia'],['neuro','Neurologia'],
+    ['nutri','Nutrição'],['odonto|dentista','Odontologia'],['oftalmo','Oftalmologia'],['oncolog','Oncologia'],['ortoped','Ortopedia'],
+    ['otorrino','Otorrinolaringologia'],['pneumo','Pneumologia'],['psicolog','Psicologia'],['psiquiat','Psiquiatria'],
+    ['reumato','Reumatologia'],['urolog','Urologia']
+  ];
+  function dataValida(d, m, a){
+    if(a < 100) a += 2000;
+    if(m < 1 || m > 12 || d < 1 || d > 31 || a < 2000 || a > 2100) return null;
+    var dt = new Date(a, m-1, d); if(dt.getMonth() !== m-1) return null;
+    return {iso: a + '-' + pad(m) + '-' + pad(d), t: dt.getTime()};
+  }
+  function acharData(texto){
+    var achadas = [], n = semAcento(texto), m, re;
+    re = /(\d{1,2})\s*[\/\.\-]\s*(\d{1,2})\s*[\/\.\-]\s*(\d{4}|\d{2})\b/g;
+    while((m = re.exec(n))){ var v = dataValida(+m[1], +m[2], +m[3]); if(v) achadas.push(v); }
+    re = /(\d{1,2})\s+de\s+([a-z]+)(?:\s+de\s+(\d{4}))?/g;
+    while((m = re.exec(n))){
+      if(!MESES[m[2]]) continue;
+      var v2 = dataValida(+m[1], MESES[m[2]], m[3] ? +m[3] : new Date().getFullYear()); if(v2) achadas.push(v2);
+    }
+    if(!achadas.length) return null;
+    var hoje = new Date(); hoje.setHours(0,0,0,0);
+    var futuras = achadas.filter(function(x){ return x.t >= hoje.getTime(); });
+    return (futuras.length ? futuras : achadas)[0].iso;
+  }
+  function acharHora(texto){
+    var n = semAcento(texto), m, achadas = [];
+    var re = /\b([01]?\d|2[0-3])\s*(?::|h|hs|horas?)\s*([0-5]\d)?(?!\d)/g;
+    while((m = re.exec(n))){
+      var ctx = n.slice(Math.max(0, m.index-12), m.index);
+      if(!m[2] && !/h/.test(m[0])) continue;
+      achadas.push({h:+m[1], mi:m[2] ? +m[2] : 0, peso:/(hora|horario|as|chegada)\s*:?\s*$/.test(ctx) ? 1 : 0});
+    }
+    if(!achadas.length) return null;
+    achadas.sort(function(a,b){ return b.peso - a.peso; });
+    return pad(achadas[0].h) + ':' + pad(achadas[0].mi);
+  }
+  function acharMedico(texto){
+    var m = /\b(Dr\.?|Dra\.?|Doutor|Doutora)[ \t]+([A-ZÀ-Ú][A-Za-zÀ-ÿ'-]+(?:[ \t]+(?:d[aeo]s?[ \t]+)?[A-ZÀ-Ú][A-Za-zÀ-ÿ'-]+){0,3})/.exec(texto);
+    if(!m) return null;
+    var nome = m[2].replace(/[ \t]+(Data|Hor[aá]rio|Hora|Local|CRM|Paciente|Consulta|Especialidade|Telefone|Endere[cç]o)\b.*$/i,'').trim();
+    if(!nome) return null;
+    var pref = /^(Dr|Doutor)$/i.test(m[1].replace('.','')) ? 'Dr. ' : 'Dra. ';
+    return pref + nome;
+  }
+  function acharEspecialidade(texto){
+    var n = semAcento(texto);
+    for(var i = 0; i < ESPEC.length; i++){ if(new RegExp(ESPEC[i][0]).test(n)) return ESPEC[i][1]; }
+    return null;
+  }
+  function acharLocal(texto){
+    var linhas = texto.split(/\r?\n/).map(function(l){ return l.replace(/\s+/g,' ').trim(); }).filter(Boolean);
+    for(var i = 0; i < linhas.length; i++){
+      if(/(hospital|clinica|clínica|ubs\b|upa\b|centro m[eé]dico|policl[ií]nica|ambulat[oó]rio|santa casa|laborat[oó]rio)/i.test(linhas[i]) && linhas[i].length >= 6){
+        return linhas[i].replace(/^[^A-Za-zÀ-ÿ0-9]+/,'').slice(0, 70);
+      }
+    }
+    return null;
+  }
+
+  /* ---------- preencher ---------- */
+  function marcar(idCampo, ok){
+    var g = document.getElementById(idCampo); if(!g) return;
+    g.classList.toggle('campo-lido', !!ok);
+  }
+  function preencher(texto){
+    var d = {local:acharLocal(texto), esp:acharEspecialidade(texto), med:acharMedico(texto), data:acharData(texto), hora:acharHora(texto)};
+    var lidos = 0;
+    if(d.local){ document.getElementById('c-local').value = d.local; lidos++; }
+    if(d.esp){
+      var sel = document.getElementById('c-especialidade'); sel.value = d.esp;
+      sel.dispatchEvent(new Event('change', {bubbles:true})); lidos++;
+    }
+    if(d.med){ document.getElementById('c-medico').value = d.med; lidos++; }
+    if(d.data){ document.getElementById('c-data').value = d.data; lidos++; }
+    if(d.hora){ document.getElementById('c-hora').value = d.hora; lidos++; }
+    marcar('g-local', d.local); marcar('g-especialidade', d.esp); marcar('g-medico', d.med); marcar('g-quando', d.data || d.hora);
+    return {d:d, lidos:lidos};
+  }
+
+  /* ---------- fluxo ---------- */
+  function processar(arquivo){
+    if(!arquivo) return;
+    ocupado = true;
+    estado('lendo','Lendo o papel…','Aguarde um instante. Na primeira vez pode demorar um pouco mais.', 0.05);
+    prepararImagem(arquivo).then(function(canvas){
+      return carregarOCR().then(function(){
+        return window.Tesseract.recognize(canvas, 'por', {logger:function(m){
+          if(m.status === 'recognizing text') estado('lendo','Lendo o papel…','Aguarde um instante.', 0.2 + m.progress * 0.8);
+        }});
+      });
+    }).then(function(res){
+      ocupado = false; fechar();
+      var texto = (res && res.data && res.data.text) || '';
+      var r = preencher(texto);
+      if(r.lidos === 0){
+        mostrarToast('Não consegui ler o papel. Tente com mais luz ou preencha à mão.');
+      } else {
+        var falta = [];
+        if(!r.d.local) falta.push('local'); if(!r.d.esp) falta.push('especialidade'); if(!r.d.med) falta.push('médico');
+        if(!r.d.data) falta.push('dia'); if(!r.d.hora) falta.push('hora');
+        mostrarToast(falta.length ? 'Preenchi o que consegui ler. Falta: ' + falta.join(', ') + '. Confira antes de salvar.' : 'Tudo lido! Confira os dados antes de salvar.');
+      }
+      document.getElementById('screen-incluir').scrollIntoView({behavior:'smooth', block:'start'});
+    }).catch(function(e){
+      ocupado = false;
+      var rede = e && e.message === 'rede';
+      estado('erro', rede ? 'Sem internet' : 'Não foi possível ler',
+        rede ? 'Para ler o papel o celular precisa estar com internet. Conecte e tente de novo, ou preencha à mão.' : 'Não consegui abrir essa foto. Tente tirar outra.');
+      document.getElementById('scanAcoes').hidden = false;
+    });
+  }
+
+  document.getElementById('btnEscanear').addEventListener('click', abrir);
+  document.getElementById('scanCancelar').addEventListener('click', fechar);
+  document.getElementById('scanTirarFoto').addEventListener('click', function(){ document.getElementById('scanCamera').click(); });
+  document.getElementById('scanEscolher').addEventListener('click', function(){ document.getElementById('scanGaleria').click(); });
+  ['scanCamera','scanGaleria'].forEach(function(id){
+    var el = document.getElementById(id);
+    el.addEventListener('change', function(){ var f = el.files && el.files[0]; el.value = ''; processar(f); });
+  });
+  overlay.addEventListener('click', function(e){ if(e.target === overlay && !ocupado) fechar(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && overlay.classList.contains('show') && !ocupado) fechar(); });
+  window.TechSaudeScan = {interpretar: function(t){ return {local:acharLocal(t), esp:acharEspecialidade(t), med:acharMedico(t), data:acharData(t), hora:acharHora(t)}; }};
+})();
+</script>
+<!-- ===== FIM DO PADRÃO TECHSAÚDE ===== -->
+</body>
+</html>
