@@ -698,7 +698,7 @@
                   <small id="c-cpf-feedback" class="input-feedback" aria-live="polite"></small>
                 </div>
                 <div class="field">
-                  <label for="c-rg">RG</label>
+                  <label for="c-rg">RG <span>(opcional)</span></label>
                   <input type="text" id="c-rg" placeholder="00.000.000-0" inputmode="numeric" maxlength="12">
                 </div>
                 <div class="field-grid">
@@ -1255,7 +1255,8 @@
     const cpf = valor('c-cpf').replace(/\D/g,'');
     if(!cpf) return erroCadastro('Informe seu CPF.', 'c-cpf');
     if(!validarCPF(cpf)) return erroCadastro('Informe um CPF válido.', 'c-cpf');
-    if(!/^\d{2}\.\d{3}\.\d{3}-\d$/.test(valor('c-rg'))) return erroCadastro('Informe um RG com 9 dígitos.', 'c-rg');
+    // RG é opcional: só confere o formato se a pessoa preencheu.
+    if(valor('c-rg') && !/^\d{2}\.\d{3}\.\d{3}-\d$/.test(valor('c-rg'))) return erroCadastro('O RG precisa ter 9 números. Se preferir, deixe em branco.', 'c-rg');
     const nasc = validarNascimento(valor('c-nascimento'));
     if(nasc.erro) return erroCadastro(nasc.erro, 'c-nascimento');
     if(!telefoneValido(valor('c-telefone'))) return erroCadastro('Informe um telefone com DDD (10 ou 11 números).', 'c-telefone');
@@ -1403,7 +1404,7 @@
       .insert([{
         nome_completo: nome,
         cpf: cpf,
-        rg: rg,
+        rg: rg || null,
         data_nascimento: dataParaISO(nasc.data),
         telefone: telefone,
         email: email,
