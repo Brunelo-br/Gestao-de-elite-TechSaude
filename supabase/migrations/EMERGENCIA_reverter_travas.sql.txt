@@ -1,0 +1,10 @@
+-- EMERGÊNCIA: desfaz as travas (volta ao acesso aberto de antes). Usar só se o app parar e não houver outra saída.
+do $$ declare t text; begin
+  foreach t in array array['usuario','endereco','contato_emergencia','consulta','medicamentos','evento_calendario','log_autenticacao','recuperacao_senha'] loop
+    execute format('drop policy if exists dono on public.%I', t);
+    execute format('drop policy if exists dono_le on public.%I', t);
+    execute format('drop policy if exists dono_altera on public.%I', t);
+    execute format('create policy app_acesso on public.%I to anon, authenticated using (true) with check (true)', t);
+    execute format('grant select, insert, update, delete on public.%I to anon, authenticated', t);
+  end loop;
+end $$;

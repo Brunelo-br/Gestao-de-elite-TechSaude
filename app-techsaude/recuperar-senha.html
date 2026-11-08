@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TechSaúde - Recuperar Senha</title>
 
-<!-- SUPABASE JS SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="password-hash.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -729,11 +725,23 @@
 </div>
 
 <script>
-// ---------- SUPABASE CLIENT ----------
+// ---------- SERVIDOR ----------
+// Segurança: o código é criado e enviado por e-mail pelo servidor (função "techsaude-auth").
+// O navegador nunca vê o código nem os dados da conta; o banco guarda só um resumo do código.
 const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-emailjs.init('ZGRX2l4GdBCXXNBGE');
+async function chamarServidor(acao, dados){
+  try {
+    const r = await fetch(SUPABASE_URL + '/functions/v1/techsaude-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY },
+      body: JSON.stringify(Object.assign({ acao: acao }, dados))
+    });
+    try { return await r.json(); } catch(e) { return { ok: false, erro: 'Não foi possível concluir agora. Tente de novo.' }; }
+  } catch(e) {
+    return { ok: false, erro: 'Sem conexão com a internet. Confira e tente de novo.' };
+  }
+}
 
 (function(){
   var datetimeEl = document.getElementById('datetime');
@@ -749,8 +757,8 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
   setInterval(atualizarDataHora, 30000);
 
   var steps = ['step1', 'step2', 'step3', 'step4'];
-  var usuarioEncontrado = null;
-  var recuperacaoEncontrada = null;
+  var emailInformado = '';
+  var codigoConfirmado = '';
 
   function irParaEtapa(idAlvo){
     steps.forEach(function(id){
@@ -826,49 +834,18 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
     btnEnviarCodigo.disabled = true;
     btnEnviarCodigo.textContent = 'CONSULTANDO...';
 
-    try{
-      const { data, error } = await supabaseClient
-        .from('usuario')
-        .select('*')
-        .ilike('email', termo)
-        .maybeSingle();
-
-      if(error || !data){
-        marcarErro('fieldEmail', 'Conta não encontrada com os dados informados.');
-      } else {
-        usuarioEncontrado = data;
-        document.getElementById('emailConfirmacao').textContent = data.nome || data.email || data.cpf;
-
-        var codigoGerado = String(Math.floor(100000 + Math.random() * 900000));
-        var expiraEm = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-        const { data: recuperacao, error: erroRecuperacao } = await supabaseClient
-          .from('recuperacao_senha')
-          .insert([{
-            usuario_id: data.id,
-            codigo_verificacao: codigoGerado,
-            expira_em: expiraEm,
-            utilizado: false
-          }])
-          .select('*')
-          .single();
-
-        if(erroRecuperacao){
-          mostrarBanner('error', 'Não foi possível gerar o código de recuperação. Tente novamente.');
-        } else {
-          await emailjs.send('service_3jv1jer', 'template_3u4kb9i', {
-            to_email: data.email,
-            codigo_recuperacao: codigoGerado
-          });
-          recuperacaoEncontrada = recuperacao;
-          irParaEtapa('step2');
-        }
-      }
-    } catch(err){
-      mostrarBanner('error', 'Erro ao conectar ao servidor. Tente novamente.');
-    } finally {
-      btnEnviarCodigo.disabled = false;
-      btnEnviarCodigo.textContent = 'AVANÇAR';
+    var r = await chamarServidor('recuperar_enviar', { email: termo });
+    btnEnviarCodigo.disabled = false;
+    btnEnviarCodigo.textContent = 'AVANÇAR';
+    if(!r.ok){
+      mostrarBanner('error', r.erro || 'Não foi possível enviar o código. Tente novamente.');
+      return;
     }
+    // A resposta é a mesma com ou sem conta, para não revelar quais e-mails estão cadastrados.
+    emailInformado = termo.toLowerCase();
+    document.getElementById('emailConfirmacao').textContent = emailInformado;
+    irParaEtapa('step2');
+    mostrarBanner('ok', 'Se este e-mail tiver uma conta, enviamos um código de 6 números. Confira também a caixa de spam.');
   });
 
   // ---------- ETAPA 2: VALIDAR CÓDIGO ----------
@@ -878,43 +855,15 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
   var linkReenviar = document.getElementById('linkReenviar');
 
   linkReenviar.addEventListener('click', async function(){
-    if(!usuarioEncontrado || !usuarioEncontrado.email) return;
-
+    if(!emailInformado) return;
     linkReenviar.disabled = true;
     linkReenviar.textContent = 'ENVIANDO...';
     esconderBanner();
-
-    try{
-      var codigoGerado = String(Math.floor(100000 + Math.random() * 900000));
-      var expiraEm = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-      const { data: recuperacao, error: erroRecuperacao } = await supabaseClient
-        .from('recuperacao_senha')
-        .insert([{
-          usuario_id: usuarioEncontrado.id,
-          codigo_verificacao: codigoGerado,
-          expira_em: expiraEm,
-          utilizado: false
-        }])
-        .select('*')
-        .single();
-
-      if(erroRecuperacao){
-        mostrarBanner('error', 'Não foi possível gerar um novo código. Tente novamente.');
-        return;
-      }
-
-      await emailjs.send('service_3jv1jer', 'template_3u4kb9i', {
-        to_email: usuarioEncontrado.email,
-        codigo_recuperacao: codigoGerado
-      });
-      recuperacaoEncontrada = recuperacao;
-      mostrarBanner('ok', 'Um novo código foi enviado para seu e-mail.');
-    } catch(err){
-      mostrarBanner('error', 'Não foi possível enviar o código. Tente novamente.');
-    } finally {
-      linkReenviar.disabled = false;
-      linkReenviar.textContent = 'Reenviar código';
-    }
+    var r = await chamarServidor('recuperar_enviar', { email: emailInformado });
+    if(r.ok) mostrarBanner('ok', 'Um novo código foi enviado para seu e-mail.');
+    else mostrarBanner('error', r.erro || 'Não foi possível enviar o código. Tente novamente.');
+    linkReenviar.disabled = false;
+    linkReenviar.textContent = 'Reenviar código';
   });
 
   formCodigo.addEventListener('submit', async function(e){
@@ -932,30 +881,15 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
     btnVerificarCodigo.disabled = true;
     btnVerificarCodigo.textContent = 'VERIFICANDO...';
 
-    try{
-      const { data, error } = await supabaseClient
-        .from('recuperacao_senha')
-        .select('*')
-        .eq('usuario_id', usuarioEncontrado.id)
-        .eq('codigo_verificacao', codigo)
-        .eq('utilizado', false)
-        .gt('expira_em', new Date().toISOString())
-        .order('expira_em', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if(error || !data){
-        marcarErro('fieldCodigo', 'Código inválido, expirado ou já utilizado.');
-      } else {
-        recuperacaoEncontrada = data;
-        irParaEtapa('step3');
-      }
-    } catch(err){
-      mostrarBanner('error', 'Erro ao validar o código. Tente novamente.');
-    } finally {
-      btnVerificarCodigo.disabled = false;
-      btnVerificarCodigo.textContent = 'VERIFICAR CÓDIGO';
+    var r = await chamarServidor('recuperar_validar', { email: emailInformado, codigo: codigo });
+    btnVerificarCodigo.disabled = false;
+    btnVerificarCodigo.textContent = 'VERIFICAR CÓDIGO';
+    if(!r.ok){
+      marcarErro('fieldCodigo', r.erro || 'Código inválido, expirado ou já utilizado.');
+      return;
     }
+    codigoConfirmado = codigo;
+    irParaEtapa('step3');
   });
 
   document.getElementById('linkVoltarLogin').addEventListener('click', function(){
@@ -1018,37 +952,17 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
     btnSalvarSenha.disabled = true;
     btnSalvarSenha.textContent = 'SALVANDO...';
 
-    try{
-      const senhaHash = await TechSaudePassword.hash(novaSenha);
-      const { data: usuarioAtualizado, error } = await supabaseClient
-        .from('usuario')
-        .update({ senha_hash: senhaHash })
-        .eq('id', usuarioEncontrado.id)
-        .select('id')
-        .maybeSingle();
-
-      if(error || !usuarioAtualizado){
-        mostrarBanner('error', 'Não foi possível atualizar a senha. Tente novamente.');
-      } else {
-        const { error: erroToken } = await supabaseClient
-          .from('recuperacao_senha')
-          .update({ utilizado: true })
-          .eq('usuario_id', usuarioEncontrado.id)
-          .eq('codigo_verificacao', recuperacaoEncontrada.codigo_verificacao)
-          .eq('utilizado', false);
-
-        if(erroToken){
-          mostrarBanner('error', 'Senha alterada, mas não foi possível invalidar o código.');
-        } else {
-          irParaEtapa('step4');
-        }
-      }
-    } catch(erro){
-      mostrarBanner('error', 'Erro ao salvar no banco de dados.');
-    } finally {
-      btnSalvarSenha.disabled = false;
-      btnSalvarSenha.textContent = 'SALVAR NOVA SENHA';
+    var r = await chamarServidor('recuperar_trocar', { email: emailInformado, codigo: codigoConfirmado, nova: novaSenha });
+    btnSalvarSenha.disabled = false;
+    btnSalvarSenha.textContent = 'SALVAR NOVA SENHA';
+    if(!r.ok){
+      mostrarBanner('error', r.erro || 'Não foi possível atualizar a senha. Tente novamente.');
+      return;
     }
+    // Por segurança, a troca desconecta a conta de todos os aparelhos.
+    localStorage.removeItem('usuario_logado');
+    localStorage.removeItem('usuarioLogado');
+    irParaEtapa('step4');
   });
 
   // ---------- ETAPA 3: CONCLUÍDO ----------
@@ -1198,4 +1112,4 @@ emailjs.init('ZGRX2l4GdBCXXNBGE');
 </script>
 <!-- ===== FIM DO PADRÃO TECHSAÚDE ===== -->
 </body>
-</html>
+</html>

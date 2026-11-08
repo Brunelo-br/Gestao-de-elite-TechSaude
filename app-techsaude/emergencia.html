@@ -273,7 +273,8 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
 <script>
 const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
-const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+/* Segurança: cada pedido ao banco leva o token da sessão (cabeçalho x-sessao); o banco só devolve os dados desta conta. */
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { 'x-sessao': (function(){ try{ return JSON.parse(localStorage.getItem('usuario_logado') || '{}').sessao || ''; }catch(e){ return ''; } })() } } }) : null;
 function clock(){
   const n = new Date();
   const dias = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];

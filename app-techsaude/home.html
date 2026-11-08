@@ -7,7 +7,7 @@
   (function(){
     try{
       var s = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');
-      if(!s){ location.replace('index.html'); return; }
+      if(!s || !s.sessao){ location.replace('index.html'); return; }
       if(!s.termos || s.termos.pendente !== false) location.replace('sobre-o-app.html?doc=termos&de=home.html');
     }catch(e){ location.replace('index.html'); }
   })();
@@ -395,7 +395,8 @@
   // ---------- 1. CONFIGURAÇÃO SUPABASE ----------
   const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  /* Segurança: cada pedido ao banco leva o token da sessão (cabeçalho x-sessao); o banco só devolve os dados desta conta. */
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { 'x-sessao': (function(){ try{ return JSON.parse(localStorage.getItem('usuario_logado') || '{}').sessao || ''; }catch(e){ return ''; } })() } } });
 
   // ---------- 2. CONTROLE DE SESSÃO ----------
   let usuario = null;
@@ -451,8 +452,10 @@
   }
 
   // ---------- 6. LOGOUT ----------
-  function logout(){
-    // Apaga a sessão atual e a chave antiga, para nenhuma tela continuar logada.
+  async function logout(){
+    // Encerra a sessão no servidor (o token deixa de valer) e apaga a sessão e as cópias locais deste aparelho.
+    try{ await Promise.race([supabaseClient.rpc('app_sair'), new Promise(ok => setTimeout(ok, 2500))]); }catch(e){}
+    ['techsaude_consultas_v2', 'techsaude_lembretes_mostrados'].forEach(k => localStorage.removeItem(k));
     localStorage.removeItem('usuario_logado');
     localStorage.removeItem('usuarioLogado');
     window.location.href = 'index.html';

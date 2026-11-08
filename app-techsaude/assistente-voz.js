@@ -56,7 +56,8 @@
     return new Promise(function (resolve) {
       if (sb) return resolve(sb);
       function criar() {
-        try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch (e) { sb = null; }
+        /* Segurança: cada pedido ao banco leva o token da sessão (cabeçalho x-sessao); o banco só devolve os dados desta conta. */
+        try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { 'x-sessao': (function(){ try{ return JSON.parse(localStorage.getItem('usuario_logado') || '{}').sessao || ''; }catch(e){ return ''; } })() } } }); } catch (e) { sb = null; }
         resolve(sb);
       }
       if (window.supabase) return criar();

@@ -7,7 +7,7 @@
   (function(){
     try{
       var s = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');
-      if(!s){ location.replace('index.html'); return; }
+      if(!s || !s.sessao){ location.replace('index.html'); return; }
       if(!s.termos || s.termos.pendente !== false) location.replace('sobre-o-app.html?doc=termos&de=home.html');
     }catch(e){ location.replace('index.html'); }
   })();
@@ -20,7 +20,6 @@
 <script src="navegacao-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="lembretes-app.js"></script>
-<script src="password-hash.js"></script>
 
 <style>
 :root{
@@ -564,8 +563,26 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
    ===================================================================== */
 const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
-const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const BUCKET_FOTOS = 'FOTOS-PERFIL'; // mesmo bucket do cadastro (maiúsculas importam)
+/* Segurança: cada pedido ao banco leva o token da sessão (cabeçalho x-sessao); o banco só devolve os dados desta conta. */
+const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { 'x-sessao': (function(){ try{ return JSON.parse(localStorage.getItem('usuario_logado') || '{}').sessao || ''; }catch(e){ return ''; } })() } } });
+// Senha e foto passam pela função do servidor "techsaude-auth" (o navegador nunca vê o hash da senha).
+async function chamarServidor(acao, dados){
+  const r = await fetch(SUPABASE_URL + '/functions/v1/techsaude-auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY, 'x-sessao': sessao?.sessao || '' },
+    body: JSON.stringify({ acao, ...dados })
+  });
+  let corpo = {};
+  try{ corpo = await r.json(); }catch(e){}
+  if(corpo.sessao === false){ sessaoEncerrada(); }
+  if(!r.ok || !corpo.ok){ const e = new Error(corpo.erro || 'Falha no servidor'); e.mensagem = corpo.erro; e.campo = corpo.campo; throw e; }
+  return corpo;
+}
+function sessaoEncerrada(){
+  localStorage.removeItem('usuario_logado'); localStorage.removeItem('usuarioLogado');
+  try{ sessionStorage.setItem('techsaude_aviso_login', 'Sua sessão terminou. Entre de novo na sua conta.'); }catch(e){}
+  location.replace('index.html');
+}
 const PARENTESCOS = ['Filho(a)', 'Cônjuge / Companheiro(a)', 'Neto(a)', 'Irmão(ã)', 'Pai / Mãe', 'Sobrinho(a)', 'Genro / Nora', 'Amigo(a)', 'Vizinho(a)', 'Cuidador(a)', 'Outro'];
 const MAX_CONTATOS = 3;
 const AVATARES = [
@@ -817,11 +834,7 @@ async function salvarCampo(ev){
   if((usuario?.[c.coluna] || null) === novo){ fechar('popup-campo'); return; }
   ocupado(botao, true);
   try{
-    if(campoAtual === 'email'){
-      const { data: outro, error: e1 } = await supabaseClient.from('usuario').select('id').eq('email', novo).neq('id', usuario.id).limit(1);
-      if(e1) throw e1;
-      if(outro?.length){ erroEl.textContent = 'Este e-mail já está em uso por outra conta.'; return; }
-    }
+    // E-mail repetido: o banco recusa (regra de e-mail único) e o aviso aparece abaixo.
     const { data, error } = await supabaseClient.from('usuario').update({ [c.coluna]: novo }).eq('id', usuario.id).select('id, ' + c.coluna).single();
     if(error) throw error;
     usuario[c.coluna] = data[c.coluna];
@@ -1003,17 +1016,14 @@ async function salvarSenha(ev){
   erroEl.textContent = '';
   ocupado(botao, true);
   try{
-    const { data, error } = await supabaseClient.from('usuario').select('senha_hash').eq('id', usuario.id).single();
-    if(error) throw error;
-    if(!await TechSaudePassword.verify(atual, data.senha_hash)) return falta('A senha atual está incorreta.', 'sn-atual');
-    const hash = await TechSaudePassword.hash(nova);
-    const up = await supabaseClient.from('usuario').update({ senha_hash: hash }).eq('id', usuario.id).select('id').single();
-    if(up.error) throw up.error;
+    // O servidor confere a senha atual, limita tentativas erradas e desconecta os outros aparelhos.
+    await chamarServidor('alterar_senha', { atual, nova });
     fechar('popup-senha');
-    toast('✅ Senha alterada! Use a nova senha no próximo login.');
+    toast('✅ Senha alterada! Os outros aparelhos precisarão entrar de novo.');
   }catch(erro){
     console.error('Erro ao alterar senha:', erro);
-    erroEl.textContent = mensagemErro(erro, 'Não foi possível alterar a senha. Tente de novo.');
+    if(erro.mensagem){ erroEl.textContent = erro.mensagem; if(erro.campo) $('sn-' + erro.campo)?.focus(); }
+    else erroEl.textContent = mensagemErro(erro, 'Não foi possível alterar a senha. Tente de novo.');
   }finally{ ocupado(botao, false); }
 }
 
@@ -1037,11 +1047,11 @@ function voltarMenuFoto(){
   $('ft-menu').hidden = false; $('ft-camera').hidden = true;
   previaFoto(usuario?.foto_perfil_url);
 }
-async function salvarFotoUrl(url, msg){
-  const { data, error } = await supabaseClient.from('usuario').update({ foto_perfil_url: url }).eq('id', usuario.id).select('id, foto_perfil_url').single();
-  if(error) throw error;
-  usuario.foto_perfil_url = data.foto_perfil_url;
-  atualizarSessao({ foto_perfil_url: data.foto_perfil_url });
+// A foto (arquivo, avatar ou remoção) é gravada pelo servidor, que também apaga o arquivo antigo.
+async function salvarFoto(acao, dados, msg){
+  const r = await chamarServidor(acao, dados);
+  usuario.foto_perfil_url = r.foto_perfil_url;
+  atualizarSessao({ foto_perfil_url: r.foto_perfil_url });
   desenhar();
   fechar('popup-foto');
   toast(msg);
@@ -1053,16 +1063,14 @@ function mostrandoSalvando(sim){
 }
 async function escolherAvatar(url){
   mostrandoSalvando(true);
-  try{ await salvarFotoUrl(url, '✅ Avatar salvo!'); }
-  catch(erro){ console.error('Erro ao salvar avatar:', erro); $('ft-erro').textContent = mensagemErro(erro, 'Não foi possível salvar o avatar.'); }
+  try{ await salvarFoto('foto_avatar', { avatar: url }, '✅ Avatar salvo!'); }
+  catch(erro){ console.error('Erro ao salvar avatar:', erro); $('ft-erro').textContent = erro.mensagem || mensagemErro(erro, 'Não foi possível salvar o avatar.'); }
   finally{ mostrandoSalvando(false); }
 }
 async function removerFoto(){
   mostrandoSalvando(true);
-  try{
-    await salvarFotoUrl(null, 'Foto removida.');
-    supabaseClient.storage.from(BUCKET_FOTOS).remove([soDigitos(usuario.cpf) + '/perfil.jpg']).catch(() => {});
-  }catch(erro){ console.error('Erro ao remover foto:', erro); $('ft-erro').textContent = mensagemErro(erro, 'Não foi possível remover a foto.'); }
+  try{ await salvarFoto('foto_remover', {}, 'Foto removida.'); }
+  catch(erro){ console.error('Erro ao remover foto:', erro); $('ft-erro').textContent = erro.mensagem || mensagemErro(erro, 'Não foi possível remover a foto.'); }
   finally{ mostrandoSalvando(false); }
 }
 // Corta no centro (quadrado), reduz para 600 px e converte em JPEG.
@@ -1074,7 +1082,6 @@ function recortarQuadrado(origem, largura, altura, espelhar){
   ctx.drawImage(origem, (largura - lado) / 2, (altura - lado) / 2, lado, lado, 0, 0, final, final);
   return canvas;
 }
-function canvasParaBlob(canvas){ return new Promise((ok, falha) => canvas.toBlob(b => b ? ok(b) : falha(new Error('Falha ao processar a imagem.')), 'image/jpeg', .85)); }
 function arquivoParaCanvas(arquivo){
   return new Promise((ok, falha) => {
     const url = URL.createObjectURL(arquivo), img = new Image();
@@ -1086,16 +1093,11 @@ function arquivoParaCanvas(arquivo){
 async function enviarFoto(canvas){
   mostrandoSalvando(true);
   try{
-    const blob = await canvasParaBlob(canvas);
-    const caminho = soDigitos(usuario.cpf) + '/perfil.jpg';
-    const storage = supabaseClient.storage.from(BUCKET_FOTOS);
-    const { error } = await storage.upload(caminho, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '0' });
-    if(error) throw error;
-    const url = storage.getPublicUrl(caminho).data.publicUrl + '?v=' + Date.now(); // ?v= evita mostrar a foto antiga guardada em cache
-    await salvarFotoUrl(url, '✅ Foto salva!');
+    const imagem = canvas.toDataURL('image/jpeg', .85).split(',')[1];
+    await salvarFoto('foto', { imagem }, '✅ Foto salva!');
   }catch(erro){
     console.error('Erro ao enviar foto:', erro);
-    $('ft-erro').textContent = mensagemErro(erro, 'Não foi possível salvar a foto. Tente de novo.');
+    $('ft-erro').textContent = erro.mensagem || mensagemErro(erro, 'Não foi possível salvar a foto. Tente de novo.');
   }finally{ mostrandoSalvando(false); }
 }
 async function receberArquivo(e){
@@ -1181,7 +1183,10 @@ window.addEventListener('message', ev => {
 });
 
 /* ---------- sair ---------- */
-function sairDaConta(){
+async function sairDaConta(){
+  // Encerra a sessão também no servidor (o token deixa de valer em qualquer lugar).
+  try{ await Promise.race([supabaseClient.rpc('app_sair'), new Promise(ok => setTimeout(ok, 2500))]); }catch(e){}
+  ['techsaude_consultas_v2', 'techsaude_lembretes_mostrados'].forEach(k => localStorage.removeItem(k));
   localStorage.removeItem('usuario_logado');
   localStorage.removeItem('usuarioLogado');
   location.href = 'index.html';

@@ -6,8 +6,6 @@
 <title>TechSaúde</title>
 
 <!-- BIBLIOTECA DO SUPABASE JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="password-hash.js"></script>
 
 <style>
   :root{
@@ -842,7 +840,22 @@
   // Cole a sua chave publishable completa que você copiou do Supabase abaixo:
   const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
 
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Segurança: login, cadastro e foto passam pela função do servidor "techsaude-auth".
+  // A senha é conferida lá; o navegador nunca recebe o hash da senha nem os dados de outras contas.
+  async function chamarServidor(acao, dados){
+    let resposta;
+    try {
+      resposta = await fetch(SUPABASE_URL + '/functions/v1/techsaude-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY },
+        body: JSON.stringify({ acao, ...dados })
+      });
+    } catch(erro) {
+      return { ok: false, semInternet: true, erro: 'Sem conexão com a internet. Confira e tente de novo.' };
+    }
+    try { return { status: resposta.status, ...(await resposta.json()) }; }
+    catch(erro) { return { ok: false, status: resposta.status, erro: 'Não foi possível concluir agora. Tente de novo.' }; }
+  }
 
   // ---------- 2. NAVEGAÇÃO ENTRE TELAS ----------
   function goTo(name){
@@ -1001,15 +1014,14 @@
     });
   }
 
-  // Envia a foto para o Storage do Supabase (bucket "FOTOS-PERFIL") e devolve a URL pública.
-  async function uploadFotoPerfil(cpf, blob){
-    const caminho = `${cpf}/perfil.jpg`;
-    const { error } = await supabaseClient.storage
-      .from('FOTOS-PERFIL')
-      .upload(caminho, blob, { upsert: true, contentType: 'image/jpeg', cacheControl: '0' }); // '0' = sem cache, a troca de foto aparece na hora
-    if(error) throw error;
-    const { data } = supabaseClient.storage.from('FOTOS-PERFIL').getPublicUrl(caminho);
-    return data.publicUrl + '?v=' + Date.now(); // ?v= evita mostrar foto antiga em cache
+  // A foto vai junto com o cadastro (em base64) e o servidor grava no Storage com um nome aleatório.
+  function blobParaBase64(blob){
+    return new Promise((resolve, reject) => {
+      const leitor = new FileReader();
+      leitor.onload = () => resolve(String(leitor.result).split(',')[1]);
+      leitor.onerror = () => reject(leitor.error);
+      leitor.readAsDataURL(blob);
+    });
   }
 
   document.getElementById('c-foto').addEventListener('change', async function(e){
@@ -1310,17 +1322,8 @@
 
   // Antes de sair da etapa 1, confere se o CPF ou e-mail já têm conta (evita preencher tudo à toa).
   async function cpfOuEmailJaCadastrado(cpf, email){
-    try {
-      const { data, error } = await supabaseClient
-        .from('usuario')
-        .select('cpf, email')
-        .or(`email.eq.${email},cpf.eq.${cpf}`)
-        .limit(1);
-      if(error || !data || !data.length) return null;
-      return data[0].cpf === cpf ? 'cpf' : 'email';
-    } catch(error) {
-      return null; // sem conexão: segue e o banco confere no final
-    }
+    const r = await chamarServidor('verificar_cadastro', { cpf, email });
+    return r.ok ? r.existe : null; // sem conexão: segue e o servidor confere no final
   }
 
   document.getElementById('cad-proximo-1').addEventListener('click', async function(){
@@ -1385,88 +1388,29 @@
       estado: valor('c-estado').toUpperCase()
     };
 
-    let senhaHash;
-    try {
-      senhaHash = await TechSaudePassword.hash(senha);
-    } catch(error) {
-      showMsg('cadastro-msg', 'Não foi possível proteger a senha neste navegador.', 'error');
-      return;
-    }
-
     const botoes = document.querySelectorAll('#cad-etapa-3 button');
     botoes.forEach(b => b.disabled = true);
     showMsg('cadastro-msg', 'Cadastrando no banco de dados...', 'ok');
     document.getElementById('cadastro-msg').scrollIntoView({ block: 'center' });
 
-    // 1) Dados principais na tabela usuario
-    const { data: usuarioCriado, error } = await supabaseClient
-      .from('usuario')
-      .insert([{
-        nome_completo: nome,
-        cpf: cpf,
-        rg: rg || null,
-        data_nascimento: dataParaISO(nasc.data),
-        telefone: telefone,
-        email: email,
-        senha_hash: senhaHash
-      }])
-      .select('id')
-      .single();
-
-    if(error){
+    let foto = null;
+    if(fotoSelecionada){
+      try { foto = await blobParaBase64(fotoSelecionada); } catch(erro) { foto = null; }
+    }
+    // O servidor confere tudo de novo, cria a conta (senha protegida lá) e grava endereço, contatos e foto.
+    const r = await chamarServidor('cadastro', {
+      nome, cpf, rg, email, telefone, senha,
+      data_nascimento: dataParaISO(nasc.data),
+      endereco,
+      contatos: contatos.map(c => ({ nome: c.nome, parentesco: c.parentesco, telefone: c.telefone, email: c.email })),
+      foto
+    });
+    if(!r.ok){
       botoes.forEach(b => b.disabled = false);
-      if(error.code === '23505'){
-        showMsg('cadastro-msg', 'E-mail ou CPF já cadastrado no sistema.', 'error');
-      } else if(/data_nascimento/.test(error.message || '')){
-        showMsg('cadastro-msg', 'O banco ainda não tem o campo de data de nascimento. Rode o arquivo SQL da pasta "banco" no Supabase.', 'error');
-      } else {
-        showMsg('cadastro-msg', 'Erro ao cadastrar: ' + error.message, 'error');
-      }
+      showMsg('cadastro-msg', r.erro || 'Não foi possível cadastrar agora. Tente de novo.', 'error');
       return;
     }
-
-    // 2) Foto, endereço e contatos. Se algum falhar, a conta já existe e o usuário completa depois.
-    const naoSalvos = [];
-
-    if(fotoSelecionada){
-      try {
-        const urlFoto = await uploadFotoPerfil(cpf, fotoSelecionada);
-        const { error: erroFoto } = await supabaseClient
-          .from('usuario')
-          .update({ foto_perfil_url: urlFoto })
-          .eq('cpf', cpf);
-        if(erroFoto) throw erroFoto;
-      } catch(erroFoto) {
-        console.error('Erro ao salvar a foto:', erroFoto);
-        naoSalvos.push('a foto');
-      }
-    }
-
-    const { error: erroEndereco } = await supabaseClient
-      .from('endereco')
-      .upsert({ usuario_id: usuarioCriado.id, ...endereco }, { onConflict: 'usuario_id' });
-    if(erroEndereco){
-      console.error('Erro ao salvar o endereço:', erroEndereco);
-      naoSalvos.push('o endereço');
-    }
-
-    if(contatos.length){
-      const idUsuario = usuarioCriado && usuarioCriado.id;
-      const { error: erroContatos } = idUsuario
-        ? await supabaseClient.from('contato_emergencia').insert(contatos.map(c => ({
-            usuario_id: idUsuario,
-            nome_contato: c.nome,
-            grau_parentesco: c.parentesco,
-            telefone: c.telefone,
-            email: c.email,
-            ordem: c.ordem
-          })))
-        : { error: new Error('id do usuário não retornado') };
-      if(erroContatos){
-        console.error('Erro ao salvar os contatos de emergência:', erroContatos);
-        naoSalvos.push('os contatos de emergência');
-      }
-    }
+    const naoSalvos = r.naoSalvos || [];
 
     if(naoSalvos.length){
       showMsg('cadastro-msg', 'Conta criada, mas não foi possível salvar ' + naoSalvos.join(', ').replace(/, ([^,]*)$/, ' e $1') + '. Redirecionando para o login...', 'error');
@@ -1491,27 +1435,8 @@
   }
 
   // ---------- 7. LOGIN REAL NO SUPABASE ----------
-  // Termos de Uso: confere no banco se esta conta já aceitou a versão vigente.
+  // Termos de Uso: o servidor devolve no login se esta conta já aceitou a versão vigente.
   // Enquanto não aceitar, os Termos abrem em todo login (em qualquer aparelho).
-  async function situacaoTermos(usuarioId){
-    const { data: vigentes, error } = await supabaseClient
-      .from('termos_versao')
-      .select('id, versao')
-      .eq('vigente', true)
-      .order('publicada_em', { ascending: false })
-      .limit(1);
-    if(error) throw error;
-    const vigente = vigentes && vigentes[0];
-    if(!vigente) return { pendente: false, versao_id: null, versao: null }; // nenhuma versão publicada
-    const { data: aceites, error: erroAceite } = await supabaseClient
-      .from('aceite_termos')
-      .select('id')
-      .eq('usuario_id', usuarioId)
-      .eq('versao_id', vigente.id)
-      .limit(1);
-    if(erroAceite) throw erroAceite;
-    return { pendente: !(aceites && aceites.length), versao_id: vigente.id, versao: vigente.versao };
-  }
 
   document.getElementById('form-login').addEventListener('submit', async function(e){
     e.preventDefault();
@@ -1533,84 +1458,17 @@
 
     showMsg('login-msg', 'Verificando credenciais...', 'ok');
 
-    // Busca pelo campo certo: e-mail OU CPF (nunca os dois juntos).
-    // O CPF é procurado só com números e também com pontos/traço, para cobrir
-    // cadastros antigos que gravaram o CPF formatado.
-    const usandoEmail = user.includes('@');
-    let consulta = supabaseClient.from('usuario').select('*');
-    consulta = usandoEmail
-      ? consulta.eq('email', user)
-      : consulta.in('cpf', [rawDigits, formatarCPF(rawDigits)]);
-    const { data: encontrados, error } = await consulta.order('id', { ascending: false }).limit(10);
-
-    if(error){
-      console.error('Erro ao buscar o usuário no login:', error);
-      showMsg('login-msg', 'Não foi possível entrar agora. Verifique a internet e tente de novo.', 'error');
-      return;
-    }
-    // Mesma mensagem para usuário inexistente e senha errada: não revela qual dos dois está errado.
-    if(!encontrados || !encontrados.length){
-      showMsg('login-msg', 'Usuário ou senha incorretos. Verifique e tente novamente.', 'error');
-      return;
-    }
-    if(encontrados.length > 1){
-      console.warn('Login: ' + encontrados.length + ' cadastros com o mesmo ' + (usandoEmail ? 'e-mail' : 'CPF') + ' (ids ' + encontrados.map(u => u.id).join(', ') + '). Conferir duplicados na tabela usuario.');
-    }
-
-    // Confere a senha em cada cadastro encontrado (o mais recente primeiro).
-    let data = null;
-    try {
-      for(const candidato of encontrados){
-        if(await TechSaudePassword.verify(senha, candidato.senha_hash)){ data = candidato; break; }
-      }
-    } catch(error) {
-      showMsg('login-msg', 'Não foi possível validar a senha neste navegador.', 'error');
-      return;
-    }
-    const senhaValida = Boolean(data);
-    if(!data) data = encontrados[0];
-
-    if(!senhaValida){
-      await supabaseClient.from('log_autenticacao').insert([{
-        usuario_id: data.id,
-        identificador_usado: user,
-        sucesso: false
-      }]);
-      showMsg('login-msg', 'Usuário ou senha incorretos. Verifique e tente novamente.', 'error');
+    // A senha é conferida no servidor, que também limita tentativas erradas e registra o acesso.
+    const r = await chamarServidor('login', { identificador: user, senha });
+    if(!r.ok){
+      showMsg('login-msg', r.erro || 'Não foi possível entrar agora. Tente de novo.', 'error');
       return;
     }
 
-    // Atualiza senhas em texto puro ou com hash antigo (menos repetições) para o padrão atual.
-    if(TechSaudePassword.needsRehash(data.senha_hash)){
-      try {
-        const senhaHash = await TechSaudePassword.hash(senha);
-        const { error: erroMigracao } = await supabaseClient
-          .from('usuario')
-          .update({ senha_hash: senhaHash })
-          .eq('id', data.id);
-        if(erroMigracao) console.error('Não foi possível migrar o hash da senha:', erroMigracao);
-        else data.senha_hash = senhaHash;
-      } catch(error) {
-        console.error('Não foi possível migrar o hash da senha:', error);
-      }
-    }
-
-    // Grava log de autenticação
-    await supabaseClient.from('log_autenticacao').insert([{
-      usuario_id: data.id,
-      identificador_usado: user,
-      sucesso: true
-    }]);
-
-    const usuarioSessao = { ...data };
-    delete usuarioSessao.senha_hash;
-    // Se não der para conferir agora, os Termos abrem e a tela deles confere de novo.
-    usuarioSessao.termos = { pendente: true, versao_id: null, versao: null };
-    try {
-      usuarioSessao.termos = await situacaoTermos(data.id);
-    } catch(error) {
-      console.error('Não foi possível verificar o aceite dos Termos de Uso:', error);
-    }
+    // Sessão no aparelho: dados básicos + token (vale 90 dias ou até sair/trocar a senha).
+    const usuarioSessao = { ...r.usuario, sessao: r.sessao, termos: r.termos };
+    // Limpa cópias locais de outra conta que usou este aparelho antes.
+    ['techsaude_consultas_v2', 'techsaude_lembretes_mostrados'].forEach(k => localStorage.removeItem(k));
     localStorage.removeItem('usuarioLogado'); // chave antiga
     localStorage.setItem('usuario_logado', JSON.stringify(usuarioSessao));
     window.location.href = usuarioSessao.termos.pendente ? 'sobre-o-app.html?doc=termos&de=home.html' : 'home.html';
@@ -1620,6 +1478,13 @@
     document.getElementById('form-login').reset();
     goTo('welcome');
   }
+
+  // Sessão encerrada (troca de senha em outro aparelho, recuperação ou 90 dias): abre o login com o aviso.
+  (function(){
+    let aviso = null;
+    try { aviso = sessionStorage.getItem('techsaude_aviso_login'); sessionStorage.removeItem('techsaude_aviso_login'); } catch(e) {}
+    if(aviso){ goTo('login'); showMsg('login-msg', aviso, 'error'); }
+  })();
 
 </script>
 

@@ -7,7 +7,7 @@
   (function(){
     try{
       var s = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');
-      if(!s){ location.replace('index.html'); return; }
+      if(!s || !s.sessao){ location.replace('index.html'); return; }
       if(!s.termos || s.termos.pendente !== false) location.replace('sobre-o-app.html?doc=termos&de=home.html');
     }catch(e){ location.replace('index.html'); }
   })();

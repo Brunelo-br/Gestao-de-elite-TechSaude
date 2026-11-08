@@ -7,7 +7,7 @@
   (function(){
     try{
       var s = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');
-      if(!s){ location.replace('index.html'); return; }
+      if(!s || !s.sessao){ location.replace('index.html'); return; }
       if(!s.termos || s.termos.pendente !== false) location.replace('sobre-o-app.html?doc=termos&de=home.html');
     }catch(e){ location.replace('index.html'); }
   })();
@@ -503,7 +503,8 @@ let viewYear, viewMonth, selectedISO = null, excluirId = null;
 const EXEMPLOS_ANTIGOS = ['1|Consulta com Dr. Silva|2026-03-02','2|Tomar Remédio (Pílula)|2026-03-02','3|Aniversário da Ana|2026-03-03','4|Retorno cardiologia|2026-03-10','5|Tomar Remédio (Pílula)|2026-03-15'];
 const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
-const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+/* Segurança: cada pedido ao banco leva o token da sessão (cabeçalho x-sessao); o banco só devolve os dados desta conta. */
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { 'x-sessao': (function(){ try{ return JSON.parse(localStorage.getItem('usuario_logado') || '{}').sessao || ''; }catch(e){ return ''; } })() } } }) : null;
 function idUsuario(){
   try{
     let u = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');

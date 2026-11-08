@@ -381,7 +381,8 @@
   var SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
   var SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
   var supabaseClient = null;
-  try{ if(window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }catch(e){ console.error('Supabase não iniciou:', e); }
+  /* Segurança: cada pedido ao banco leva o token da sessão (cabeçalho x-sessao); o banco só devolve os dados desta conta. */
+  try{ if(window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { 'x-sessao': (function(){ try{ return JSON.parse(localStorage.getItem('usuario_logado') || '{}').sessao || ''; }catch(e){ return ''; } })() } } }); }catch(e){ console.error('Supabase não iniciou:', e); }
 
   function obterIdUsuario(){
     // Sessão gravada pelo login (index.html) em "usuario_logado". As outras chaves são de versões antigas.

@@ -86,9 +86,14 @@
     return isNaN(d) ? null : d;
   }
 
+  // Token da sessão criado no login: o banco só devolve os dados da conta dona do token.
+  function tokenSessao(){
+    try{ var u = JSON.parse(localStorage.getItem('usuario_logado') || '{}'); return (u && u.sessao) || ''; }catch(e){ return ''; }
+  }
+
   function rest(caminho, opcoes){
     opcoes = opcoes || {};
-    var headers = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
+    var headers = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'x-sessao': tokenSessao() };
     return fetch(SUPABASE_URL + '/rest/v1/' + caminho, { method: opcoes.method || 'GET', headers: headers, body: opcoes.body ? JSON.stringify(opcoes.body) : undefined })
       .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.status === 204 ? null : r.json(); });
   }
@@ -358,7 +363,23 @@
     motivoSemNotificacao: motivoSemNotificacao
   };
 
+  // ---------- sessão vencida ou encerrada em outro aparelho ----------
+  // Ao abrir qualquer tela, confere no banco se a sessão ainda vale. Se não valer (troca de senha,
+  // recuperação de senha ou 90 dias sem entrar), volta para a entrada. Sem internet, não faz nada.
+  function conferirSessao(){
+    if(!tokenSessao() || !window.fetch) return;
+    rest('rpc/app_sessao_valida', { method: 'POST', body: {} }).then(function(valida){
+      if(valida !== false) return;
+      localStorage.removeItem('usuario_logado');
+      localStorage.removeItem('usuarioLogado');
+      try{ sessionStorage.setItem('techsaude_aviso_login', 'Sua sessão terminou. Entre de novo na sua conta.'); }catch(e){}
+      var pagina = location.pathname.split('/').pop();
+      if(pagina !== 'emergencia.html' && pagina !== 'hospitais.html') location.replace('index.html');
+    }).catch(function(){ /* sem internet: segue com a sessão do aparelho */ });
+  }
+
   function iniciar(){
+    conferirSessao();
     if(!usuarioId()) return;
     verificar();
     setInterval(verificar, INTERVALO_VERIFICACAO);
