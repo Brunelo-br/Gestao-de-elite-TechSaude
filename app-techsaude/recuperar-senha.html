@@ -360,6 +360,57 @@
     width:100%;
   }
 
+  /* E-mail para onde o código foi enviado (etapa 2) */
+  .email-enviado{
+    margin:0 0 18px;
+    padding:14px 16px;
+    border:2px solid var(--line);
+    border-radius:16px;
+    background:#fffdf4;
+  }
+  .email-enviado .rotulo{
+    margin:0 0 4px;
+    font-size:.8125rem;
+    font-weight:800;
+    letter-spacing:.4px;
+    text-transform:uppercase;
+    color:var(--text-soft);
+  }
+  .email-enviado .valor{
+    margin:0 0 12px;
+    font-size:1.125rem;
+    font-weight:800;
+    color:var(--forest);
+    overflow-wrap:anywhere;
+  }
+  .btn-secundario{
+    display:block;
+    width:100%;
+    min-height:48px;
+    padding:10px 16px;
+    border:2px solid var(--forest);
+    border-radius:999px;
+    background:#fff;
+    color:var(--forest);
+    font:inherit;
+    font-weight:800;
+    font-size:.9375rem;
+    cursor:pointer;
+  }
+  .btn-secundario:hover{ background:var(--cream); }
+  .btn-secundario:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+  .nao-chegou{
+    margin:18px 0 0;
+    padding:12px 14px;
+    border-radius:14px;
+    background:var(--cream);
+    font-size:.875rem;
+    line-height:1.5;
+    color:var(--text-soft);
+  }
+  .nao-chegou strong{ color:var(--text); }
+  .nao-chegou ul{ margin:6px 0 0; padding-left:20px; }
+
   .link-secundario:disabled{
     opacity:0.5;
     cursor:default;
@@ -622,7 +673,13 @@
       <div class="step" id="step2">
         <p class="stepper">Etapa 2 de 3</p>
         <h1>VERIFICAR CÓDIGO</h1>
-        <p class="subtitle">Digite o código de 6 dígitos enviado para confirmar sua identidade.</p>
+        <p class="subtitle">Digite o código de 6 números que enviamos para o seu e-mail.</p>
+
+        <div class="email-enviado">
+          <p class="rotulo">E-mail informado</p>
+          <p class="valor" id="emailEnviado">...</p>
+          <button type="button" class="btn-secundario" id="btnCorrigirEmail">✏️ Corrigir o e-mail</button>
+        </div>
 
         <form id="formCodigo" novalidate>
           <div class="field" id="fieldCodigo">
@@ -645,7 +702,18 @@
           <button type="submit" class="btn-primary" id="btnVerificarCodigo">VERIFICAR CÓDIGO</button>
         </form>
 
+        <div class="nao-chegou">
+          <strong>O código não chegou?</strong>
+          <ul>
+            <li>Confira se o e-mail acima está certo. Se estiver errado, toque em <strong>Corrigir o e-mail</strong>.</li>
+            <li>Procure na caixa de <strong>spam</strong> ou <strong>lixo eletrônico</strong>.</li>
+            <li>Espere 1 ou 2 minutos e toque em <strong>Reenviar código</strong>.</li>
+            <li>Se este e-mail não tiver conta no TechSaúde, nenhum código é enviado. Tente outro e-mail ou crie uma conta.</li>
+          </ul>
+        </div>
+
         <button type="button" class="link-secundario" id="linkReenviar">Reenviar código</button>
+        <button type="button" class="link-secundario" id="linkVoltarLogin2">Voltar para Login</button>
       </div>
 
       <!-- ETAPA 3: NOVA SENHA -->
@@ -705,6 +773,8 @@
 
           <button type="submit" class="btn-primary" id="btnSalvarSenha">SALVAR NOVA SENHA</button>
         </form>
+
+        <button type="button" class="link-secundario" id="linkVoltarLogin3">Cancelar e voltar para Login</button>
       </div>
 
       <!-- ETAPA 3: SUCESSO -->
@@ -844,6 +914,9 @@ async function chamarServidor(acao, dados){
     // A resposta é a mesma com ou sem conta, para não revelar quais e-mails estão cadastrados.
     emailInformado = termo.toLowerCase();
     document.getElementById('emailConfirmacao').textContent = emailInformado;
+    document.getElementById('emailEnviado').textContent = emailInformado;
+    document.getElementById('inputCodigo').value = '';
+    limparErro('fieldCodigo');
     irParaEtapa('step2');
     mostrarBanner('ok', 'Se este e-mail tiver uma conta, enviamos um código de 6 números. Confira também a caixa de spam.');
   });
@@ -892,8 +965,19 @@ async function chamarServidor(acao, dados){
     irParaEtapa('step3');
   });
 
-  document.getElementById('linkVoltarLogin').addEventListener('click', function(){
-    window.location.href = 'index.html';
+  ['linkVoltarLogin', 'linkVoltarLogin2', 'linkVoltarLogin3'].forEach(function(id){
+    document.getElementById(id).addEventListener('click', function(){
+      window.location.href = 'index.html';
+    });
+  });
+
+  // Etapa 2 -> Etapa 1: volta com o e-mail preenchido para a pessoa conferir e corrigir.
+  document.getElementById('btnCorrigirEmail').addEventListener('click', function(){
+    var campo = document.getElementById('inputEmail');
+    campo.value = emailInformado;
+    irParaEtapa('step1');
+    campo.focus();
+    campo.select();
   });
 
   // ---------- ETAPA 2: ATUALIZAR SENHA NO BANCO ----------
@@ -1003,7 +1087,8 @@ async function chamarServidor(acao, dados){
         'Abra seu e-mail e procure a mensagem do TechSaúde (veja também a caixa de spam).',
         'Digite os <b>6 números</b> do código no campo.',
         'Toque em <b>Verificar Código</b>.',
-        'Não chegou? Toque em <b>Reenviar código</b>.'
+        'Confira o <b>e-mail informado</b>. Se estiver errado, toque em <b>Corrigir o e-mail</b>.',
+        'Não chegou? Veja o spam, espere 1 ou 2 minutos e toque em <b>Reenviar código</b>.'
       ]
     },
     {
