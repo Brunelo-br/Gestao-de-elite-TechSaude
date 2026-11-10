@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<script>
+  /* Sessão e Termos: sem login volta para a entrada; com Termos de Uso pendentes, abre os Termos antes de tudo. */
+  (function(){
+    try{
+      var s = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null');
+      if(!s || !s.sessao){ location.replace('index.html'); return; }
+      if(!s.termos || s.termos.pendente !== false) location.replace('sobre-o-app.html?doc=termos&de=home.html');
+    }catch(e){ location.replace('index.html'); }
+  })();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSaúde — Configurações e Perfil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="navegacao-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="lembretes-app.js"></script>
+
+<style>
+:root{
+  --cream:#f3efdc; --cream-deep:#ece5c9; --ink:#16301f; --ink-soft:#2e4a37;
+  --green-deep:#1b3a26; --green-mid:#2f6b46; --teal:#2f9e8f; --line:#cdbf95;
+  --text:#26332a; --text-soft:#55604f; --danger:#c0392b; --error:#a3402c;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{min-height:100vh;background:var(--cream);font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;color:var(--text);display:flex;flex-direction:column;}
+input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;}
+h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
+.wrap{flex:1;min-height:100vh;display:flex;flex-direction:column;background:var(--cream);}
+
+/* TOPBAR */
+.topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;padding:18px 14px 14px;background:linear-gradient(160deg,#1d5b3a,#123a26);}
+.topbar-spacer{width:60px;}
+.logo-center{grid-column:2;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:2px;}
+.logo-mark{width:200px;height:200px;object-fit:contain;}
+.topbar-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;color:var(--cream);text-decoration:none;font-size:0.64rem;font-weight:800;letter-spacing:0.3px;text-transform:uppercase;padding:2px;width:60px;}
+.topbar-btn .icon-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.topbar-btn.emergencia .icon-circle{background:#c0392b;}
+.topbar-btn.inicio .icon-circle{background:rgba(255,255,255,0.16);}
+.topbar-btn.voltar .icon-circle{background:rgba(255,255,255,0.16);}
+.topbar-right{grid-column:3;justify-self:end;display:flex;align-items:flex-start;gap:6px;}
+.topbar-btn svg{width:20px;height:20px;color:#fff;}
+.topbar-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+@media (max-width:480px){.topbar{padding:14px 8px 12px;}.logo-mark{width:120px;height:120px;}.topbar-btn{width:50px;}}
+.datetime{padding:9px 18px;font-size:0.85rem;color:var(--text-soft);background:var(--cream);border-bottom:1px solid var(--line);}
+.main-content{flex:1;padding:16px 16px 32px;}
+
+/* TÍTULOS */
+.page-title{margin:2px 0 6px;font-size:1.3rem;text-align:center;letter-spacing:.3px;line-height:1.25;}
+.page-title.danger{color:var(--danger);}
+.page-sub{margin:0 0 16px;text-align:center;color:var(--text-soft);font-size:.9rem;line-height:1.45;font-weight:600;}
+
+/* BOTÕES */
+.btn-block{display:block;width:100%;text-align:center;text-decoration:none;border:none;border-radius:999px;padding:.9rem 1rem;cursor:pointer;font-weight:800;font-size:.9rem;text-transform:uppercase;letter-spacing:.3px;color:var(--cream);background:linear-gradient(180deg,#234a34,var(--green-deep));box-shadow:0 4px 0 #0e2416;margin-bottom:4px;}
+.btn-block:active{transform:translateY(3px);box-shadow:0 1px 0 #0e2416;}
+.btn-block.danger{background:linear-gradient(180deg,#d04a3b,var(--danger));box-shadow:0 4px 0 #7f241b;color:#fff;}
+.btn-block.danger:active{box-shadow:0 1px 0 #7f241b;}
+.btn-block.on{background:linear-gradient(180deg,#3bb3a3,var(--teal));box-shadow:0 4px 0 #1f6f64;}
+.btn-block:disabled{opacity:.45;cursor:not-allowed;}
+.btn-block:focus-visible,.btn-ghost:focus-visible,.btn-sm:focus-visible,.chip:focus-within{outline:3px solid var(--teal);outline-offset:2px;}
+.btn-ghost{display:block;width:100%;margin-top:10px;text-align:center;text-decoration:none;border:2px solid var(--line);background:#fff;color:var(--green-deep);border-radius:999px;padding:.8rem;font-weight:800;font-size:.85rem;text-transform:uppercase;letter-spacing:.3px;cursor:pointer;}
+.btn-ghost:hover{border-color:var(--teal);}
+.btn-sm{border-radius:999px;padding:.4rem .8rem;font-size:.7rem;font-weight:800;text-transform:uppercase;cursor:pointer;background:#fff;}
+.btn-sm.outline{border:2px solid var(--green-mid);color:var(--green-mid);}
+.btn-sm.danger{border:2px solid var(--danger);color:var(--danger);}
+
+/* CARDS, ABAS, FORMULÁRIOS */
+.card{background:var(--cream-deep);border:2px solid var(--line);border-radius:20px;padding:14px;}
+.card h2,.card h3{margin:0 0 .4rem;color:var(--green-deep);}
+.card p{line-height:1.45;}
+.list{display:flex;flex-direction:column;gap:12px;}
+.empty{text-align:center;color:var(--text-soft);font-size:.9rem;padding:1.4rem .8rem;background:var(--cream-deep);border:2px dashed var(--line);border-radius:16px;font-weight:600;}
+.tabs,.nav-row{display:flex;gap:8px;margin-bottom:14px;}
+.tabs button,.nav-row button{flex:1;border:2px solid var(--green-deep);background:#fff;color:var(--green-deep);border-radius:999px;padding:.7rem .5rem;font-weight:800;text-transform:uppercase;cursor:pointer;font-size:.75rem;}
+.tabs button.on,.tabs button.active,.nav-row button.on,.nav-row button.active{background:var(--green-deep);color:var(--cream);}
+.form-group{margin-bottom:.8rem;}
+.field-label{display:block;margin-bottom:.35rem;font-size:.72rem;font-weight:800;color:var(--green-deep);text-transform:uppercase;letter-spacing:.4px;}
+.form-field{display:flex;align-items:center;gap:.6rem;background:#fff;padding:.75rem .9rem;border-radius:14px;border:2px solid var(--line);}
+.form-field:focus-within{border-color:var(--teal);}
+.form-field input,.form-field select,.form-field textarea{flex:1;border:none;background:transparent;font-size:.95rem;font-weight:600;color:var(--text);outline:none;min-width:0;}
+.form-field textarea{resize:vertical;min-height:4.4rem;}
+.row-2,.datetime-inputs{display:flex;gap:8px;} .row-2 .form-group,.datetime-inputs .form-group{flex:1;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:.5rem .8rem;font-size:.8rem;font-weight:800;color:var(--green-deep);cursor:pointer;}
+.chip input{display:none;}
+.chip.on{background:var(--green-deep);border-color:var(--green-deep);color:var(--cream);}
+.hint{font-size:.78rem;color:var(--text-soft);margin:0 0 .8rem;text-align:center;}
+
+/* POP-UPS E AVISOS */
+.popup-overlay,.overlay{position:fixed;inset:0;background:rgba(10,20,14,0.55);display:none;align-items:center;justify-content:center;padding:1rem;z-index:120;}
+.popup-overlay.show,.overlay.show{display:flex;}
+html.fundo-travado, html.fundo-travado body{overflow:hidden;}
+.popup-card{background:var(--cream);border:2px solid var(--line);border-radius:22px;padding:1.5rem 1.2rem 1.2rem;max-width:400px;width:100%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.35);max-height:90vh;overflow-y:auto;}
+.popup-card h2{margin:0 0 .6rem;font-size:1.1rem;}
+.popup-card p{margin:0 0 1rem;font-size:.95rem;font-weight:600;line-height:1.45;}
+.popup-actions{display:flex;flex-direction:column;gap:.5rem;}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(1rem);background:var(--green-deep);color:var(--cream);padding:.75rem 1.1rem;border-radius:999px;font-weight:800;font-size:.85rem;opacity:0;transition:.3s;z-index:200;pointer-events:none;max-width:90%;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.3);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* DESKTOP (>= 900px) */
+@media (min-width:900px){
+  body{background:radial-gradient(circle at 50% 0%,#0f5132 0%,#0b3e28 45%,#082a1c 100%);align-items:center;justify-content:center;padding:40px 24px;}
+  .wrap{flex:none;width:100%;max-width:1080px;min-height:660px;border-radius:32px;margin:auto;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,0.45),0 0 0 1px rgba(255,255,255,0.06);}
+  .wrap.narrow{max-width:720px;}
+  .topbar{padding:26px 32px 18px;}
+  .datetime{padding:10px 32px;}
+  .main-content{padding:22px 32px 32px;}
+  .page-title{font-size:1.55rem;}
+}
+@media (max-width:480px){ .row-2,.datetime-inputs{flex-wrap:wrap;} }
+
+/* ================= CONFIGURAÇÕES E PERFIL (versão 2) ================= */
+:root{ --papel:#faf7ec; --azul:#1f5fa8; --azul-bg:#e3eefb; --laranja:#b5651d; --roxo:#7b4fa0; }
+.page-title{ font-family:'Baloo 2','Trebuchet MS',sans-serif; font-size:1.55rem; margin-bottom:2px; }
+.page-sub{ margin-bottom:18px; }
+
+/* Cartão do perfil */
+.perfil{ position:relative; overflow:hidden; background:var(--papel); border:2.5px solid var(--green-deep); border-radius:24px; padding:22px 18px 18px; margin:0 0 18px; text-align:center; }
+.perfil::before{ content:""; position:absolute; inset:0 0 auto 0; height:84px; background:linear-gradient(135deg,var(--green-deep),var(--green-mid) 60%,var(--teal)); }
+.perfil > *{ position:relative; }
+.avatar-grande{ width:124px; height:124px; margin:4px auto 10px; border-radius:50%; border:5px solid #fff; background:#e7efe9; box-shadow:0 6px 18px rgba(0,0,0,.18); overflow:hidden; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; padding:0; }
+.avatar-grande img{ width:100%; height:100%; object-fit:cover; display:block; }
+.avatar-grande .iniciais{ font-family:'Baloo 2','Trebuchet MS',sans-serif; font-size:2.6rem; font-weight:800; color:var(--green-deep); }
+.avatar-grande:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; }
+.avatar-cam{ position:absolute; left:calc(50% + 30px); top:112px; width:44px; height:44px; border-radius:50%; border:3px solid #fff; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,.2); padding:0; }
+.avatar-cam svg{ width:22px; height:22px; }
+.perfil-nome{ margin:0; font-family:'Baloo 2','Trebuchet MS',sans-serif; font-size:1.45rem; font-weight:800; color:var(--green-deep); line-height:1.15; overflow-wrap:anywhere; }
+.perfil-info{ margin:6px 0 0; display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+.pilula{ display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border-radius:999px; background:#fff; border:1.5px solid var(--line); font-size:.8rem; font-weight:800; color:var(--green-deep); }
+.perfil .btn-ghost{ margin-top:14px; }
+
+/* Seções */
+.secao{ margin:0 0 18px; }
+.secao-topo{ display:flex; align-items:center; gap:10px; margin:0 0 8px; }
+.secao-ico{ width:40px; height:40px; border-radius:13px; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; }
+.secao-ico svg{ width:22px; height:22px; }
+.secao-ico.verde{ background:var(--green-mid); } .secao-ico.azul{ background:var(--azul); } .secao-ico.vermelho{ background:var(--danger); } .secao-ico.laranja{ background:var(--laranja); } .secao-ico.roxo{ background:var(--roxo); }
+.secao-topo h2{ margin:0; font-family:'Baloo 2','Trebuchet MS',sans-serif; font-size:1.15rem; line-height:1.1; text-transform:none; color:var(--green-deep); }
+.secao-topo p{ margin:1px 0 0; font-size:.8rem; font-weight:600; color:var(--text-soft); }
+.caixa{ background:#fff; border:2px solid var(--line); border-radius:18px; overflow:hidden; }
+
+/* Linhas de dado */
+.dado{ display:flex; align-items:center; gap:12px; width:100%; min-height:64px; padding:12px 14px; background:none; border:none; border-top:1.5px solid #ece4cb; text-align:left; cursor:pointer; font-family:inherit; color:inherit; }
+.caixa > .dado:first-child{ border-top:none; }
+.dado:hover{ background:#fbf8ee; }
+.dado:focus-visible{ outline:3px solid var(--teal); outline-offset:-3px; }
+.dado-ico{ font-size:1.25rem; width:28px; text-align:center; flex-shrink:0; }
+.dado-corpo{ flex:1; min-width:0; }
+.dado-rotulo{ display:block; font-size:.7rem; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--text-soft); }
+.dado-valor{ display:block; margin-top:2px; font-size:1rem; font-weight:700; color:var(--text); line-height:1.3; overflow-wrap:anywhere; }
+.dado-valor.vazio{ color:#6b6247; font-weight:600; font-style:italic; }
+.dado-acao{ flex-shrink:0; padding:7px 12px; min-height:36px; border-radius:999px; border:2px solid var(--green-deep); color:var(--green-deep); font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.3px; display:inline-flex; align-items:center; }
+.dado.bloqueado{ cursor:default; background:#f7f4ea; }
+.dado.bloqueado:hover{ background:#f7f4ea; }
+.dado.bloqueado .dado-acao{ border-color:transparent; color:var(--text-soft); padding:7px 4px; }
+
+/* Contatos de emergência */
+.contatos{ display:flex; flex-direction:column; gap:10px; }
+.contato{ display:flex; gap:12px; align-items:flex-start; background:#fff; border:2px solid var(--line); border-left:7px solid var(--danger); border-radius:16px; padding:12px 14px; }
+.contato-num{ width:36px; height:36px; border-radius:50%; background:#fbe3df; color:var(--danger); font-family:'Baloo 2','Trebuchet MS',sans-serif; font-weight:800; font-size:1.1rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.contato-corpo{ flex:1; min-width:0; }
+.contato-nome{ margin:0; font-weight:800; font-size:1rem; color:var(--green-deep); overflow-wrap:anywhere; }
+.contato-meta{ margin:2px 0 0; font-size:.86rem; font-weight:600; color:var(--text-soft); line-height:1.4; overflow-wrap:anywhere; }
+.contato-acoes{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.contato-acoes .btn-sm{ min-height:44px; padding:.35rem .85rem; }
+.btn-adicionar{ width:100%; min-height:56px; border:2.5px dashed var(--line); border-radius:16px; background:var(--papel); color:var(--green-deep); font-weight:800; font-size:.9rem; text-transform:uppercase; letter-spacing:.3px; cursor:pointer; font-family:inherit; }
+.btn-adicionar:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+.nota{ margin:8px 0 0; font-size:.8rem; font-weight:600; color:var(--text-soft); line-height:1.4; }
+
+.btn-sair{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:56px; margin:6px 0 10px; border-radius:16px; border:2.5px solid var(--danger); background:#fff; color:var(--danger); font-weight:800; font-size:.95rem; text-transform:uppercase; letter-spacing:.3px; cursor:pointer; font-family:inherit; }
+.btn-sair svg{ width:20px; height:20px; }
+.status-carga{ text-align:center; font-size:.85rem; font-weight:700; color:var(--text-soft); margin:0 0 12px; min-height:1em; }
+.status-carga.erro{ color:var(--error); }
+
+/* Janelas */
+.popup-card.form{ text-align:left; max-width:480px; }
+.popup-card.form h2{ text-align:center; }
+.popup-card .sub{ text-align:center; margin:-4px 0 14px; font-size:.85rem; color:var(--text-soft); font-weight:600; }
+.form-erro{ margin:0 0 10px; color:var(--error); font-weight:800; font-size:.85rem; text-align:center; min-height:1em; }
+.form-ok{ font-size:.8rem; font-weight:700; color:var(--text-soft); margin:4px 0 0; min-height:1em; }
+.regras{ list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:4px; font-size:.82rem; font-weight:700; color:var(--error); }
+.regras li::before{ content:"✗ "; }
+.regras li.ok{ color:var(--green-mid); }
+.regras li.ok::before{ content:"✓ "; }
+.ver-senha{ background:none; border:none; color:var(--green-deep); font-weight:800; font-size:.78rem; cursor:pointer; padding:6px 8px; min-height:44px; text-transform:uppercase; font-family:inherit; }
+
+/* Foto */
+.foto-previa{ width:140px; height:140px; margin:0 auto 14px; border-radius:50%; overflow:hidden; border:4px solid var(--line); background:#e7efe9; display:flex; align-items:center; justify-content:center; }
+.foto-previa img,.foto-previa video,.foto-previa canvas{ width:100%; height:100%; object-fit:cover; display:block; }
+.foto-previa .iniciais{ font-family:'Baloo 2','Trebuchet MS',sans-serif; font-size:2.8rem; font-weight:800; color:var(--green-deep); }
+.foto-previa.camera{ width:min(280px,72vw); height:min(280px,72vw); border-color:var(--teal); }
+.foto-previa.camera video{ transform:scaleX(-1); }
+.foto-previa.camera.traseira video{ transform:none; }
+.foto-opcoes{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 16px; }
+.foto-btn{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; min-height:86px; border-radius:16px; border:2px solid var(--line); background:#fff; color:var(--green-deep); font-weight:800; font-size:.8rem; text-transform:uppercase; letter-spacing:.2px; cursor:pointer; font-family:inherit; box-shadow:0 3px 0 var(--line); text-align:center; }
+.foto-btn .bola{ width:40px; height:40px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:#fff; background:var(--teal); }
+.foto-btn .bola svg{ width:22px; height:22px; }
+.foto-btn.galeria .bola{ background:var(--azul); }
+.foto-btn:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+.rotulo-avatares{ margin:0 0 8px; font-size:.75rem; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--text-soft); text-align:center; }
+.avatares{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:0 0 14px; }
+.avatar-opcao{ aspect-ratio:1; border-radius:50%; border:3px solid transparent; padding:0; background:none; cursor:pointer; overflow:hidden; }
+.avatar-opcao img{ width:100%; height:100%; display:block; }
+.avatar-opcao[aria-pressed="true"]{ border-color:var(--green-deep); box-shadow:0 0 0 3px #8fe0cf; }
+.avatar-opcao:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+.camera-acoes{ display:flex; flex-direction:column; gap:10px; }
+.camera-acoes[hidden],.foto-menu[hidden]{ display:none; }
+.btn-disparo{ width:76px; height:76px; margin:0 auto 4px; border-radius:50%; border:6px solid #fff; background:var(--danger); box-shadow:0 0 0 3px var(--danger); cursor:pointer; }
+.btn-disparo:focus-visible{ outline:3px solid var(--teal); outline-offset:6px; }
+.linha-botoes{ display:flex; gap:8px; }
+.linha-botoes > *{ flex:1; }
+
+/* Sobre o App */
+.popup-card.sobre{ max-width:760px; width:100%; height:min(88vh,860px); padding:0; display:flex; flex-direction:column; overflow:hidden; text-align:left; }
+.sobre-topo{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 16px; background:var(--green-deep); color:var(--cream); }
+.sobre-topo strong{ font-family:'Baloo 2','Trebuchet MS',sans-serif; font-size:1.1rem; }
+.sobre-x{ width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,.15); color:var(--cream); font-size:1.4rem; cursor:pointer; }
+.sobre-frame{ flex:1; width:100%; border:0; background:var(--cream); }
+
+@media (min-width:900px){
+  .colunas{ display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start; }
+  .perfil{ max-width:680px; margin-left:auto; margin-right:auto; }
+}
+@media (max-width:380px){
+  .dado{ padding:12px 10px; gap:10px; }
+  .dado-acao{ padding:6px 9px; font-size:.66rem; }
+  .avatares{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+.dado-nota{ display:block; margin-top:3px; font-size:.75rem; font-weight:600; color:var(--text-soft); }
+#valor-endereco{ white-space:pre-line; }
+.contato-acoes .btn-sm{ font-size:.78rem; display:inline-flex; align-items:center; text-decoration:none; }
+.contato-acoes a.btn-sm{ background:var(--teal); color:#fff; border:2px solid var(--teal); }
+.popup-card .form-erro,.popup-card .form-ok{ margin-bottom:10px; }
+.popup-card .form-ok{ margin:4px 0 0; text-align:left; }
+.contato-tel{ white-space:nowrap; font-weight:800; color:var(--text); }
+.aviso-camera{ margin:0 0 16px; padding:14px; border-radius:16px; background:#fff4d6; border:2.5px solid #e0a82e; text-align:center; }
+.aviso-camera[hidden]{ display:none; }
+.aviso-camera p{ margin:0 0 10px; font-size:.92rem; font-weight:700; color:#5a4210; }
+.aviso-camera .aviso-titulo{ margin:0 0 4px; font-size:1.05rem; font-weight:900; text-transform:uppercase; color:#7a4a00; }
+
+</style>
+<script>
+  /* PADRÃO TECHSAÚDE: aplica o tamanho de letra salvo ANTES da tela aparecer */
+  (function(){ try{ var f = parseFloat(localStorage.getItem('techsaude_fonte')); if(f >= 85 && f <= 150){ document.documentElement.style.fontSize = f + '%'; } }catch(e){} })();
+</script>
+<style>
+.toolbar-acessibilidade{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; margin:0 0 22px; }
+.toolbar-acessibilidade .font-group{ display:inline-flex; border:2px solid #cdbf95; border-radius:999px; overflow:hidden; background:#fff; }
+.toolbar-acessibilidade .font-btn{ border:none; background:#fff; color:#1b3a26; font-weight:800; padding:9px 13px; cursor:pointer; font-size:.75rem; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; min-width:44px; min-height:44px; margin:0; }
+.toolbar-acessibilidade .font-btn + .font-btn{ border-left:1px solid #e4dbbd; }
+.toolbar-acessibilidade .font-btn.active{ background:#1b3a26; color:#f3efdc; }
+.toolbar-acessibilidade .font-btn:focus-visible,.toolbar-acessibilidade .chip-btn:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+.toolbar-acessibilidade .chip-btn{ background:#fff; border:2px solid #cdbf95; border-radius:999px; padding:9px 15px; font-size:.75rem; min-height:44px; margin:0; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:#1b3a26; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; }
+.toolbar-acessibilidade .chip-btn:hover{ border-color:#2f9e8f; }
+.ajuda-overlay{ position:fixed; inset:0; background:rgba(10,20,14,0.55); display:flex; align-items:center; justify-content:center; padding:1rem; z-index:10000; }
+.ajuda-overlay[hidden]{ display:none !important; }
+.ajuda-modal{ background:#f3efdc; border:2px solid #cdbf95; border-radius:22px; padding:2rem 1.6rem 1.5rem; max-width:460px; width:100%; position:relative; box-shadow:0 30px 60px rgba(0,0,0,0.35); max-height:90vh; overflow-y:auto; text-align:left; font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; color:#26332a; animation:ajudaPop .2s ease; }
+@keyframes ajudaPop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.ajuda-modal .ajuda-fechar{ position:absolute; top:.75rem; right:.75rem; background:#ece5c9; border:none; width:2.6rem; height:2.6rem; border-radius:50%; font-size:1.1rem; cursor:pointer; color:#1b3a26; margin:0; padding:0; }
+.ajuda-modal .ajuda-tag{ margin:0 0 .3rem; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#2f6b46; }
+.ajuda-modal h2{ margin:0 2.6rem .5rem 0; padding:0; font-size:1.3rem; line-height:1.2; color:#1b3a26; font-weight:900; text-transform:uppercase; text-align:left; font-family:inherit; }
+.ajuda-modal .ajuda-intro{ margin:0 0 1rem; font-size:.98rem; font-weight:600; color:#55604f; line-height:1.45; }
+.ajuda-modal .ajuda-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.7rem; counter-reset:passo; }
+.ajuda-modal .ajuda-lista li{ counter-increment:passo; position:relative; padding:0 0 0 2.5rem; margin:0; min-height:1.9rem; font-size:1rem; font-weight:600; line-height:1.45; color:#26332a; }
+.ajuda-modal .ajuda-lista li::before{ content:counter(passo); position:absolute; left:0; top:-.05rem; width:1.9rem; height:1.9rem; border-radius:50%; background:#1b3a26; color:#f3efdc; font-weight:800; font-size:.95rem; display:flex; align-items:center; justify-content:center; }
+.ajuda-modal .ajuda-lista b{ color:#1b3a26; }
+.ajuda-modal .ajuda-extra{ margin:1.1rem 0 0; padding:.8rem 1rem; background:#dcefdf; border:1.5px solid #a5d6a7; border-radius:14px; font-size:.95rem; font-weight:600; color:#1b4332; line-height:1.4; }
+.ajuda-modal .ajuda-ok{ display:block; width:100%; margin:1.2rem 0 0; padding:.9rem; border:none; border-radius:999px; cursor:pointer; background:linear-gradient(180deg,#234a34,#1b3a26); color:#f3efdc; font-weight:800; font-size:1rem; text-transform:uppercase; letter-spacing:.4px; font-family:inherit; box-shadow:0 5px 0 #0e2416; }
+.ajuda-modal .ajuda-ok:active{ transform:translateY(3px); box-shadow:0 2px 0 #0e2416; }
+.ajuda-modal button:focus-visible{ outline:3px solid #2f9e8f; outline-offset:2px; }
+</style>
+</head>
+<body>
+<div class="wrap ">
+  <div class="topbar">
+    <button type="button" class="topbar-btn emergencia" onclick="window.location.href='emergencia.html'" aria-label="Emergência"><span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a5 5 0 0 0-5 5v3.5c0 1-.4 1.9-1.1 2.6L4 16h16l-1.9-1.9c-.7-.7-1.1-1.6-1.1-2.6V8a5 5 0 0 0-5-5Z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></svg></span>Emergência</button>
+    <div class="logo-center"><img class="logo-mark" src="img/logo.png" alt="Logo TechSaúde"></div>
+    <div class="topbar-right">
+      <button type="button" class="topbar-btn voltar" onclick="voltarTelaApp()" aria-label="Voltar"><span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></span>Voltar</button>
+      <a class="topbar-btn inicio" href="home.html" aria-label="Início"><span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span>Início</a>
+    </div>
+  </div>
+  <div class="datetime" id="datetime"></div>
+  <div class="main-content">
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho da letra">
+        <button type="button" class="font-btn" data-scale="100" aria-label="Letra tamanho normal">A</button>
+        <button type="button" class="font-btn" data-scale="115" aria-label="Letra grande">A+</button>
+        <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
+      </div>
+      <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
+    </div>
+
+    <h1 class="page-title">Configurações e Perfil</h1>
+    <p class="page-sub">Seus dados, sua foto e seus contatos de emergência. Tudo o que você muda aqui é salvo na hora.</p>
+    <p class="status-carga" id="status-carga" aria-live="polite">Carregando seus dados…</p>
+
+    <!-- PERFIL -->
+    <section class="perfil" aria-label="Seu perfil">
+      <button type="button" class="avatar-grande" id="avatar-grande" onclick="abrirFoto()" aria-label="Trocar foto do perfil"></button>
+      <button type="button" class="avatar-cam" onclick="abrirFoto()" aria-label="Trocar foto do perfil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg></button>
+      <h2 class="perfil-nome" id="perfil-nome">—</h2>
+      <div class="perfil-info" id="perfil-info"></div>
+      <button type="button" class="btn-ghost" onclick="abrirFoto()">Trocar foto ou avatar</button>
+    </section>
+
+    <div class="colunas">
+    <div>
+      <!-- MEUS DADOS -->
+      <section class="secao" aria-labelledby="t-dados">
+        <div class="secao-topo"><span class="secao-ico verde" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></span>
+          <div><h2 id="t-dados">Meus dados</h2><p>Toque em um dado para alterar.</p></div></div>
+        <div class="caixa" id="lista-dados"></div>
+      </section>
+
+      <!-- ENDEREÇO -->
+      <section class="secao" aria-labelledby="t-endereco">
+        <div class="secao-topo"><span class="secao-ico azul" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span>
+          <div><h2 id="t-endereco">Endereço</h2><p>Usado em Hospitais próximos (“Minha casa”).</p></div></div>
+        <div class="caixa">
+          <button type="button" class="dado" onclick="abrirEndereco()">
+            <span class="dado-ico" aria-hidden="true">📍</span>
+            <span class="dado-corpo"><span class="dado-rotulo">Endereço de casa</span><span class="dado-valor" id="valor-endereco">—</span></span>
+            <span class="dado-acao">Alterar</span>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div>
+      <!-- CONTATOS DE EMERGÊNCIA -->
+      <section class="secao" aria-labelledby="t-contatos">
+        <div class="secao-topo"><span class="secao-ico vermelho" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span>
+          <div><h2 id="t-contatos">Contatos de emergência</h2><p>Aparecem na tela Emergência. Até 3 pessoas.</p></div></div>
+        <div class="contatos" id="lista-contatos"></div>
+      </section>
+
+      <!-- SEGURANÇA E APP -->
+      <section class="secao" aria-labelledby="t-conta">
+        <div class="secao-topo"><span class="secao-ico roxo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+          <div><h2 id="t-conta">Segurança e aplicativo</h2><p>Senha, termos e versão do app.</p></div></div>
+        <div class="caixa">
+          <button type="button" class="dado" onclick="abrirSenha()">
+            <span class="dado-ico" aria-hidden="true">🔑</span>
+            <span class="dado-corpo"><span class="dado-rotulo">Senha</span><span class="dado-valor">••••••••</span></span>
+            <span class="dado-acao">Alterar</span>
+          </button>
+          <button type="button" class="dado" onclick="abrirSobre()">
+            <span class="dado-ico" aria-hidden="true">ℹ️</span>
+            <span class="dado-corpo"><span class="dado-rotulo">Sobre o App</span><span class="dado-valor">Termos de Uso, Privacidade e Versão</span></span>
+            <span class="dado-acao">Abrir</span>
+          </button>
+        </div>
+      </section>
+      <button type="button" class="btn-sair" onclick="sairDaConta()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></svg>Sair da conta</button>
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- JANELA: EDITAR UM DADO -->
+<div class="popup-overlay" id="popup-campo">
+  <div class="popup-card form" role="dialog" aria-modal="true" aria-labelledby="campo-titulo">
+    <h2 id="campo-titulo">Alterar</h2>
+    <p class="sub" id="campo-sub"></p>
+    <form onsubmit="salvarCampo(event)" novalidate>
+      <div class="form-group">
+        <label class="field-label" for="campo-input" id="campo-rotulo">Valor</label>
+        <div class="form-field"><input id="campo-input" type="text" autocomplete="off"></div>
+        <p class="form-ok" id="campo-dica"></p>
+      </div>
+      <p class="form-erro" id="campo-erro" role="alert"></p>
+      <div class="popup-actions">
+        <button type="submit" class="btn-block" id="campo-salvar">Salvar</button>
+        <button type="button" class="btn-ghost" onclick="fechar('popup-campo')">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- JANELA: ENDEREÇO -->
+<div class="popup-overlay" id="popup-endereco">
+  <div class="popup-card form" role="dialog" aria-modal="true" aria-labelledby="end-titulo">
+    <h2 id="end-titulo">Endereço de casa</h2>
+    <p class="sub">Digite o CEP que o resto se preenche sozinho.</p>
+    <form onsubmit="salvarEndereco(event)" novalidate>
+      <div class="form-group">
+        <label class="field-label" for="end-cep">CEP</label>
+        <div class="form-field"><input id="end-cep" type="text" inputmode="numeric" maxlength="9" placeholder="00000-000" autocomplete="postal-code"></div>
+        <p class="form-ok" id="end-cep-aviso" aria-live="polite"></p>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="end-logradouro">Rua / Avenida</label>
+        <div class="form-field"><input id="end-logradouro" type="text" maxlength="255" autocomplete="address-line1"></div>
+      </div>
+      <div class="datetime-inputs">
+        <div class="form-group">
+          <label class="field-label" for="end-numero">Número</label>
+          <div class="form-field"><input id="end-numero" type="text" maxlength="20" placeholder="Ex: 120 ou S/N"></div>
+        </div>
+        <div class="form-group">
+          <label class="field-label" for="end-complemento">Complemento</label>
+          <div class="form-field"><input id="end-complemento" type="text" maxlength="100" placeholder="Ex: Apto 12"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="end-bairro">Bairro</label>
+        <div class="form-field"><input id="end-bairro" type="text" maxlength="100"></div>
+      </div>
+      <div class="datetime-inputs">
+        <div class="form-group">
+          <label class="field-label" for="end-cidade">Cidade</label>
+          <div class="form-field"><input id="end-cidade" type="text" maxlength="100"></div>
+        </div>
+        <div class="form-group">
+          <label class="field-label" for="end-estado">UF</label>
+          <div class="form-field"><input id="end-estado" type="text" maxlength="2" placeholder="SP"></div>
+        </div>
+      </div>
+      <p class="form-erro" id="end-erro" role="alert"></p>
+      <div class="popup-actions">
+        <button type="submit" class="btn-block" id="end-salvar">Salvar endereço</button>
+        <button type="button" class="btn-ghost" onclick="fechar('popup-endereco')">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- JANELA: CONTATO DE EMERGÊNCIA -->
+<div class="popup-overlay" id="popup-contato">
+  <div class="popup-card form" role="dialog" aria-modal="true" aria-labelledby="ct-titulo">
+    <h2 id="ct-titulo">Contato de emergência</h2>
+    <form onsubmit="salvarContato(event)" novalidate>
+      <input type="hidden" id="ct-id">
+      <div class="form-group">
+        <label class="field-label" for="ct-nome">Nome</label>
+        <div class="form-field"><input id="ct-nome" type="text" maxlength="120" autocomplete="off" placeholder="Ex: Ana Souza"></div>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="ct-parentesco">Grau de parentesco</label>
+        <div class="form-field"><select id="ct-parentesco"></select></div>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="ct-telefone">Telefone</label>
+        <div class="form-field"><input id="ct-telefone" type="tel" inputmode="numeric" maxlength="15" placeholder="(11) 98765-4321" autocomplete="off"></div>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="ct-email">E-mail (opcional)</label>
+        <div class="form-field"><input id="ct-email" type="email" maxlength="150" autocomplete="off" placeholder="nome@email.com"></div>
+      </div>
+      <p class="form-erro" id="ct-erro" role="alert"></p>
+      <div class="popup-actions">
+        <button type="submit" class="btn-block" id="ct-salvar">Salvar contato</button>
+        <button type="button" class="btn-ghost" onclick="fechar('popup-contato')">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="popup-overlay" id="popup-excluir">
+  <div class="popup-card" role="dialog" aria-modal="true" aria-labelledby="ex-titulo">
+    <h2 id="ex-titulo">Excluir contato?</h2>
+    <p id="ex-texto"></p>
+    <div class="popup-actions">
+      <button type="button" class="btn-block danger" id="ex-confirmar" onclick="confirmarExclusao()">Sim, excluir</button>
+      <button type="button" class="btn-ghost" onclick="fechar('popup-excluir')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- JANELA: SENHA -->
+<div class="popup-overlay" id="popup-senha">
+  <div class="popup-card form" role="dialog" aria-modal="true" aria-labelledby="sn-titulo">
+    <h2 id="sn-titulo">Alterar senha</h2>
+    <form onsubmit="salvarSenha(event)" novalidate>
+      <div class="form-group">
+        <label class="field-label" for="sn-atual">Senha atual</label>
+        <div class="form-field"><input id="sn-atual" type="password" autocomplete="current-password"></div>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="sn-nova">Nova senha</label>
+        <div class="form-field"><input id="sn-nova" type="password" autocomplete="new-password"></div>
+        <ul class="regras" id="sn-regras">
+          <li data-regra="tamanho">Pelo menos 8 caracteres</li>
+          <li data-regra="letra">Pelo menos 1 letra</li>
+          <li data-regra="numero">Pelo menos 1 número</li>
+        </ul>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="sn-nova2">Repita a nova senha</label>
+        <div class="form-field"><input id="sn-nova2" type="password" autocomplete="new-password"></div>
+      </div>
+      <button type="button" class="ver-senha" id="sn-ver" onclick="alternarVerSenha()">👁 Mostrar senhas</button>
+      <p class="form-erro" id="sn-erro" role="alert"></p>
+      <div class="popup-actions">
+        <button type="submit" class="btn-block" id="sn-salvar">Salvar nova senha</button>
+        <button type="button" class="btn-ghost" onclick="fechar('popup-senha')">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- JANELA: FOTO -->
+<div class="popup-overlay" id="popup-foto">
+  <div class="popup-card form" role="dialog" aria-modal="true" aria-labelledby="ft-titulo">
+    <h2 id="ft-titulo">Foto do perfil</h2>
+    <div class="foto-previa" id="ft-previa"></div>
+    <div class="foto-menu" id="ft-menu">
+      <div class="foto-opcoes">
+        <button type="button" class="foto-btn" onclick="abrirCamera()"><span class="bola" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg></span>Tirar foto agora</button>
+        <button type="button" class="foto-btn galeria" onclick="document.getElementById('ft-arquivo').click()"><span class="bola" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></span>Escolher da galeria</button>
+      </div>
+      <div class="aviso-camera" id="ft-aviso" role="alert" hidden>
+        <p class="aviso-titulo" id="ft-aviso-titulo">📷 Câmera não identificada</p>
+        <p id="ft-aviso-texto">Por favor, envie uma foto que você já tem.</p>
+        <button type="button" class="btn-block" id="ft-aviso-galeria" onclick="document.getElementById('ft-arquivo').click()">Escolher uma foto do aparelho</button>
+      </div>
+      <p class="rotulo-avatares">Ou escolha um avatar</p>
+      <div class="avatares" id="ft-avatares" role="group" aria-label="Avatares"></div>
+      <p class="form-erro" id="ft-erro" role="alert"></p>
+      <div class="popup-actions">
+        <button type="button" class="btn-ghost" id="ft-remover" onclick="removerFoto()">Remover foto</button>
+        <button type="button" class="btn-ghost" onclick="fecharFoto()">Fechar</button>
+      </div>
+    </div>
+    <div class="camera-acoes" id="ft-camera" hidden>
+      <p class="sub" id="ft-camera-dica">Olhe para a câmera e toque no botão vermelho.</p>
+      <button type="button" class="btn-disparo" id="ft-disparo" onclick="tirarFoto()" aria-label="Tirar foto"></button>
+      <div class="linha-botoes" id="ft-camera-botoes">
+        <button type="button" class="btn-ghost" onclick="virarCamera()">↺ Virar câmera</button>
+        <button type="button" class="btn-ghost" onclick="voltarMenuFoto()">Cancelar</button>
+      </div>
+      <div class="linha-botoes" id="ft-confirma" hidden>
+        <button type="button" class="btn-block" onclick="usarFotoTirada()">Usar esta foto</button>
+        <button type="button" class="btn-ghost" onclick="abrirCamera()">Tirar outra</button>
+      </div>
+    </div>
+    <input type="file" id="ft-arquivo" accept="image/*" hidden>
+    <input type="file" id="ft-arquivo-camera" accept="image/*" capture="user" hidden>
+  </div>
+</div>
+
+<!-- JANELA: SOBRE O APP -->
+<div class="popup-overlay" id="popup-sobre">
+  <div class="popup-card sobre" role="dialog" aria-modal="true" aria-label="Sobre o App">
+    <div class="sobre-topo"><strong>ℹ️ Sobre o App</strong><button type="button" class="sobre-x" onclick="fechar('popup-sobre')" aria-label="Fechar">✕</button></div>
+    <iframe class="sobre-frame sobre-modal-frame" src="sobre-o-app.html?modal=1" title="Sobre o App: termos, privacidade e versão"></iframe>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =====================================================================
+   CONFIGURAÇÕES E PERFIL
+   Cada janela salva direto no banco ao tocar em "Salvar" (não existe mais
+   um segundo botão "Salvar alterações").
+   ===================================================================== */
+const SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+/* Segurança: cada pedido ao banco leva o token da sessão (cabeçalho x-sessao); o banco só devolve os dados desta conta. */
+const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { 'x-sessao': (function(){ try{ return JSON.parse(localStorage.getItem('usuario_logado') || '{}').sessao || ''; }catch(e){ return ''; } })() } } });
+// Senha e foto passam pela função do servidor "techsaude-auth" (o navegador nunca vê o hash da senha).
+async function chamarServidor(acao, dados){
+  const r = await fetch(SUPABASE_URL + '/functions/v1/techsaude-auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY, 'x-sessao': sessao?.sessao || '' },
+    body: JSON.stringify({ acao, ...dados })
+  });
+  let corpo = {};
+  try{ corpo = await r.json(); }catch(e){}
+  if(corpo.sessao === false){ sessaoEncerrada(); }
+  if(!r.ok || !corpo.ok){ const e = new Error(corpo.erro || 'Falha no servidor'); e.mensagem = corpo.erro; e.campo = corpo.campo; throw e; }
+  return corpo;
+}
+function sessaoEncerrada(){
+  localStorage.removeItem('usuario_logado'); localStorage.removeItem('usuarioLogado');
+  try{ sessionStorage.setItem('techsaude_aviso_login', 'Sua sessão terminou. Entre de novo na sua conta.'); }catch(e){}
+  location.replace('index.html');
+}
+const PARENTESCOS = ['Filho(a)', 'Cônjuge / Companheiro(a)', 'Neto(a)', 'Irmão(ã)', 'Pai / Mãe', 'Sobrinho(a)', 'Genro / Nora', 'Amigo(a)', 'Vizinho(a)', 'Cuidador(a)', 'Outro'];
+const MAX_CONTATOS = 3;
+const AVATARES = [
+  ['avatar-01', 'Senhora de cabelo branco preso em coque, com óculos'],
+  ['avatar-02', 'Senhor careca de barba branca, com óculos'],
+  ['avatar-03', 'Senhora de cabelo curto grisalho'],
+  ['avatar-04', 'Senhor de cabelo branco e bigode'],
+  ['avatar-05', 'Senhora de cabelo cacheado branco, com brincos'],
+  ['avatar-06', 'Senhor careca de barba grisalha'],
+  ['avatar-07', 'Senhora de cabelo longo grisalho, com óculos'],
+  ['avatar-08', 'Senhor de cabelo grisalho, com óculos'],
+  ['avatar-09', 'Senhora de cabelo curto preto'],
+  ['avatar-10', 'Senhor de cabelo castanho'],
+  ['avatar-11', 'Senhora de cabelo castanho preso'],
+  ['avatar-12', 'Senhor de cabelo branco e barba, com óculos']
+].map(([nome, descricao]) => ({ url: 'img/avatares/' + nome + '.svg', descricao }));
+
+let sessao = null;      // o que está no localStorage
+let usuario = null;     // linha da tabela usuario
+let endereco = null;    // linha da tabela endereco (ou null)
+let contatos = [];      // linhas de contato_emergencia
+
+/* ---------- utilidades ---------- */
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+function esc(t){ return String(t ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
+function soDigitos(v){ return String(v ?? '').replace(/\D/g, ''); }
+function formatarCPF(v){ const d = soDigitos(v).padStart(11, '0'); return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4'); }
+function mascaraTelefone(valor){
+  const d = soDigitos(valor).slice(0, 11);
+  if(d.length <= 2) return d.length ? '(' + d : '';
+  const ddd = '(' + d.slice(0, 2) + ') ', resto = d.slice(2);
+  if(d.length <= 6) return ddd + resto;
+  const corte = d.length === 11 ? 5 : 4;
+  return ddd + resto.slice(0, corte) + '-' + resto.slice(corte);
+}
+function telefoneValido(v){ const d = soDigitos(v); return d.length === 10 || d.length === 11; }
+function emailValido(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+function mascaraRG(v){
+  let d = soDigitos(v).slice(0, 9);
+  return d.replace(/(\d{2})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)$/, '$1-$2');
+}
+function mascaraData(v){ const d = soDigitos(v).slice(0, 8); return d.length > 4 ? `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}` : d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d; }
+// Mesmas regras do cadastro (index.html).
+function validarNascimento(texto){
+  if(!texto) return 'Informe a data de nascimento.';
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(texto);
+  if(!m) return 'Digite a data completa: dia, mês e ano (DD/MM/AAAA).';
+  const data = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  if(data.getFullYear() !== Number(m[3]) || data.getMonth() !== Number(m[2]) - 1 || data.getDate() !== Number(m[1])) return 'Data inválida. Confira o dia e o mês.';
+  if(data > new Date()) return 'A data de nascimento não pode ser no futuro.';
+  if(Number(m[3]) < 1900 || idade(`${m[3]}-${m[2]}-${m[1]}`) > 120) return 'Confira o ano de nascimento.';
+  return null;
+}
+function mascaraCEP(v){ const d = soDigitos(v).slice(0, 8); return d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d; }
+function linkLigar(tel){ const d = soDigitos(tel); return 'tel:' + (d.length === 10 || d.length === 11 ? '+55' + d : d); }
+function dataBR(iso){ const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : ''; }
+function idade(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); if(!m) return null;
+  const hoje = new Date(); let i = hoje.getFullYear() - Number(m[1]);
+  if(hoje.getMonth() + 1 < Number(m[2]) || (hoje.getMonth() + 1 === Number(m[2]) && hoje.getDate() < Number(m[3]))) i--;
+  return i;
+}
+function iniciais(nome){
+  const p = String(nome || '').trim().split(/\s+/).filter(x => x.length > 2 || x === x.toUpperCase());
+  const lista = p.length ? p : String(nome || '?').trim().split(/\s+/);
+  return ((lista[0] || '?')[0] + (lista.length > 1 ? lista[lista.length - 1][0] : '')).toUpperCase();
+}
+function textoEndereco(e){
+  if(!e || !e.logradouro) return '';
+  let t = e.logradouro + (e.numero ? ', ' + e.numero : '') + (e.complemento ? ' – ' + e.complemento : '');
+  const cidade = [e.bairro, [e.cidade, e.estado].filter(Boolean).join('/')].filter(Boolean).join(' – ');
+  return t + (cidade ? '\n' + cidade : '') + (e.cep ? '\nCEP ' + mascaraCEP(e.cep) : '');
+}
+function semInternet(erro){ return !navigator.onLine || /fetch|network|internet/i.test(String(erro?.message || erro)); }
+function mensagemErro(erro, padrao){ return semInternet(erro) ? 'Sem internet no momento. Confira a conexão e tente de novo.' : padrao; }
+
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 3200);
+}
+function atualizarSessao(mudancas){
+  sessao = Object.assign({}, sessao, mudancas);
+  delete sessao.senha_hash;
+  try{ localStorage.setItem('usuario_logado', JSON.stringify(sessao)); }catch(e){}
+}
+
+/* ---------- janelas ---------- */
+let focoAntes = null;
+function abrir(id, foco){
+  focoAntes = document.activeElement;
+  $(id).classList.add('show');
+  document.documentElement.classList.add('fundo-travado');
+  setTimeout(() => { const alvo = foco ? $(foco) : $(id).querySelector('input:not([type=hidden]):not([hidden]), select, button'); alvo?.focus({ preventScroll: true }); }, 60);
+}
+function fechar(id){
+  $(id).classList.remove('show');
+  if(!document.querySelector('.popup-overlay.show')) document.documentElement.classList.remove('fundo-travado');
+  if(id === 'popup-foto') pararCamera();
+  if(focoAntes?.focus) focoAntes.focus({ preventScroll: true });
+}
+document.querySelectorAll('.popup-overlay').forEach(ov => ov.addEventListener('click', e => { if(e.target === ov) fechar(ov.id); }));
+document.addEventListener('keydown', e => {
+  if(e.key === 'Tab' && $('modalAjuda').hidden){
+    const aberto = [...document.querySelectorAll('.popup-overlay.show')].pop();
+    if(aberto){
+      const itens = [...aberto.querySelectorAll('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled && !x.hidden && x.offsetParent !== null);
+      if(itens.length){
+        const primeiro = itens[0], ultimo = itens[itens.length - 1];
+        if(!aberto.contains(document.activeElement)){ e.preventDefault(); primeiro.focus(); }
+        else if(e.shiftKey && document.activeElement === primeiro){ e.preventDefault(); ultimo.focus(); }
+        else if(!e.shiftKey && document.activeElement === ultimo){ e.preventDefault(); primeiro.focus(); }
+      }
+    }
+    return;
+  }
+  if(e.key !== 'Escape') return;
+  const aberto = [...document.querySelectorAll('.popup-overlay.show')].pop();
+  if(aberto && $('modalAjuda').hidden) fechar(aberto.id);
+});
+function ocupado(botao, sim, texto){
+  if(sim){ botao.dataset.texto = botao.textContent; botao.textContent = texto || 'Salvando…'; botao.disabled = true; }
+  else { botao.textContent = botao.dataset.texto || botao.textContent; botao.disabled = false; }
+}
+
+/* ---------- carregar ---------- */
+async function carregar(){
+  try{ sessao = JSON.parse(localStorage.getItem('usuario_logado') || localStorage.getItem('usuarioLogado') || 'null'); }catch(e){ sessao = null; }
+  if(Array.isArray(sessao)) sessao = sessao[0];
+  if(!sessao){ location.replace('index.html'); return; }
+  usuario = Object.assign({}, sessao);
+  desenhar(); // mostra logo o que já está salvo no aparelho
+  const status = $('status-carga');
+  if(!supabaseClient){ status.textContent = 'Não foi possível conectar. Mostrando os dados guardados no aparelho.'; status.classList.add('erro'); return; }
+  try{
+    let consulta = supabaseClient.from('usuario')
+      .select('id, nome_completo, cpf, rg, data_nascimento, email, telefone, foto_perfil_url, endereco(id, logradouro, numero, complemento, bairro, cidade, estado, cep)');
+    consulta = sessao.id ? consulta.eq('id', sessao.id) : consulta.eq('cpf', soDigitos(sessao.cpf));
+    const { data, error } = await consulta.single();
+    if(error) throw error;
+    endereco = Array.isArray(data.endereco) ? (data.endereco[0] || null) : (data.endereco || null);
+    delete data.endereco;
+    usuario = data;
+    atualizarSessao(data);
+    const r = await supabaseClient.from('contato_emergencia')
+      .select('id, nome_contato, grau_parentesco, telefone, email, ordem')
+      .eq('usuario_id', usuario.id).order('ordem', { ascending: true });
+    if(r.error) throw r.error;
+    contatos = r.data || [];
+    status.textContent = ''; status.classList.remove('erro');
+  }catch(erro){
+    console.error('Erro ao carregar o perfil:', erro);
+    status.textContent = mensagemErro(erro, 'Não foi possível buscar seus dados agora. Mostrando o que está guardado no aparelho.');
+    status.classList.add('erro');
+  }
+  desenhar();
+}
+
+/* ---------- desenhar a tela ---------- */
+function htmlFoto(url, nome){
+  return url ? `<img src="${esc(url)}" alt="Foto do perfil de ${esc(nome)}">` : `<span class="iniciais" aria-hidden="true">${esc(iniciais(nome))}</span>`;
+}
+function desenhar(){
+  const nome = usuario?.nome_completo || 'Seu nome';
+  $('avatar-grande').innerHTML = htmlFoto(usuario?.foto_perfil_url, nome);
+  $('perfil-nome').textContent = nome;
+  const pil = [];
+  const anos = idade(usuario?.data_nascimento);
+  if(anos !== null) pil.push(`🎂 ${anos} anos`);
+  if(endereco?.cidade) pil.push(`📍 ${endereco.cidade}${endereco.estado ? '/' + endereco.estado : ''}`);
+  pil.push(`🛟 ${contatos.length} ${contatos.length === 1 ? 'contato' : 'contatos'} de emergência`);
+  $('perfil-info').innerHTML = pil.map(p => `<span class="pilula">${esc(p)}</span>`).join('');
+
+  const linhas = [
+    { campo: 'nome', ico: '👤', rotulo: 'Nome completo', valor: usuario?.nome_completo },
+    { campo: 'telefone', ico: '📱', rotulo: 'Telefone', valor: usuario?.telefone },
+    { campo: 'email', ico: '✉️', rotulo: 'E-mail', valor: usuario?.email },
+    { campo: 'nascimento', ico: '🎂', rotulo: 'Data de nascimento', valor: dataBR(usuario?.data_nascimento) },
+    { campo: null, ico: '🪪', rotulo: 'CPF', valor: usuario?.cpf ? formatarCPF(usuario.cpf) : '', bloqueado: 'O CPF identifica sua conta e não pode ser alterado.' },
+    { campo: 'rg', ico: '📄', rotulo: 'RG', valor: usuario?.rg, vazio: 'Não informado (opcional)' }
+  ];
+  $('lista-dados').innerHTML = linhas.map(l => {
+    const valor = l.valor ? `<span class="dado-valor">${esc(l.valor)}</span>` : `<span class="dado-valor vazio">${esc(l.vazio || 'Não informado')}</span>`;
+    if(!l.campo){
+      return `<div class="dado bloqueado" title="${esc(l.bloqueado)}"><span class="dado-ico" aria-hidden="true">${l.ico}</span>
+        <span class="dado-corpo"><span class="dado-rotulo">${esc(l.rotulo)}</span>${valor}<span class="dado-nota">${esc(l.bloqueado)}</span></span>
+        <span class="dado-acao" aria-hidden="true">🔒</span></div>`;
+    }
+    const acao = l.valor ? 'Alterar' : 'Incluir';
+    return `<button type="button" class="dado" data-campo="${l.campo}" aria-label="${acao} ${esc(l.rotulo)}"><span class="dado-ico" aria-hidden="true">${l.ico}</span>
+      <span class="dado-corpo"><span class="dado-rotulo">${esc(l.rotulo)}</span>${valor}</span><span class="dado-acao">${acao}</span></button>`;
+  }).join('');
+  $('lista-dados').querySelectorAll('[data-campo]').forEach(b => b.addEventListener('click', () => abrirCampo(b.dataset.campo)));
+
+  const txtEnd = textoEndereco(endereco);
+  const vEnd = $('valor-endereco');
+  vEnd.textContent = txtEnd || 'Não informado. Toque para incluir.';
+  vEnd.classList.toggle('vazio', !txtEnd);
+
+  desenharContatos();
+}
+function desenharContatos(){
+  const lista = $('lista-contatos');
+  let html = contatos.map((c, i) => `
+    <article class="contato">
+      <span class="contato-num" aria-hidden="true">${i + 1}</span>
+      <div class="contato-corpo">
+        <p class="contato-nome">${esc(c.nome_contato)}</p>
+        <p class="contato-meta">${esc(c.grau_parentesco)}<br><span class="contato-tel">📱 ${esc(c.telefone)}</span>${c.email ? '<br>✉️ ' + esc(c.email) : ''}</p>
+        <div class="contato-acoes">
+          <a class="btn-sm" href="${esc(linkLigar(c.telefone))}" aria-label="Ligar para ${esc(c.nome_contato)}">📞 Ligar</a>
+          <button type="button" class="btn-sm outline" onclick="abrirContato(${c.id})" aria-label="Editar ${esc(c.nome_contato)}">Editar</button>
+          <button type="button" class="btn-sm danger" onclick="pedirExclusao(${c.id})" aria-label="Excluir ${esc(c.nome_contato)}">Excluir</button>
+        </div>
+      </div>
+    </article>`).join('');
+  if(!contatos.length) html = `<p class="nota" style="margin:0 0 4px">Nenhum contato cadastrado. Em uma emergência, o app liga para o SAMU (192).</p>`;
+  if(contatos.length < MAX_CONTATOS) html += `<button type="button" class="btn-adicionar" onclick="abrirContato()">+ Adicionar contato</button>`;
+  else html += `<p class="nota">Você já tem ${MAX_CONTATOS} contatos, o máximo. Para trocar alguém, toque em Editar.</p>`;
+  html += `<p class="nota">O contato 1 é o primeiro a ser chamado pelo assistente de voz.</p>`;
+  lista.innerHTML = html;
+}
+
+/* ---------- editar um dado (nome, telefone, e-mail, RG) ---------- */
+const CAMPOS = {
+  nome:     { titulo: 'Alterar nome', rotulo: 'Nome completo', coluna: 'nome_completo', tipo: 'text', auto: 'name', max: 150, sub: 'Escreva seu nome e sobrenome.',
+              validar: v => v.length < 3 ? 'Escreva seu nome completo.' : (!/\p{L}/u.test(v) ? 'O nome precisa ter letras.' : null) },
+  telefone: { titulo: 'Alterar telefone', rotulo: 'Telefone com DDD', coluna: 'telefone', tipo: 'tel', modo: 'numeric', max: 15, mascara: mascaraTelefone, sub: 'Celular ou fixo, com DDD.', exemplo: '(11) 98765-4321',
+              validar: v => telefoneValido(v) ? null : 'Informe o telefone com DDD (10 ou 11 números).' },
+  email:    { titulo: 'Alterar e-mail', rotulo: 'E-mail', coluna: 'email', tipo: 'email', modo: 'email', max: 150, sub: 'Você também pode entrar no app com este e-mail.', exemplo: 'nome@email.com',
+              tratar: v => v.toLowerCase(), validar: v => !v ? 'Informe seu e-mail.' : (emailValido(v) ? null : 'Informe um e-mail válido (ex: nome@email.com).') },
+  nascimento: { titulo: 'Data de nascimento', rotulo: 'Data de nascimento', coluna: 'data_nascimento', tipo: 'text', modo: 'numeric', max: 10, mascara: mascaraData, sub: 'Dia, mês e ano.', exemplo: 'DD/MM/AAAA',
+              exibir: dataBR, paraBanco: v => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v); return `${m[3]}-${m[2]}-${m[1]}`; }, validar: validarNascimento },
+  rg:       { titulo: 'RG', rotulo: 'RG (opcional)', coluna: 'rg', tipo: 'text', modo: 'numeric', max: 12, mascara: mascaraRG, sub: 'O RG é opcional. Deixe em branco para não informar.', exemplo: '00.000.000-0', opcional: true,
+              validar: v => !v || /^\d{2}\.\d{3}\.\d{3}-\d$/.test(v) ? null : 'O RG precisa ter 9 números.' }
+};
+let campoAtual = null;
+function abrirCampo(chave){
+  const c = CAMPOS[chave]; campoAtual = chave;
+  $('campo-titulo').textContent = c.titulo;
+  $('campo-sub').textContent = c.sub || '';
+  $('campo-rotulo').textContent = c.rotulo;
+  const inp = $('campo-input');
+  inp.type = c.tipo; inp.maxLength = c.max; inp.inputMode = c.modo || 'text'; inp.autocomplete = c.auto || 'off';
+  inp.placeholder = c.exemplo || '';
+  inp.value = c.exibir ? c.exibir(usuario?.[c.coluna]) : (usuario?.[c.coluna] || '');
+  inp.removeAttribute('aria-invalid');
+  $('campo-dica').textContent = '';
+  $('campo-erro').textContent = '';
+  abrir('popup-campo', 'campo-input');
+}
+document.querySelectorAll('.form-field').forEach(f => f.addEventListener('click', e => { if(e.target === f) f.querySelector('input,textarea,select')?.focus(); }));
+$('campo-input').addEventListener('input', e => {
+  const c = CAMPOS[campoAtual]; if(c?.mascara) e.target.value = c.mascara(e.target.value);
+  $('campo-erro').textContent = '';
+});
+async function salvarCampo(ev){
+  ev.preventDefault();
+  const c = CAMPOS[campoAtual], inp = $('campo-input'), erroEl = $('campo-erro'), botao = $('campo-salvar');
+  let v = inp.value.trim().replace(/\s+/g, ' ');
+  if(c.tratar) v = c.tratar(v);
+  const erro = c.validar(v);
+  if(erro){ erroEl.textContent = erro; inp.setAttribute('aria-invalid', 'true'); inp.focus(); return; }
+  const novo = v ? (c.paraBanco ? c.paraBanco(v) : v) : null;
+  if((usuario?.[c.coluna] || null) === novo){ fechar('popup-campo'); return; }
+  ocupado(botao, true);
+  try{
+    // E-mail repetido: o banco recusa (regra de e-mail único) e o aviso aparece abaixo.
+    const { data, error } = await supabaseClient.from('usuario').update({ [c.coluna]: novo }).eq('id', usuario.id).select('id, ' + c.coluna).single();
+    if(error) throw error;
+    usuario[c.coluna] = data[c.coluna];
+    atualizarSessao({ [c.coluna]: data[c.coluna] });
+    desenhar();
+    fechar('popup-campo');
+    toast(novo ? '✅ ' + c.rotulo.replace(' (opcional)', '') + ' salvo!' : '✅ RG removido do perfil.');
+  }catch(erro){
+    console.error('Erro ao salvar ' + campoAtual + ':', erro);
+    erroEl.textContent = erro?.code === '23505' ? 'Este e-mail já está em uso por outra conta.' : mensagemErro(erro, 'Não foi possível salvar agora. Tente de novo.');
+  }finally{ ocupado(botao, false); }
+}
+
+/* ---------- endereço ---------- */
+const CAMPOS_END = ['cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'estado'];
+function abrirEndereco(){
+  CAMPOS_END.forEach(k => $('end-' + k).value = k === 'cep' ? mascaraCEP(endereco?.cep || '') : (endereco?.[k] || ''));
+  $('end-cep-aviso').textContent = ''; $('end-erro').textContent = '';
+  abrir('popup-endereco', 'end-cep');
+}
+let cepBuscado = '';
+$('end-cep').addEventListener('input', async e => {
+  e.target.value = mascaraCEP(e.target.value);
+  const cep = soDigitos(e.target.value), aviso = $('end-cep-aviso');
+  if(cep.length !== 8){ aviso.textContent = ''; cepBuscado = ''; return; }
+  if(cep === cepBuscado) return;
+  cepBuscado = cep; aviso.textContent = 'Buscando o endereço…';
+  try{
+    const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const d = await r.json();
+    if(cep !== cepBuscado) return;
+    if(d.erro){ aviso.textContent = 'CEP não encontrado. Preencha o endereço abaixo.'; return; }
+    $('end-logradouro').value = d.logradouro || '';
+    $('end-bairro').value = d.bairro || '';
+    $('end-cidade').value = d.localidade || '';
+    $('end-estado').value = d.uf || '';
+    $('end-numero').value = ''; $('end-complemento').value = '';
+    aviso.textContent = '✓ Endereço encontrado. Agora informe o número.';
+    $('end-numero').focus();
+  }catch(err){ aviso.textContent = 'Não foi possível buscar o CEP. Preencha o endereço abaixo.'; }
+});
+$('end-estado').addEventListener('input', e => { e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 2); });
+async function salvarEndereco(ev){
+  ev.preventDefault();
+  const erroEl = $('end-erro'), botao = $('end-salvar');
+  const v = {}; CAMPOS_END.forEach(k => v[k] = $('end-' + k).value.trim().replace(/\s+/g, ' '));
+  const falta = (msg, campo) => { erroEl.textContent = msg; $('end-' + campo).focus(); };
+  if(soDigitos(v.cep).length !== 8) return falta('Informe um CEP com 8 números.', 'cep');
+  if(!v.logradouro) return falta('Informe a rua ou avenida.', 'logradouro');
+  if(!v.numero) return falta('Informe o número. Se não tiver, escreva S/N.', 'numero');
+  if(!v.bairro) return falta('Informe o bairro.', 'bairro');
+  if(!v.cidade) return falta('Informe a cidade.', 'cidade');
+  if(v.estado.length !== 2) return falta('Informe a sigla do estado com 2 letras (ex: SP).', 'estado');
+  erroEl.textContent = '';
+  const linha = { usuario_id: usuario.id, cep: mascaraCEP(v.cep), logradouro: v.logradouro, numero: v.numero, complemento: v.complemento || null, bairro: v.bairro, cidade: v.cidade, estado: v.estado };
+  ocupado(botao, true);
+  try{
+    const { data, error } = await supabaseClient.from('endereco').upsert(linha, { onConflict: 'usuario_id' }).select().single();
+    if(error) throw error;
+    endereco = data;
+    desenhar();
+    fechar('popup-endereco');
+    toast('✅ Endereço salvo!');
+  }catch(erro){
+    console.error('Erro ao salvar endereço:', erro);
+    erroEl.textContent = mensagemErro(erro, 'Não foi possível salvar o endereço. Tente de novo.');
+  }finally{ ocupado(botao, false); }
+}
+
+/* ---------- contatos de emergência ---------- */
+$('ct-parentesco').innerHTML = '<option value="">Selecione…</option>' + PARENTESCOS.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+$('ct-telefone').addEventListener('input', e => { e.target.value = mascaraTelefone(e.target.value); });
+function abrirContato(id){
+  const c = contatos.find(x => x.id === id);
+  if(!c && contatos.length >= MAX_CONTATOS){ toast('Você já tem ' + MAX_CONTATOS + ' contatos.'); return; }
+  $('ct-titulo').textContent = c ? 'Editar contato' : 'Novo contato de emergência';
+  $('ct-id').value = c ? c.id : '';
+  $('ct-nome').value = c?.nome_contato || '';
+  const sel = $('ct-parentesco');
+  if(c?.grau_parentesco && !PARENTESCOS.includes(c.grau_parentesco)) sel.insertAdjacentHTML('beforeend', `<option value="${esc(c.grau_parentesco)}">${esc(c.grau_parentesco)}</option>`);
+  sel.value = c?.grau_parentesco || '';
+  $('ct-telefone').value = c?.telefone || '';
+  $('ct-email').value = c?.email || '';
+  $('ct-erro').textContent = '';
+  abrir('popup-contato', 'ct-nome');
+}
+async function salvarContato(ev){
+  ev.preventDefault();
+  const erroEl = $('ct-erro'), botao = $('ct-salvar'), id = Number($('ct-id').value) || null;
+  const nome = $('ct-nome').value.trim().replace(/\s+/g, ' ');
+  const parentesco = $('ct-parentesco').value;
+  const telefone = $('ct-telefone').value.trim();
+  const email = $('ct-email').value.trim().toLowerCase();
+  const falta = (msg, campo) => { erroEl.textContent = msg; $(campo).focus(); };
+  if(nome.length < 2) return falta('Informe o nome do contato.', 'ct-nome');
+  if(!parentesco) return falta('Escolha o grau de parentesco.', 'ct-parentesco');
+  if(!telefoneValido(telefone)) return falta('Informe o telefone com DDD (10 ou 11 números).', 'ct-telefone');
+  if(email && !emailValido(email)) return falta('Informe um e-mail válido ou deixe em branco.', 'ct-email');
+  if(!id && contatos.length >= MAX_CONTATOS) return falta('Você já tem ' + MAX_CONTATOS + ' contatos.', 'ct-nome');
+  erroEl.textContent = '';
+  const linha = { nome_contato: nome, grau_parentesco: parentesco, telefone, email: email || null };
+  ocupado(botao, true);
+  try{
+    let r;
+    if(id) r = await supabaseClient.from('contato_emergencia').update(linha).eq('id', id).eq('usuario_id', usuario.id).select().single();
+    else {
+      const ordem = contatos.reduce((m, c) => Math.max(m, c.ordem || 0), 0) + 1;
+      r = await supabaseClient.from('contato_emergencia').insert({ ...linha, usuario_id: usuario.id, ordem }).select().single();
+    }
+    if(r.error) throw r.error;
+    if(id) contatos = contatos.map(c => c.id === id ? r.data : c); else contatos.push(r.data);
+    contatos.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+    desenhar();
+    fechar('popup-contato');
+    toast(id ? '✅ Contato atualizado!' : '✅ Contato adicionado!');
+  }catch(erro){
+    console.error('Erro ao salvar contato:', erro);
+    erroEl.textContent = mensagemErro(erro, 'Não foi possível salvar o contato. Tente de novo.');
+  }finally{ ocupado(botao, false); }
+}
+let excluirId = null;
+function pedirExclusao(id){
+  const c = contatos.find(x => x.id === id); if(!c) return;
+  excluirId = id;
+  $('ex-texto').textContent = `${c.nome_contato} (${c.grau_parentesco}) deixará de aparecer na tela Emergência.`;
+  abrir('popup-excluir', 'ex-confirmar');
+}
+async function confirmarExclusao(){
+  const botao = $('ex-confirmar');
+  ocupado(botao, true, 'Excluindo…');
+  try{
+    const { error } = await supabaseClient.from('contato_emergencia').delete().eq('id', excluirId).eq('usuario_id', usuario.id);
+    if(error) throw error;
+    contatos = contatos.filter(c => c.id !== excluirId);
+    // Renumera (1, 2, 3) para o contato 1 continuar sendo o primeiro chamado.
+    for(let i = 0; i < contatos.length; i++){
+      if(contatos[i].ordem !== i + 1){
+        const r = await supabaseClient.from('contato_emergencia').update({ ordem: i + 1 }).eq('id', contatos[i].id);
+        if(!r.error) contatos[i].ordem = i + 1;
+      }
+    }
+    desenhar();
+    fechar('popup-excluir');
+    toast('Contato excluído.');
+  }catch(erro){
+    console.error('Erro ao excluir contato:', erro);
+    toast(mensagemErro(erro, 'Não foi possível excluir. Tente de novo.'));
+  }finally{ ocupado(botao, false); }
+}
+
+/* ---------- senha ---------- */
+function regras(s){ return { tamanho: s.length >= 8, letra: /[A-Za-zÀ-ÿ]/.test(s), numero: /\d/.test(s) }; }
+$('sn-nova').addEventListener('input', e => {
+  const r = regras(e.target.value);
+  $('sn-regras').querySelectorAll('li').forEach(li => li.classList.toggle('ok', r[li.dataset.regra]));
+});
+function abrirSenha(){
+  ['sn-atual', 'sn-nova', 'sn-nova2'].forEach(id => { $(id).value = ''; $(id).type = 'password'; });
+  $('sn-regras').querySelectorAll('li').forEach(li => li.classList.remove('ok'));
+  $('sn-ver').textContent = '👁 Mostrar senhas';
+  $('sn-erro').textContent = '';
+  abrir('popup-senha', 'sn-atual');
+}
+function alternarVerSenha(){
+  const mostrar = $('sn-atual').type === 'password';
+  ['sn-atual', 'sn-nova', 'sn-nova2'].forEach(id => $(id).type = mostrar ? 'text' : 'password');
+  $('sn-ver').textContent = mostrar ? '🙈 Esconder senhas' : '👁 Mostrar senhas';
+}
+async function salvarSenha(ev){
+  ev.preventDefault();
+  const atual = $('sn-atual').value, nova = $('sn-nova').value, nova2 = $('sn-nova2').value;
+  const erroEl = $('sn-erro'), botao = $('sn-salvar');
+  const falta = (msg, campo) => { erroEl.textContent = msg; $(campo).focus(); };
+  if(!atual) return falta('Digite a senha atual.', 'sn-atual');
+  const r = regras(nova);
+  if(!r.tamanho || !r.letra || !r.numero) return falta('A nova senha precisa ter 8 ou mais caracteres, com letras e números.', 'sn-nova');
+  if(nova !== nova2) return falta('As duas novas senhas não são iguais.', 'sn-nova2');
+  if(nova === atual) return falta('A nova senha precisa ser diferente da atual.', 'sn-nova');
+  erroEl.textContent = '';
+  ocupado(botao, true);
+  try{
+    // O servidor confere a senha atual, limita tentativas erradas e desconecta os outros aparelhos.
+    await chamarServidor('alterar_senha', { atual, nova });
+    fechar('popup-senha');
+    toast('✅ Senha alterada! Os outros aparelhos precisarão entrar de novo.');
+  }catch(erro){
+    console.error('Erro ao alterar senha:', erro);
+    if(erro.mensagem){ erroEl.textContent = erro.mensagem; if(erro.campo) $('sn-' + erro.campo)?.focus(); }
+    else erroEl.textContent = mensagemErro(erro, 'Não foi possível alterar a senha. Tente de novo.');
+  }finally{ ocupado(botao, false); }
+}
+
+/* ---------- foto do perfil ---------- */
+let stream = null, cameraFrontal = true, fotoTirada = null;
+function previaFoto(url){ const p = $('ft-previa'); p.className = 'foto-previa'; p.innerHTML = htmlFoto(url, usuario?.nome_completo); }
+function abrirFoto(){
+  voltarMenuFoto();
+  $('ft-erro').textContent = '';
+  $('ft-aviso').hidden = true;
+  $('ft-avatares').innerHTML = AVATARES.map((a, i) =>
+    `<button type="button" class="avatar-opcao" data-url="${a.url}" aria-pressed="${usuario?.foto_perfil_url === a.url}" aria-label="Avatar ${i + 1}: ${esc(a.descricao)}"><img src="${a.url}" alt="" loading="lazy"></button>`).join('');
+  $('ft-avatares').querySelectorAll('.avatar-opcao').forEach(b => b.addEventListener('click', () => escolherAvatar(b.dataset.url)));
+  $('ft-remover').hidden = !usuario?.foto_perfil_url;
+  abrir('popup-foto');
+}
+function fecharFoto(){ fechar('popup-foto'); }
+function voltarMenuFoto(){
+  pararCamera();
+  fotoTirada = null;
+  $('ft-menu').hidden = false; $('ft-camera').hidden = true;
+  previaFoto(usuario?.foto_perfil_url);
+}
+// A foto (arquivo, avatar ou remoção) é gravada pelo servidor, que também apaga o arquivo antigo.
+async function salvarFoto(acao, dados, msg){
+  const r = await chamarServidor(acao, dados);
+  usuario.foto_perfil_url = r.foto_perfil_url;
+  atualizarSessao({ foto_perfil_url: r.foto_perfil_url });
+  desenhar();
+  fechar('popup-foto');
+  toast(msg);
+}
+function mostrandoSalvando(sim){
+  document.querySelectorAll('#popup-foto button').forEach(b => b.disabled = sim);
+  if(sim) $('ft-erro').textContent = '';
+  $('ft-titulo').textContent = sim ? 'Salvando a foto…' : 'Foto do perfil';
+}
+async function escolherAvatar(url){
+  mostrandoSalvando(true);
+  try{ await salvarFoto('foto_avatar', { avatar: url }, '✅ Avatar salvo!'); }
+  catch(erro){ console.error('Erro ao salvar avatar:', erro); $('ft-erro').textContent = erro.mensagem || mensagemErro(erro, 'Não foi possível salvar o avatar.'); }
+  finally{ mostrandoSalvando(false); }
+}
+async function removerFoto(){
+  mostrandoSalvando(true);
+  try{ await salvarFoto('foto_remover', {}, 'Foto removida.'); }
+  catch(erro){ console.error('Erro ao remover foto:', erro); $('ft-erro').textContent = erro.mensagem || mensagemErro(erro, 'Não foi possível remover a foto.'); }
+  finally{ mostrandoSalvando(false); }
+}
+// Corta no centro (quadrado), reduz para 600 px e converte em JPEG.
+function recortarQuadrado(origem, largura, altura, espelhar){
+  const lado = Math.min(largura, altura), final = Math.min(600, lado);
+  const canvas = document.createElement('canvas'); canvas.width = canvas.height = final;
+  const ctx = canvas.getContext('2d');
+  if(espelhar){ ctx.translate(final, 0); ctx.scale(-1, 1); }
+  ctx.drawImage(origem, (largura - lado) / 2, (altura - lado) / 2, lado, lado, 0, 0, final, final);
+  return canvas;
+}
+function arquivoParaCanvas(arquivo){
+  return new Promise((ok, falha) => {
+    const url = URL.createObjectURL(arquivo), img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); ok(recortarQuadrado(img, img.naturalWidth, img.naturalHeight, false)); };
+    img.onerror = () => { URL.revokeObjectURL(url); falha(new Error('Imagem inválida.')); };
+    img.src = url;
+  });
+}
+async function enviarFoto(canvas){
+  mostrandoSalvando(true);
+  try{
+    const imagem = canvas.toDataURL('image/jpeg', .85).split(',')[1];
+    await salvarFoto('foto', { imagem }, '✅ Foto salva!');
+  }catch(erro){
+    console.error('Erro ao enviar foto:', erro);
+    $('ft-erro').textContent = erro.mensagem || mensagemErro(erro, 'Não foi possível salvar a foto. Tente de novo.');
+  }finally{ mostrandoSalvando(false); }
+}
+async function receberArquivo(e){
+  const arquivo = e.target.files[0]; e.target.value = '';
+  if(!arquivo) return;
+  if(!arquivo.type.startsWith('image/')){ $('ft-erro').textContent = 'Escolha um arquivo de imagem (foto).'; return; }
+  if(arquivo.size > 25 * 1024 * 1024){ $('ft-erro').textContent = 'Essa imagem é grande demais. Escolha outra.'; return; }
+  try{
+    const canvas = await arquivoParaCanvas(arquivo);
+    const p = $('ft-previa'); p.className = 'foto-previa'; p.replaceChildren(canvas);
+    await enviarFoto(canvas);
+  }catch(erro){ $('ft-erro').textContent = 'Não foi possível abrir essa imagem. Tente outra.'; previaFoto(usuario?.foto_perfil_url); }
+}
+$('ft-arquivo').addEventListener('change', receberArquivo);
+$('ft-arquivo-camera').addEventListener('change', receberArquivo);
+
+// Celular/tablet: se a câmera dentro do app não estiver disponível, abre o app de câmera do aparelho.
+function ehCelular(){ return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform)); }
+function avisoCamera(titulo, texto){
+  pararCamera();
+  $('ft-aviso-titulo').textContent = titulo;
+  $('ft-aviso-texto').textContent = texto;
+  $('ft-aviso').hidden = false;
+  $('ft-menu').hidden = false; $('ft-camera').hidden = true;
+  previaFoto(usuario?.foto_perfil_url);
+  $('ft-aviso-galeria').focus({ preventScroll: true });
+}
+async function abrirCamera(){
+  $('ft-erro').textContent = '';
+  $('ft-aviso').hidden = true;
+  fotoTirada = null;
+  const SEM_CAMERA = ['📷 Câmera não identificada', 'Não encontramos uma câmera neste aparelho. Por favor, envie uma foto que você já tem.'];
+  const podeUsar = navigator.mediaDevices?.getUserMedia && window.isSecureContext;
+  if(!podeUsar){
+    if(ehCelular()){ $('ft-arquivo-camera').click(); return; }
+    return avisoCamera(...SEM_CAMERA);
+  }
+  // Confere antes se existe alguma câmera ligada ao aparelho (computador sem webcam, por exemplo).
+  try{
+    const aparelhos = await navigator.mediaDevices.enumerateDevices();
+    if(!aparelhos.some(d => d.kind === 'videoinput')) return ehCelular() ? $('ft-arquivo-camera').click() : avisoCamera(...SEM_CAMERA);
+  }catch(e){ /* segue e tenta abrir a câmera */ }
+  pararCamera();
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: cameraFrontal ? 'user' : 'environment', width: { ideal: 1080 }, height: { ideal: 1080 } }, audio: false });
+  }catch(erro){
+    console.warn('Câmera indisponível:', erro);
+    if(erro?.name === 'NotAllowedError' || erro?.name === 'SecurityError')
+      return avisoCamera('📷 Câmera bloqueada', 'O app não recebeu permissão para usar a câmera. Libere a câmera nas configurações do navegador ou envie uma foto que você já tem.');
+    if(erro?.name === 'NotReadableError')
+      return avisoCamera('📷 Câmera ocupada', 'A câmera está sendo usada por outro programa. Feche o outro programa ou envie uma foto que você já tem.');
+    return avisoCamera(...SEM_CAMERA);
+  }
+  const video = document.createElement('video');
+  video.autoplay = true; video.playsInline = true; video.muted = true; video.srcObject = stream;
+  const p = $('ft-previa'); p.className = 'foto-previa camera' + (cameraFrontal ? '' : ' traseira'); p.replaceChildren(video);
+  $('ft-menu').hidden = true; $('ft-camera').hidden = false;
+  $('ft-camera-dica').textContent = 'Olhe para a câmera e toque no botão vermelho.';
+  $('ft-disparo').hidden = false; $('ft-camera-botoes').hidden = false; $('ft-confirma').hidden = true;
+  $('ft-disparo').focus({ preventScroll: true });
+}
+function virarCamera(){ cameraFrontal = !cameraFrontal; abrirCamera(); }
+function pararCamera(){ if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; } }
+function tirarFoto(){
+  const video = $('ft-previa').querySelector('video');
+  if(!video || !video.videoWidth) return;
+  fotoTirada = recortarQuadrado(video, video.videoWidth, video.videoHeight, cameraFrontal);
+  pararCamera();
+  $('ft-previa').replaceChildren(fotoTirada);
+  $('ft-camera-dica').textContent = 'Gostou da foto?';
+  $('ft-disparo').hidden = true; $('ft-camera-botoes').hidden = true; $('ft-confirma').hidden = false;
+}
+function usarFotoTirada(){ if(fotoTirada) enviarFoto(fotoTirada); }
+
+/* ---------- Sobre o App (mesma janela de antes) ---------- */
+function abrirSobre(){
+  const frame = document.querySelector('.sobre-modal-frame');
+  try{ frame.contentWindow.postMessage('techsaude:sobre-inicio', window.location.origin); }catch(e){}
+  abrir('popup-sobre');
+}
+window.addEventListener('message', ev => {
+  if(ev.origin === window.location.origin && ev.data === 'techsaude:fechar-sobre') fechar('popup-sobre');
+});
+
+/* ---------- sair ---------- */
+async function sairDaConta(){
+  // Encerra a sessão também no servidor (o token deixa de valer em qualquer lugar).
+  try{ await Promise.race([supabaseClient.rpc('app_sair'), new Promise(ok => setTimeout(ok, 2500))]); }catch(e){}
+  ['techsaude_consultas_v2', 'techsaude_lembretes_mostrados'].forEach(k => localStorage.removeItem(k));
+  localStorage.removeItem('usuario_logado');
+  localStorage.removeItem('usuarioLogado');
+  location.href = 'index.html';
+}
+
+/* ---------- relógio ---------- */
+(function relogio(){
+  const d = new Date();
+  const DIAS = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+  const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  $('datetime').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())} - ${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+  setTimeout(relogio, 10000);
+})();
+
+carregar();
+</script>
+
+<div id="modalAjuda" class="ajuda-overlay" hidden>
+  <div class="ajuda-modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button type="button" class="ajuda-fechar" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <p class="ajuda-tag">❔ Ajuda</p>
+    <h2 id="ajudaTitulo">Como usar esta tela</h2>
+    <p class="ajuda-intro" id="ajudaIntro"></p>
+    <ol class="ajuda-lista" id="ajudaLista"></ol>
+    <p class="ajuda-extra" id="ajudaExtra"></p>
+    <button type="button" class="ajuda-ok" id="ajudaOk">Entendi</button>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var AJUDA_TELA = [
+  {
+    "titulo": "Como usar Configurações e Perfil",
+    "intro": "Aqui ficam seus dados, sua foto e as pessoas que o app chama numa emergência.",
+    "passos": [
+      "Toque na sua <b>foto</b> (ou no botão da câmera) para <b>tirar uma foto agora</b>, <b>escolher da galeria</b> ou usar um <b>avatar</b>.",
+      "Em <b>Meus dados</b>, toque em um dado (nome, telefone, e-mail, nascimento ou RG), escreva o novo valor e toque em <b>Salvar</b>. Pronto, já fica salvo.",
+      "O <b>CPF</b> tem um cadeado 🔒: ele identifica sua conta e não muda por aqui.",
+      "Para mudar o <b>endereço</b>, digite o CEP: a rua, o bairro e a cidade aparecem sozinhos. Depois informe o número.",
+      "Em <b>Contatos de emergência</b> você pode <b>adicionar</b> até 3 pessoas, <b>editar</b>, <b>excluir</b> ou <b>ligar</b> direto.",
+      "Para trocar a senha, toque em <b>Senha</b>, digite a atual e a nova duas vezes."
+    ],
+    "dica": "Não existe botão “Salvar tudo”: cada janela salva sozinha quando você toca em Salvar. 💚"
+  }
+];
+  var PASSO_LETRA = 'Letra pequena? Toque em <b>A+</b> ou <b>A++</b>, logo acima, para aumentar. Sua escolha fica salva para todas as telas.';
+  var CHAVE_FONTE = 'techsaude_fonte';
+  var botoesFonte = document.querySelectorAll('.toolbar-acessibilidade .font-btn');
+  function escalaAtual(){ return parseFloat(document.documentElement.style.fontSize) || 100; }
+  function marcarBotaoFonte(){
+    var atual = escalaAtual();
+    botoesFonte.forEach(function(b){ var ativo = Number(b.dataset.scale) === atual; b.classList.toggle('active', ativo); b.setAttribute('aria-pressed', ativo ? 'true' : 'false'); });
+  }
+  function aplicarFonte(escala, salvar){
+    document.documentElement.style.fontSize = escala + '%';
+    if(salvar){ try{ localStorage.setItem(CHAVE_FONTE, String(escala)); }catch(e){} }
+    marcarBotaoFonte();
+    window.dispatchEvent(new Event('techsaude:fonte'));
+  }
+  window.aplicarFonteTechSaude = aplicarFonte;
+  botoesFonte.forEach(function(btn){ btn.addEventListener('click', function(){ aplicarFonte(Number(btn.dataset.scale), true); }); });
+  window.addEventListener('techsaude:fonte', marcarBotaoFonte);
+  window.addEventListener('storage', function(e){ if(e.key === CHAVE_FONTE && e.newValue){ aplicarFonte(parseFloat(e.newValue) || 100, false); } });
+  marcarBotaoFonte();
+
+  var modal = document.getElementById('modalAjuda');
+  var focoAnterior = null;
+  function conteudoAtual(){
+    for(var i = 0; i < AJUDA_TELA.length; i++){ var item = AJUDA_TELA[i]; if(!item.quando || document.querySelector(item.quando)) return item; }
+    return AJUDA_TELA[AJUDA_TELA.length - 1];
+  }
+  function abrirAjuda(){
+    var c = conteudoAtual();
+    document.getElementById('ajudaTitulo').textContent = c.titulo;
+    var intro = document.getElementById('ajudaIntro'); intro.innerHTML = c.intro || ''; intro.hidden = !c.intro;
+    document.getElementById('ajudaLista').innerHTML = c.passos.concat([PASSO_LETRA]).map(function(p){ return '<li>' + p + '</li>'; }).join('');
+    var extra = document.getElementById('ajudaExtra'); extra.innerHTML = c.dica || ''; extra.hidden = !c.dica;
+    focoAnterior = document.activeElement; modal.hidden = false;
+    document.documentElement.classList.add('fundo-travado');
+    document.getElementById('ajudaOk').focus({ preventScroll: true });
+    modal.querySelector('.ajuda-modal').scrollTop = 0;
+  }
+  function fecharAjuda(){ modal.hidden = true; if(!document.querySelector('.popup-overlay.show')) document.documentElement.classList.remove('fundo-travado'); if(focoAnterior && focoAnterior.focus){ focoAnterior.focus(); } }
+  document.getElementById('btnAjuda').addEventListener('click', abrirAjuda);
+  document.getElementById('fecharAjuda').addEventListener('click', fecharAjuda);
+  document.getElementById('ajudaOk').addEventListener('click', fecharAjuda);
+  modal.addEventListener('click', function(e){ if(e.target === modal) fecharAjuda(); });
+  document.addEventListener('keydown', function(e){
+    if(modal.hidden) return;
+    if(e.key === 'Escape'){ fecharAjuda(); return; }
+    if(e.key !== 'Tab') return;
+    var primeiro = document.getElementById('fecharAjuda'), ultimo = document.getElementById('ajudaOk');
+    if(!modal.contains(document.activeElement)){ e.preventDefault(); primeiro.focus(); }
+    else if(e.shiftKey && document.activeElement === primeiro){ e.preventDefault(); ultimo.focus(); }
+    else if(!e.shiftKey && document.activeElement === ultimo){ e.preventDefault(); primeiro.focus(); }
+  });
+})();
+</script>
+
+</body>
+</html>
