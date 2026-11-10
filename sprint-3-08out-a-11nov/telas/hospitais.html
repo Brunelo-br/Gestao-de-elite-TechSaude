@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>TechSaúde - Hospitais Próximos</title>
+<script src="navegacao-app.js"></script>
+<script src="lembretes-app.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+<!-- Leaflet: biblioteca gratuita que desenha o mapa -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root{
+    --cream:#f3efdc; --cream-deep:#ece5c9; --card-bg:#faf7ec;
+    --green-deep:#1b3a26; --green-mid:#2f6b46; --forest:#1b3a26; --forest-2:#234a34;
+    --teal:#2f9e8f; --line:#cdbf95; --border-soft:#cdbf95;
+    --text:#26332a; --text-soft:#55604f;
+    --error:#a3402c; --error-bg:#f4dcd6;
+    --success-bg:#dcefdf; --success-border:#a5d6a7;
+    --warn-bg:#fff3e0; --warn:#e65100; --warn-border:#ffcc80;
+    --danger:#c0392b;
+    --shadow-outer:0 30px 60px rgba(0,0,0,0.35);
+    /* cores por tipo de unidade */
+    --c-hospital:#1f5fa8; --c-ps:#c0392b; --c-ubs:#2f6b46; --c-clinica:#7b4fa0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;min-height:100%;}
+  body{
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif; color:var(--text);
+    min-height:100vh; display:flex; flex-direction:column;
+    background:var(--cream);
+  }
+  input,select,textarea,button{font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;}
+  h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;margin:0 0 .4rem;}
+  .hidden{display:none !important;}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+  .site{width:100%;max-width:1080px;min-height:100vh;margin:0 auto;background:var(--cream);display:flex;flex-direction:column;}
+
+  /* ===== CABEÇALHO PADRÃO ===== */
+  .topbar{background:linear-gradient(160deg,#1d5b3a,#123a26);padding:18px 14px 14px;display:grid;grid-template-columns:1fr auto 1fr;align-items:start;position:relative;}
+  .nav-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--cream);font-family:inherit;font-weight:800;font-size:.64rem;letter-spacing:.3px;text-transform:uppercase;text-decoration:none;padding:2px;width:60px;flex-shrink:0;}
+  .nav-btn .icon-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  .nav-btn.emergencia .icon-circle{background:#c0392b;}
+  .nav-btn.inicio .icon-circle{background:rgba(255,255,255,.16);}
+  .nav-btn.voltar .icon-circle{background:rgba(255,255,255,.16);}
+  .nav-right{grid-column:3;justify-self:end;display:flex;align-items:flex-start;gap:6px;flex-shrink:0;}
+  .nav-btn .icon-circle svg{width:20px;height:20px;color:#fff;}
+  .nav-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .brand-top{grid-column:2;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:2px;flex-shrink:0;}
+  .brand-top img{width:200px;height:200px;object-fit:contain;}
+
+  .app{padding:16px 16px 32px;flex:1;}
+  @media (min-width:900px){
+    body{background:radial-gradient(circle at 50% 0%,#0f5132 0%,#0b3e28 45%,#082a1c 100%);align-items:center;justify-content:center;padding:40px 24px;}
+    .site{min-height:660px;border-radius:32px;margin:auto;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.06);}
+    .topbar{padding:26px 32px 18px;}
+    .app{padding:22px 32px 32px;}
+  }
+  @media (max-width:480px){ .topbar{padding:14px 8px 12px;}.brand-top img{width:120px;height:120px;}.nav-btn{width:50px;}.app{padding:16px 16px 32px;} }
+
+  .datetime{text-align:left;font-size:.85rem;color:var(--text-soft);background:var(--cream);border-bottom:1px solid var(--line);padding:9px 18px;margin:0;}
+  .toolbar-acessibilidade{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:0 0 22px;}
+  .font-group{display:inline-flex;border:2px solid var(--line);border-radius:999px;overflow:hidden;background:#fff;}
+  .font-group button{border:none;background:#fff;color:var(--green-deep);font-weight:800;padding:9px 13px;cursor:pointer;font-size:.75rem;font-family:inherit;min-width:44px;min-height:40px;margin:0;}
+  .font-group button+button{border-left:1px solid #e4dbbd;}
+  .font-group button.active{background:var(--green-deep);color:var(--cream);}
+  .font-group button:focus-visible,.chip-btn:focus-visible{outline:3px solid var(--teal);outline-offset:2px;}
+  .chip-btn{background:#fff;border:2px solid var(--line);border-radius:999px;padding:9px 15px;font-size:.75rem;min-height:40px;margin:0;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--green-deep);cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;}
+  .chip-btn:hover{border-color:var(--teal);}
+
+  h2{font-size:1.4rem;}
+  .subtitle{color:var(--text-soft);margin:0 0 1.2rem;font-weight:600;font-size:.95rem;}
+
+  /* ===== BOTÕES ===== */
+  .btn{border:none;border-radius:14px;padding:13px 18px;font-size:1rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;line-height:1.2;min-height:48px;}
+  .btn:focus-visible{outline:3px solid var(--teal);outline-offset:3px;}
+  .btn-primary{background:var(--green-deep);color:var(--cream);box-shadow:0 4px 0 #0e2416;}
+  .btn-primary:active{transform:translateY(2px);box-shadow:0 2px 0 #0e2416;}
+  .btn-secondary{background:#fff;color:var(--green-deep);border:2.5px solid var(--line);}
+  .btn-secondary:hover{border-color:var(--teal);}
+  .btn-link{background:none;border:none;color:var(--green-mid);font-weight:800;text-decoration:underline;cursor:pointer;font-size:.92rem;padding:6px 2px;}
+  .btn[disabled]{opacity:.55;cursor:wait;}
+
+  /* ===== PAINEL DE ORIGEM (de onde buscar) ===== */
+  .painel{background:var(--card-bg);border:2.5px solid var(--line);border-radius:22px;padding:18px;margin-bottom:18px;}
+  .origem-atual{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;margin-bottom:14px;}
+  .origem-texto{font-size:1.05rem;font-weight:700;color:var(--green-deep);}
+  .origem-texto small{display:block;font-weight:600;color:var(--text-soft);font-size:.86rem;margin-top:2px;}
+  .modos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .modo-btn{background:#fff;border:2.5px solid var(--line);border-radius:16px;padding:12px 8px;cursor:pointer;font-weight:800;color:var(--green-deep);font-size:.95rem;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:72px;justify-content:center;}
+  .modo-btn .ico{font-size:1.5rem;line-height:1;}
+  .modo-btn[aria-pressed="true"]{background:var(--green-deep);color:var(--cream);border-color:var(--green-deep);}
+  .modo-btn:focus-visible{outline:3px solid var(--teal);outline-offset:3px;}
+  @media (max-width:420px){ .modo-btn{font-size:.85rem;} }
+
+  .cep-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:14px;}
+  .campo{display:flex;flex-direction:column;gap:6px;flex:1 1 200px;}
+  .campo label{font-weight:800;color:var(--green-deep);font-size:.95rem;}
+  .campo input{border:2.5px solid var(--line);border-radius:14px;padding:12px 14px;font-size:1.25rem;font-weight:700;letter-spacing:1px;background:#fff;color:var(--text);min-height:52px;}
+  .campo input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(47,158,143,.25);}
+  .check-salvar{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--text);margin-top:10px;font-size:.95rem;cursor:pointer;}
+  .check-salvar input{width:22px;height:22px;accent-color:var(--green-deep);}
+
+  .boas-vindas{background:var(--success-bg);border:2px solid var(--success-border);border-radius:16px;padding:14px 16px;margin-bottom:6px;font-weight:700;color:var(--green-deep);}
+  .boas-vindas p{margin:4px 0 0;font-weight:600;color:var(--text-soft);font-size:.92rem;}
+
+  /* ===== FILTROS ===== */
+  .filtros{display:flex;flex-direction:column;gap:12px;margin-bottom:16px;}
+  .filtro-linha{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+  .filtro-rotulo{font-weight:800;color:var(--green-deep);font-size:.95rem;min-width:84px;}
+  .pill{background:#fff;border:2.5px solid var(--line);border-radius:999px;padding:9px 14px;font-weight:800;font-size:.9rem;color:var(--green-deep);cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:44px;}
+  .pill[aria-pressed="true"]{background:var(--green-deep);color:var(--cream);border-color:var(--green-deep);}
+  .pill:focus-visible{outline:3px solid var(--teal);outline-offset:3px;}
+  .pill .bolinha{width:12px;height:12px;border-radius:50%;display:inline-block;border:2px solid #fff;}
+
+  /* ===== STATUS ===== */
+  .status{border-radius:14px;padding:12px 14px;font-weight:700;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start;}
+  .status.info{background:#e7f3f1;border:2px solid #a8d5cd;color:#1d5f55;}
+  .status.erro{background:var(--error-bg);border:2px solid #e3a99b;color:var(--error);}
+  .status.aviso{background:var(--warn-bg);border:2px solid var(--warn-border);color:#8a3a00;}
+  .spinner{width:20px;height:20px;border:3px solid rgba(29,95,85,.25);border-top-color:#1d5f55;border-radius:50%;animation:gira 0.9s linear infinite;flex-shrink:0;margin-top:1px;}
+  @keyframes gira{to{transform:rotate(360deg);}}
+
+  /* ===== MAPA + LISTA ===== */
+  .resultado{display:grid;grid-template-columns:1fr;gap:18px;}
+  @media (min-width:901px){
+    .resultado{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start;}
+    .mapa-wrap{position:sticky;top:16px;}
+    #mapa{height:600px !important;}
+    .lista{max-height:600px;overflow-y:auto;padding-right:6px;}
+  }
+  .mapa-wrap{border:2.5px solid var(--line);border-radius:22px;overflow:hidden;background:var(--cream-deep);position:relative;}
+  #mapa{height:360px;width:100%;}
+  .legenda{display:flex;flex-wrap:wrap;gap:10px;padding:10px 12px;background:var(--card-bg);border-top:2px solid var(--line);font-size:.82rem;font-weight:700;color:var(--text-soft);}
+  .legenda span{display:inline-flex;align-items:center;gap:5px;}
+  .legenda i{width:12px;height:12px;border-radius:50%;display:inline-block;}
+
+  .lista-topo{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+  .lista-topo h3{margin:0;font-family:'Baloo 2',sans-serif;font-size:1.2rem;color:var(--green-deep);}
+  .lista-topo span{font-weight:700;color:var(--text-soft);font-size:.9rem;}
+  .lista{display:flex;flex-direction:column;gap:12px;}
+
+  .unidade{background:var(--card-bg);border:2.5px solid var(--line);border-radius:20px;padding:14px;display:flex;gap:12px;cursor:pointer;transition:border-color .15s, box-shadow .15s;}
+  .unidade:hover{border-color:var(--teal);}
+  .unidade:focus-visible{outline:3px solid var(--teal);outline-offset:3px;}
+  .unidade.ativa{border-color:var(--teal);box-shadow:0 0 0 3px rgba(47,158,143,.25);}
+  .num{flex-shrink:0;width:42px;height:42px;border-radius:50%;color:#fff;font-weight:900;font-size:1.05rem;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(0,0,0,.2);}
+  .unidade-corpo{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}
+  .unidade-nome{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.12rem;color:var(--green-deep);line-height:1.2;}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;}
+  .tag{border-radius:999px;padding:3px 10px;font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:#fff;}
+  .tag.leve{background:var(--success-bg);border:1.5px solid var(--success-border);color:var(--green-mid);}
+  .tag.alerta{background:#fde4e0;border:1.5px solid #f0a99b;color:var(--danger);}
+  .tag.aberto{background:#dcefdf;border:1.5px solid #9dcbab;color:#1b4332;}
+  .tag.fechado{background:#ece8dc;border:1.5px solid #cfc6aa;color:#5a5240;}
+  .unidade-horario{font-size:.9rem;font-weight:600;color:var(--text-soft);line-height:1.35;margin-top:4px;}
+  .unidade-horario em{font-style:normal;color:#7a5a12;}
+  .unidade-end{font-size:.92rem;font-weight:600;color:var(--text-soft);line-height:1.35;}
+  .unidade-dist{font-weight:800;color:var(--green-deep);}
+  .acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+  .acoes .btn{padding:10px 14px;font-size:.92rem;min-height:46px;flex:1 1 140px;}
+
+  .vazio{text-align:center;padding:24px 12px;border:2.5px dashed var(--line);border-radius:20px;color:var(--text-soft);font-weight:700;}
+  .vazio .ico{font-size:2.2rem;display:block;margin-bottom:6px;}
+
+  /* ===== PINOS E CARDS FLUTUANTES NO MAPA ===== */
+  .pino{width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.35);}
+  .pino b{transform:rotate(45deg);color:#fff;font-size:15px;font-weight:900;font-family:'Trebuchet MS',sans-serif;}
+  .pino.ativo{outline:4px solid rgba(47,158,143,.6);}
+  .pino-casa{width:44px;height:44px;border-radius:50%;background:#fff;border:3px solid var(--green-deep);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 3px 10px rgba(0,0,0,.35);}
+  .leaflet-tooltip.flutuante{background:#fff;border:2px solid var(--green-deep);border-radius:12px;padding:5px 9px;font-family:'Trebuchet MS',sans-serif;font-weight:800;font-size:12.5px;color:var(--green-deep);box-shadow:0 3px 10px rgba(0,0,0,.25);white-space:nowrap;line-height:1.25;}
+  .leaflet-tooltip.flutuante small{display:block;font-weight:700;color:var(--text-soft);font-size:11.5px;}
+  .leaflet-popup-content-wrapper{border-radius:16px;}
+  .leaflet-popup-content{margin:14px 16px;font-family:'Trebuchet MS',sans-serif;min-width:210px;}
+  .pop-nome{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;color:var(--green-deep);line-height:1.2;margin-bottom:6px;}
+  .pop-info{font-size:.88rem;font-weight:600;color:var(--text-soft);margin:6px 0 10px;}
+  .pop-acoes{display:flex;gap:6px;flex-wrap:wrap;}
+  .pop-acoes .btn{padding:9px 12px;font-size:.85rem;min-height:42px;flex:1;}
+  .leaflet-container a.btn-primary{color:var(--cream);}
+  .leaflet-container a.btn-secondary{color:var(--green-deep);}
+
+  /* ===== MODAL / TOAST ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(10,20,14,0.55);display:flex;align-items:center;justify-content:center;padding:1rem;z-index:1500;}
+  .modal{background:var(--cream);border:2px solid var(--line);border-radius:22px;padding:2rem 1.6rem;max-width:460px;width:100%;position:relative;box-shadow:var(--shadow-outer);max-height:90vh;overflow-y:auto;}
+  .modal-close{position:absolute;top:.75rem;right:.75rem;background:var(--cream-deep);border:none;width:2.6rem;height:2.6rem;border-radius:50%;font-size:1.1rem;cursor:pointer;color:var(--forest);}
+  .ajuda-lista{padding-left:1.2rem;display:flex;flex-direction:column;gap:.5rem;font-size:1rem;font-weight:600;color:var(--text);}
+  .ajuda-extra{margin-top:1rem;font-size:.95rem;font-weight:600;color:var(--text-soft);}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--green-deep);color:#fff;padding:12px 18px;border-radius:999px;font-weight:700;font-size:13px;opacity:0;transition:all .3s;z-index:2000;pointer-events:none;max-width:90%;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .aviso-emergencia{display:block;width:100%;margin-top:18px;background:#fde4e0;border:2px solid #f0a99b;border-radius:16px;padding:14px 16px;font:inherit;font-size:1rem;font-weight:700;line-height:1.4;color:var(--danger);text-align:center;cursor:pointer;}
+  .aviso-emergencia:hover{border-color:var(--danger);}
+  .aviso-emergencia:focus-visible{outline:3px solid var(--teal);outline-offset:3px;}
+  @keyframes piscaEmergencia{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(192,57,43,.7);}50%{transform:scale(1.18);box-shadow:0 0 0 12px rgba(192,57,43,0);}}
+  .nav-btn.emergencia.destaque .icon-circle{animation:piscaEmergencia .7s ease-in-out 4;}
+  @media (prefers-reduced-motion:reduce){.nav-btn.emergencia.destaque .icon-circle{animation:none;outline:4px solid #fff;outline-offset:3px;}}
+
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important;} }
+</style>
+<script>
+  (function(){
+    try{
+      var escala = parseFloat(localStorage.getItem('techsaude_fonte'));
+      if(escala >= 85 && escala <= 150) document.documentElement.style.fontSize = escala + '%';
+    }catch(e){}
+  })();
+</script>
+</head>
+<body>
+<div class="site">
+
+  <header class="topbar">
+    <button type="button" class="nav-btn emergencia" id="btnEmergencia" aria-label="Emergência">
+      <span class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a5 5 0 0 0-5 5v3.5c0 1-.4 1.9-1.1 2.6L4 16h16l-1.9-1.9c-.7-.7-1.1-1.6-1.1-2.6V8a5 5 0 0 0-5-5Z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></svg>
+      </span>
+      Emergência
+    </button>
+
+    <div class="brand-top">
+      <img src="img/logo.png" alt="Logo TechSaúde">
+    </div>
+
+    <div class="nav-right">
+      <button type="button" class="nav-btn voltar" onclick="voltarTelaApp()" aria-label="Voltar">
+        <span class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></span>
+        Voltar
+      </button>
+      <a class="nav-btn inicio" href="home.html" aria-label="Início">
+        <span class="icon-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+        </span>
+        Início
+      </a>
+    </div>
+  </header>
+
+  <div class="app">
+    <div class="datetime" id="datetime" aria-live="off">--:-- - carregando data...</div>
+
+    <div class="toolbar-acessibilidade">
+      <div class="font-group" role="group" aria-label="Tamanho da letra">
+        <button type="button" class="font-btn" data-scale="100" aria-label="Letra tamanho normal">A</button>
+        <button type="button" class="font-btn" data-scale="115" aria-label="Letra grande">A+</button>
+        <button type="button" class="font-btn" data-scale="130" aria-label="Letra extra grande">A++</button>
+      </div>
+      <button type="button" id="btnAjuda" class="chip-btn" aria-haspopup="dialog">❔ Ajuda</button>
+    </div>
+
+    <main>
+      <h2>Hospitais e clínicas perto de você</h2>
+      <p class="subtitle">Veja no mapa as unidades de saúde mais próximas e toque em <strong>Como chegar</strong> para abrir o caminho no Google Maps.</p>
+
+      <!-- ===== DE ONDE BUSCAR ===== -->
+      <section class="painel" aria-labelledby="tituloOrigem">
+        <h3 id="tituloOrigem" class="sr-only">De onde buscar</h3>
+
+        <div id="boasVindas" class="boas-vindas hidden">
+          <span id="boasVindasTitulo">👋 Qual é o CEP da sua casa?</span>
+          <p id="boasVindasTexto">Vamos guardar para mostrar sempre os hospitais perto de você. Você pode mudar quando quiser.</p>
+        </div>
+
+        <div class="origem-atual" id="origemAtual">
+          <div class="origem-texto" id="origemTexto" aria-live="polite">Escolha de onde buscar</div>
+          <button type="button" class="btn-link hidden" id="btnAlterarCasa">Alterar CEP de casa</button>
+          <a class="btn-link hidden" id="linkConfigEndereco" href="configuracoes.html">Mudar endereço em Configurações</a>
+        </div>
+
+        <div class="modos" role="group" aria-label="De onde buscar">
+          <button type="button" class="modo-btn" data-modo="casa" aria-pressed="false"><span class="ico" aria-hidden="true">🏠</span>Minha casa</button>
+          <button type="button" class="modo-btn" data-modo="gps" aria-pressed="false"><span class="ico" aria-hidden="true">📍</span>Onde estou</button>
+          <button type="button" class="modo-btn" data-modo="avulso" aria-pressed="false"><span class="ico" aria-hidden="true">🔎</span>Outro CEP</button>
+        </div>
+
+        <form id="formCep" class="hidden" novalidate>
+          <div class="cep-form">
+            <div class="campo">
+              <label for="inputCep" id="labelCep">CEP</label>
+              <input id="inputCep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" maxlength="9" aria-describedby="dicaCep">
+            </div>
+            <button type="submit" class="btn btn-primary" id="btnBuscarCep">Buscar</button>
+          </div>
+          <span id="dicaCep" class="sr-only">Digite os 8 números do CEP</span>
+          <label class="check-salvar" id="linhaSalvar">
+            <input type="checkbox" id="chkSalvar" checked> Guardar como CEP da minha casa
+          </label>
+        </form>
+      </section>
+
+      <!-- ===== FILTROS ===== -->
+      <section class="filtros" aria-label="Filtros">
+        <div class="filtro-linha" role="group" aria-label="Distância">
+          <span class="filtro-rotulo">Distância:</span>
+          <button type="button" class="pill" data-raio="2000" aria-pressed="false">2 km</button>
+          <button type="button" class="pill" data-raio="5000" aria-pressed="true">5 km</button>
+          <button type="button" class="pill" data-raio="10000" aria-pressed="false">10 km</button>
+        </div>
+        <div class="filtro-linha" role="group" aria-label="Tipos de unidade">
+          <span class="filtro-rotulo">Mostrar:</span>
+          <button type="button" class="pill" data-tipo="hospital" aria-pressed="true"><span class="bolinha" style="background:var(--c-hospital)"></span>Hospitais</button>
+          <button type="button" class="pill" data-tipo="ps" aria-pressed="true"><span class="bolinha" style="background:var(--c-ps)"></span>Pronto-socorro / UPA</button>
+          <button type="button" class="pill" data-tipo="ubs" aria-pressed="true"><span class="bolinha" style="background:var(--c-ubs)"></span>UBS / Postos</button>
+          <button type="button" class="pill" data-tipo="clinica" aria-pressed="true"><span class="bolinha" style="background:var(--c-clinica)"></span>Clínicas</button>
+        </div>
+      </section>
+
+      <div id="status" class="status hidden" role="status" aria-live="polite"></div>
+
+      <!-- ===== MAPA + LISTA ===== -->
+      <section class="resultado" id="resultado">
+        <div class="mapa-wrap">
+          <div id="mapa" role="region" aria-label="Mapa das unidades de saúde"></div>
+          <div class="legenda" aria-hidden="true">
+            <span><i style="background:var(--c-hospital)"></i>Hospital</span>
+            <span><i style="background:var(--c-ps)"></i>Pronto-socorro</span>
+            <span><i style="background:var(--c-ubs)"></i>UBS / Posto</span>
+            <span><i style="background:var(--c-clinica)"></i>Clínica</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="lista-topo">
+            <h3>Unidades próximas</h3>
+            <span id="contador"></span>
+          </div>
+          <div class="lista" id="lista">
+            <div class="vazio"><span class="ico" aria-hidden="true">🗺️</span>Escolha de onde buscar para ver as unidades.</div>
+          </div>
+        </div>
+      </section>
+
+      <button type="button" class="aviso-emergencia" id="avisoEmergencia">🚨 Em caso de emergência, use nosso botão <strong>EMERGÊNCIA</strong> no topo da tela.</button>
+    </main>
+  </div>
+</div>
+
+<div id="modalAjuda" class="modal-overlay hidden">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ajudaTitulo">
+    <button class="modal-close" id="fecharAjuda" aria-label="Fechar ajuda">✕</button>
+    <h2 id="ajudaTitulo">Como usar</h2>
+    <ol class="ajuda-lista">
+      <li><strong>Minha casa</strong> mostra as unidades perto do endereço do seu cadastro. Para mudar o endereço, vá em <strong>Configurações</strong>.</li>
+      <li><strong>Onde estou</strong> usa a localização do celular (o aparelho vai pedir permissão).</li>
+      <li><strong>Outro CEP</strong> busca perto de qualquer endereço, sem mudar o CEP da sua casa.</li>
+      <li>Toque em um <strong>pino no mapa</strong> ou em um <strong>cartão da lista</strong> para ver os detalhes.</li>
+      <li><strong>Como chegar</strong> abre o caminho no Google Maps. <strong>Ligar</strong> aparece quando a unidade tem telefone.</li>
+    </ol>
+    <p class="ajuda-extra">As informações vêm de uma base pública (OpenStreetMap) e podem estar desatualizadas. “Aberto agora” e “Fechado agora” seguem o horário dessa base e os feriados nacionais (feriados da cidade não entram). Na dúvida, ligue antes de ir. 💚</p>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =====================================================================
+     CONFIGURAÇÃO
+     ===================================================================== */
+  // Chave do Geoapify (plano gratuito, sem cartão). Depois de publicar o app,
+  // restringir a chave ao endereço do site no painel do Geoapify.
+  var GEOAPIFY_KEY = '2f3e3adbb0f34b33a946c69371925719';
+  // Duas buscas (hospitais/prontos-socorros e clínicas/UBS), até 50 de cada (= 3 créditos cada).
+  // Antes era uma busca só com 40: em lugares com muitas clínicas, ela parava a 2–5 km mesmo com 10 km escolhido.
+  var LIMITE_RESULTADOS = 50;
+  var QTD_FLUTUANTES = 3;       // quantas unidades mais próximas ganham card flutuante no mapa
+  var CENTRO_PADRAO = [-23.5106, -46.8761]; // Barueri, antes da primeira busca
+
+  /* =====================================================================
+     USUÁRIO E ARMAZENAMENTO (localStorage agora, Supabase na integração)
+     ===================================================================== */
+  var SUPABASE_URL = 'https://mbqcazpulgywultkrbvq.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_gPi7EG8MoRlUbvIjNmG0zA_wRkEfzuq';
+  var supabaseClient = null;
+  /* Segurança: cada pedido ao banco leva o token da sessão (cabeçalho x-sessao); o banco só devolve os dados desta conta. */
+  try{ if(window.supabase) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { 'x-sessao': (function(){ try{ return JSON.parse(localStorage.getItem('usuario_logado') || '{}').sessao || ''; }catch(e){ return ''; } })() } } }); }catch(e){ console.error('Supabase não iniciou:', e); }
+
+  function obterIdUsuario(){
+    // Sessão gravada pelo login (index.html) em "usuario_logado". As outras chaves são de versões antigas.
+    var chaves = ['usuario_logado', 'usuarioLogado', 'usuario', 'techsaude_usuario', 'user'];
+    try{
+      for(var i=0;i<chaves.length;i++){
+        var bruto = localStorage.getItem(chaves[i]);
+        if(!bruto) continue;
+        var obj = JSON.parse(bruto);
+        if(Array.isArray(obj)) obj = obj[0];
+        var id = obj && (obj.id || obj.id_usuario || obj.user_id);
+        if(id) return String(id);
+      }
+    }catch(e){}
+    return 'visitante';
+  }
+  var ID_USUARIO = obterIdUsuario();
+  var LOGADO = ID_USUARIO !== 'visitante';
+  var CHAVE_PREFS = 'techsaude_hospitais_' + ID_USUARIO;
+
+  function lerPrefs(){
+    try{ var p = JSON.parse(localStorage.getItem(CHAVE_PREFS) || 'null'); if(p && typeof p === 'object') return p; }catch(e){}
+    return {};
+  }
+  function salvarPrefs(p){
+    try{ localStorage.setItem(CHAVE_PREFS, JSON.stringify(p)); }catch(e){}
+  }
+  var prefs = lerPrefs();
+  // prefs = { casa:{cep, rotulo, lat, lon} (só visitante), casaCache:{chave, cep, rotulo, lat, lon} (cadastro), raio, tipos:[...] }
+
+  /* =====================================================================
+     ESTADO DA TELA
+     ===================================================================== */
+  var estado = {
+    modo: null,             // 'casa' | 'gps' | 'avulso'
+    origem: null,           // {lat, lon, rotulo}
+    raio: prefs.raio || 5000,
+    tipos: Array.isArray(prefs.tipos) && prefs.tipos.length ? prefs.tipos : ['hospital','ps','ubs','clinica'],
+    unidades: [],           // resultado bruto da última busca (já classificado e ordenado)
+    selecionada: null,
+    editandoCasa: false
+  };
+
+  var TIPOS = {
+    hospital: { nome:'Hospital',        cor:'#1f5fa8' },
+    ps:       { nome:'Pronto-socorro',  cor:'#c0392b' },
+    ubs:      { nome:'UBS / Posto',     cor:'#2f6b46' },
+    clinica:  { nome:'Clínica',         cor:'#7b4fa0' }
+  };
+
+  /* =====================================================================
+     ELEMENTOS
+     ===================================================================== */
+  var $ = function(id){ return document.getElementById(id); };
+  var elStatus = $('status'), elLista = $('lista'), elContador = $('contador');
+  var elForm = $('formCep'), elInputCep = $('inputCep'), elLabelCep = $('labelCep');
+  var elChkSalvar = $('chkSalvar'), elLinhaSalvar = $('linhaSalvar');
+  var elOrigemTexto = $('origemTexto'), elBoasVindas = $('boasVindas'), elBtnAlterarCasa = $('btnAlterarCasa');
+
+  /* =====================================================================
+     MAPA (Leaflet + mapa do Geoapify)
+     ===================================================================== */
+  var mapa = null, camadaMapa = null, camadaUnidades = null, marcadorOrigem = null, circuloRaio = null;
+  var marcadoresPorId = {};
+
+  function iniciarMapa(){
+    if(typeof L === 'undefined'){
+      mostrarStatus('erro', 'Não foi possível carregar o mapa. Verifique a internet e recarregue a página.');
+      return;
+    }
+    mapa = L.map('mapa', { zoomControl:true, scrollWheelZoom:false }).setView(CENTRO_PADRAO, 13);
+    camadaMapa = L.tileLayer('https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=' + GEOAPIFY_KEY, {
+      maxZoom: 19,
+      attribution: 'Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Geoapify</a> | © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
+    }).addTo(mapa);
+    camadaUnidades = L.layerGroup().addTo(mapa);
+    // no computador, zoom com a roda só depois de clicar no mapa (evita "prender" a rolagem da página)
+    mapa.on('click', function(){ mapa.scrollWheelZoom.enable(); });
+    mapa.on('mouseout', function(){ mapa.scrollWheelZoom.disable(); });
+  }
+
+  function iconeUnidade(u, ativo){
+    return L.divIcon({
+      className: '',
+      html: '<div class="pino' + (ativo ? ' ativo' : '') + '" style="background:' + TIPOS[u.tipo].cor + '"><b>' + u.numero + '</b></div>',
+      iconSize: [38,38], iconAnchor: [19,38], popupAnchor: [0,-36], tooltipAnchor: [0,-38]
+    });
+  }
+
+  /* =====================================================================
+     FUNÇÕES DE APOIO
+     ===================================================================== */
+  function escapar(t){
+    return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function soDigitos(t){ return String(t || '').replace(/\D/g, ''); }
+  function formatarCep(t){ var d = soDigitos(t).slice(0,8); return d.length > 5 ? d.slice(0,5) + '-' + d.slice(5) : d; }
+
+  function distanciaMetros(lat1, lon1, lat2, lon2){
+    var R = 6371000, rad = Math.PI / 180;
+    var dLat = (lat2-lat1)*rad, dLon = (lon2-lon1)*rad;
+    var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)*Math.sin(dLon/2);
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+  function formatarDistancia(m){
+    if(m < 1000) return Math.round(m/10)*10 + ' m';
+    return (m/1000).toFixed(1).replace('.', ',') + ' km';
+  }
+  // Texto sem acento e em minúsculas, para comparar nomes.
+  function normalizar(t){
+    return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  /* Classifica a unidade em um dos 4 tipos usando nome + categorias do OpenStreetMap.
+     Devolve null para o que não é um lugar de atendimento (ex.: "Departamento de Cirurgia" dentro de um hospital). */
+  function classificar(props){
+    var nome = normalizar(props.name);
+    var cats = props.categories || [];
+    if(/^(departamento|setor|ala|bloco|predio|anexo) /.test(nome)) return null;
+    if(/pronto[\s-]?socorro|pronto[\s-]?atendimento|\bupa\b|\bp\.?s\.?\b|\bama\b/.test(nome)) return 'ps';
+    if(/\bubs\b|unidade (de )?basica|posto de saude|\busf\b|\besf\b|saude da familia|centro de saude|unidade de saude/.test(nome)) return 'ubs';
+    // Consultório, clínica, laboratório e ambulatório não são hospital, mesmo quando a base pública marca assim.
+    if(!/^hospital/.test(nome) && /consultorio|odonto|dentist|clinica|diagnostic|laborator|ambulatorio|centro medico|exames|imagem/.test(nome)) return 'clinica';
+    if(cats.indexOf('healthcare.hospital') !== -1 || /hospital|santa casa|maternidade/.test(nome)) return 'hospital';
+    return 'clinica';
+  }
+
+  /* Telefones: a base pública às vezes traz dois números juntos ("A; B") ou números incompletos.
+     Devolve só os números brasileiros válidos, já sem o +55: DDD + 8 ou 9 dígitos, 0800/0300 ou serviço curto (192). */
+  function telefonesValidos(){
+    var lista = [];
+    Array.prototype.slice.call(arguments).forEach(function(campo){
+      String(campo || '').split(/[;,/]|\bou\b/).forEach(function(parte){
+        var d = soDigitos(parte);
+        if(d.indexOf('55') === 0 && (d.length === 12 || d.length === 13)) d = d.slice(2);
+        if(d.length === 11 && d.charAt(0) === '0' && d.charAt(1) !== '8' && d.charAt(1) !== '3') d = d.slice(1); // 0 + DDD + número
+        var ok = (/^[1-9][1-9]\d{8}$/.test(d) && /^[2-5]/.test(d.slice(2))) ||  // fixo: DDD + 8 dígitos começando de 2 a 5
+                 /^[1-9][1-9]9\d{8}$/.test(d) ||                               // celular: DDD + 9 + 8 dígitos
+                 /^0[38]00\d{7}$/.test(d) ||                                   // 0800 / 0300
+                 /^1\d{2}$/.test(d);                                           // 192, 193...
+        if(ok && lista.indexOf(d) === -1) lista.push(d);
+      });
+    });
+    return lista;
+  }
+  function formatarTelefone(d){
+    if(/^0[38]00/.test(d)) return d.slice(0,4) + ' ' + d.slice(4,7) + ' ' + d.slice(7);
+    if(d.length === 11) return '(' + d.slice(0,2) + ') ' + d.slice(2,7) + '-' + d.slice(7);
+    if(d.length === 10) return '(' + d.slice(0,2) + ') ' + d.slice(2,6) + '-' + d.slice(6);
+    return d;
+  }
+  // Link que abre o aplicativo de telefone já com o número. DDD + número vai no formato +55, que funciona de qualquer celular.
+  function linkTelefone(d){
+    return (d.length === 10 || d.length === 11) && d.charAt(0) !== '0' ? 'tel:+55' + d : 'tel:' + d;
+  }
+
+  /* Remove repetidos da base pública: mesmo nome a menos de 600 m, ou um nome dentro do outro
+     (ex.: "Santa Casa" e "Santa Casa de São Paulo") do mesmo tipo a menos de 300 m. Fica o que tem telefone. */
+  function removerRepetidos(lista){
+    var ficam = [];
+    lista.forEach(function(u){
+      var nu = normalizar(u.nome);
+      var igual = null;
+      for(var i = 0; i < ficam.length; i++){
+        var f = ficam[i], nf = normalizar(f.nome);
+        var dist = distanciaMetros(f.lat, f.lon, u.lat, u.lon);
+        if((nf === nu && dist < 600) || (f.tipo === u.tipo && dist < 300 && (nf.indexOf(nu) !== -1 || nu.indexOf(nf) !== -1))){ igual = i; break; }
+      }
+      if(igual === null){ ficam.push(u); return; }
+      var atual = ficam[igual];
+      var melhor = (!atual.telefones.length && u.telefones.length) ||
+                   (atual.telefones.length === u.telefones.length && u.nome.length > atual.nome.length);
+      if(melhor){ u.emergencia = u.emergencia || atual.emergencia; u.h24 = u.h24 || atual.h24; ficam[igual] = u; }
+      else { atual.emergencia = atual.emergencia || u.emergencia; atual.h24 = atual.h24 || u.h24; }
+    });
+    return ficam;
+  }
+  function linkComoChegar(u){
+    // Link oficial do Google Maps: abre o app/site com a rota até a unidade (carro, ônibus ou a pé, à escolha da pessoa).
+    return 'https://www.google.com/maps/dir/?api=1&destination=' + u.lat + ',' + u.lon;
+  }
+
+  /* =====================================================================
+     HORÁRIO DE FUNCIONAMENTO (campo opening_hours do OpenStreetMap)
+     Só mostra "Aberto agora" / "Fechado agora" quando entende o horário com certeza.
+     Se o texto vier fora do padrão, mostra o horário traduzido e pede para ligar antes.
+     ===================================================================== */
+  var DIAS_OSM = ['su','mo','tu','we','th','fr','sa'];                 // mesma ordem do getDay()
+  var DIAS_NOME = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var DIAS_EXTENSO = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+
+  // Feriados nacionais (fixos + Carnaval, Sexta-feira Santa e Corpus Christi, que dependem da Páscoa).
+  // Feriados municipais não entram: por isso a tela continua dizendo para ligar antes.
+  function pascoa(ano){
+    var a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4;
+    var f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+    var i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+    var mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(ano, mes - 1, dia);
+  }
+  function ehFeriadoNacional(data){
+    var dm = String(data.getDate()).padStart(2, '0') + '/' + String(data.getMonth() + 1).padStart(2, '0');
+    if(['01/01','21/04','01/05','07/09','12/10','02/11','15/11','20/11','25/12'].indexOf(dm) !== -1) return true;
+    var p = pascoa(data.getFullYear()), dia = 86400000;
+    var hoje = new Date(data.getFullYear(), data.getMonth(), data.getDate()).getTime();
+    return [-48, -47, -2, 60].some(function(n){ return Math.round((hoje - p.getTime()) / dia) === n; });
+  }
+
+  // Devolve { dias: [7 listas de faixas em minutos], feriadoFechado } ou null se não entender.
+  function lerHorario(texto){
+    var t = String(texto || '').trim();
+    if(!t) return null;
+    if(t === '24/7') return { h24: true, dias: [0,1,2,3,4,5,6].map(function(){ return [[0, 1440]]; }), feriadoFechado: false };
+    var dias = [null, null, null, null, null, null, null];
+    var feriadoFechado = false;
+    var regras = t.split(/\s*;\s*/).filter(Boolean);
+    for(var i = 0; i < regras.length; i++){
+      // "<dias> <horários>" ou "<dias> off". Os dias aceitam "Mo-Fr", "Sa,Su", "Sa, Su" e "PH" (feriado).
+      var m = /^((?:(?:mo|tu|we|th|fr|sa|su|ph)(?:-(?:mo|tu|we|th|fr|sa|su))?)(?:\s*,\s*(?:mo|tu|we|th|fr|sa|su|ph)(?:-(?:mo|tu|we|th|fr|sa|su))?)*)\s+(off|closed|\d{2}:\d{2}-\d{2}:\d{2}(?:\s*,\s*\d{2}:\d{2}-\d{2}:\d{2})*)$/i.exec(regras[i]);
+      // também aceita "PH Sa,Su off" (feriado escrito antes)
+      if(!m) m = /^ph\s+((?:(?:mo|tu|we|th|fr|sa|su)(?:-(?:mo|tu|we|th|fr|sa|su))?)(?:\s*,\s*(?:mo|tu|we|th|fr|sa|su)(?:-(?:mo|tu|we|th|fr|sa|su))?)*)\s+(off|closed)$/i.exec(regras[i]);
+      if(!m) return null;
+      var faixas = [];
+      if(!/^(off|closed)$/i.test(m[2])){
+        var partes = m[2].split(/\s*,\s*/);
+        for(var k = 0; k < partes.length; k++){
+          var h = /^(\d{2}):(\d{2})-(\d{2}):(\d{2})$/.exec(partes[k]);
+          var ini = Number(h[1]) * 60 + Number(h[2]), fim = Number(h[3]) * 60 + Number(h[4]);
+          if(ini >= 1440 || fim > 1440 || Number(h[2]) > 59 || Number(h[4]) > 59 || fim <= ini) return null; // sem virada de meia-noite
+          faixas.push([ini, fim]);
+        }
+      }
+      var itens = m[1].toLowerCase().split(/\s*,\s*/);
+      if(/^ph/i.test(regras[i])) feriadoFechado = feriadoFechado || !faixas.length;
+      for(var j = 0; j < itens.length; j++){
+        if(itens[j] === 'ph'){ if(!faixas.length) feriadoFechado = true; continue; }
+        var ab = itens[j].split('-');
+        var a = DIAS_OSM.indexOf(ab[0]), b = ab[1] ? DIAS_OSM.indexOf(ab[1]) : a;
+        // percorre do dia a até o dia b, dando a volta na semana (ex.: "Su-Fr")
+        for(var d = a, passos = 0; passos < 7; d = (d + 1) % 7, passos++){
+          dias[d] = faixas.slice();                 // regra de depois vale mais que a de antes (padrão OSM)
+          if(d === b) break;
+        }
+      }
+    }
+    // dias que nenhuma regra citou ficam fechados
+    return { h24: false, dias: dias.map(function(f){ return f || []; }), feriadoFechado: feriadoFechado };
+  }
+
+  function horaTexto(min){
+    var h = Math.floor(min / 60), m = min % 60;
+    if(h === 24) h = 0;
+    return h + 'h' + (m ? String(m).padStart(2, '0') : '');
+  }
+  function faixasTexto(f){
+    if(!f.length) return 'fechado';
+    if(f.length === 1 && f[0][0] === 0 && f[0][1] === 1440) return '24 horas';
+    return f.map(function(x){ return horaTexto(x[0]) + ' às ' + horaTexto(x[1]); }).join(' e ');
+  }
+
+  // "Seg a Sex: 7h às 21h · Sáb e Dom: fechado" (semana começando na segunda)
+  function resumoHorario(hr){
+    if(hr.h24) return 'Aberto 24 horas, todos os dias';
+    var ordem = [1,2,3,4,5,6,0], grupos = [];
+    ordem.forEach(function(d){
+      var txt = faixasTexto(hr.dias[d]), ult = grupos[grupos.length - 1];
+      if(ult && ult.txt === txt) ult.dias.push(d); else grupos.push({ txt: txt, dias: [d] });
+    });
+    // se só falta fechado no fim de semana e não há mais nada, o texto fica curto
+    var partes = grupos.map(function(g){
+      var nomes = g.dias.length === 1 ? DIAS_NOME[g.dias[0]]
+        : g.dias.length === 2 ? DIAS_NOME[g.dias[0]] + ' e ' + DIAS_NOME[g.dias[1]]
+        : DIAS_NOME[g.dias[0]] + ' a ' + DIAS_NOME[g.dias[g.dias.length - 1]];
+      return nomes + ': ' + g.txt;
+    });
+    if(hr.feriadoFechado) partes.push('feriados: fechado');
+    return partes.join(' · ');
+  }
+
+  // Situação agora: { aberto, texto }. Horários que viram a meia-noite não são aceitos, então basta olhar o dia de hoje.
+  function situacaoAgora(hr, agora){
+    agora = agora || new Date();
+    if(hr.h24) return { aberto: true, texto: 'Aberto agora' };
+    var d = agora.getDay(), min = agora.getHours() * 60 + agora.getMinutes();
+    if(hr.feriadoFechado && ehFeriadoNacional(agora)) return { aberto: false, texto: 'Fechado hoje (feriado)' };
+    var hoje = hr.dias[d];
+    for(var i = 0; i < hoje.length; i++){
+      if(min >= hoje[i][0] && min < hoje[i][1]) return { aberto: true, texto: 'Aberto agora · fecha às ' + horaTexto(hoje[i][1]) };
+    }
+    for(var j = 0; j < hoje.length; j++){
+      if(min < hoje[j][0]) return { aberto: false, texto: 'Fechado agora · abre às ' + horaTexto(hoje[j][0]) };
+    }
+    for(var k = 1; k <= 7; k++){
+      var dd = (d + k) % 7;
+      if(hr.dias[dd].length) return { aberto: false, texto: 'Fechado agora · abre ' + (k === 1 ? 'amanhã' : DIAS_EXTENSO[dd]) + ' às ' + horaTexto(hr.dias[dd][0][0]) };
+    }
+    return { aberto: false, texto: 'Fechado agora' };
+  }
+
+  // Quando o horário vem fora do padrão: traduz os códigos para português, sem dizer se está aberto.
+  function traduzirHorario(texto){
+    var mapa = { mo:'Seg', tu:'Ter', we:'Qua', th:'Qui', fr:'Sex', sa:'Sáb', su:'Dom', ph:'feriados', off:'fechado', closed:'fechado' };
+    return String(texto).replace(/\b(mo|tu|we|th|fr|sa|su|ph|off|closed)\b/gi, function(x){ return mapa[x.toLowerCase()]; })
+      .replace(/(\d{2}):(\d{2})/g, function(_, h, m){ return horaTexto(Number(h) * 60 + Number(m)); })
+      .replace(/\s*;\s*/g, ' · ').replace(/-(?=\d|Seg|Ter|Qua|Qui|Sex|Sáb|Dom)/g, ' a ');
+  }
+
+  // Tudo o que a tela precisa: { resumo, situacao (ou null), confirmar }
+  function infoHorario(texto){
+    if(!texto) return null;
+    var hr = lerHorario(texto);
+    if(!hr) return { resumo: traduzirHorario(texto), situacao: null, confirmar: true };
+    return { resumo: resumoHorario(hr), situacao: situacaoAgora(hr), confirmar: false, h24: hr.h24 };
+  }
+
+  /* =====================================================================
+     CACHE DAS BUSCAS (15 minutos, só nesta aba)
+     Voltar para a tela ou trocar 10 km → 5 km → 10 km não gasta créditos do Geoapify de novo.
+     ===================================================================== */
+  var CACHE_MINUTOS = 15;
+  var RAIOS = [2000, 5000, 10000];
+  function chaveCache(o, raio){ return 'techsaude_hosp_busca:' + o.lat.toFixed(3) + ',' + o.lon.toFixed(3) + ':' + raio; }
+  function lerCache(o){
+    for(var i = 0; i < RAIOS.length; i++){
+      var raio = RAIOS[i];
+      if(raio < estado.raio) continue;
+      try{
+        var c = JSON.parse(sessionStorage.getItem(chaveCache(o, raio)) || 'null');
+        if(!c || Date.now() - c.t > CACHE_MINUTOS * 60000) continue;
+        // uma busca maior que veio completa também serve para um raio menor
+        if(raio !== estado.raio && c.cortado) continue;
+        var lista = c.unidades.map(function(u){ u.distancia = distanciaMetros(o.lat, o.lon, u.lat, u.lon); return u; })
+          .filter(function(u){ return u.distancia <= estado.raio; })
+          .sort(function(a,b){ return a.distancia - b.distancia; });
+        return { unidades: lista, cortado: raio === estado.raio ? c.cortado : false };
+      }catch(e){}
+    }
+    return null;
+  }
+  function gravarCache(o, unidades, cortado){
+    try{ sessionStorage.setItem(chaveCache(o, estado.raio), JSON.stringify({ t: Date.now(), unidades: unidades, cortado: cortado })); }catch(e){}
+  }
+
+  function mostrarStatus(tipo, texto, carregando){
+    elStatus.className = 'status ' + tipo;
+    elStatus.innerHTML = (carregando ? '<span class="spinner" aria-hidden="true"></span>' : '') + '<span>' + texto + '</span>';
+  }
+  function esconderStatus(){ elStatus.className = 'status hidden'; elStatus.innerHTML = ''; }
+
+  function showToast(msg){
+    var toast = $('toast');
+    toast.textContent = msg; toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(function(){ toast.classList.remove('show'); }, 2800);
+  }
+
+  function buscarJson(url){
+    return fetch(url).then(function(r){
+      if(r.status === 429) throw new Error('LIMITE');
+      if(!r.ok) throw new Error('HTTP_' + r.status);
+      return r.json();
+    });
+  }
+
+  /* =====================================================================
+     1) CEP → ENDEREÇO (ViaCEP)   2) ENDEREÇO → COORDENADAS (Geoapify)
+     ===================================================================== */
+  function cepParaCoordenadas(cep){
+    var d = soDigitos(cep);
+    return buscarJson('https://viacep.com.br/ws/' + d + '/json/')
+      .catch(function(){ throw new Error('VIACEP_FALHOU'); })
+      .then(function(end){
+        if(!end || end.erro) throw new Error('CEP_NAO_ENCONTRADO');
+        var rotulo = (end.logradouro ? end.logradouro + ', ' : '') + (end.bairro ? end.bairro + ' – ' : '') + end.localidade + '/' + end.uf;
+        var params = new URLSearchParams({
+          postcode: d, city: end.localidade, state: end.uf, country: 'Brazil',
+          filter: 'countrycode:br', lang: 'pt', limit: '1', format: 'json', apiKey: GEOAPIFY_KEY
+        });
+        if(end.logradouro) params.set('street', end.logradouro);
+        return buscarJson('https://api.geoapify.com/v1/geocode/search?' + params.toString())
+          .then(function(geo){
+            var r = geo && geo.results && geo.results[0];
+            if(r) return r;
+            // segunda tentativa: busca em texto livre
+            var p2 = new URLSearchParams({
+              text: rotulo + ', Brasil', filter: 'countrycode:br', lang: 'pt', limit: '1', format: 'json', apiKey: GEOAPIFY_KEY
+            });
+            return buscarJson('https://api.geoapify.com/v1/geocode/search?' + p2.toString())
+              .then(function(g2){ return g2 && g2.results && g2.results[0]; });
+          })
+          .then(function(r){
+            if(!r) throw new Error('SEM_COORDENADAS');
+            return { lat: r.lat, lon: r.lon, rotulo: rotulo, cep: formatarCep(d) };
+          });
+      });
+  }
+
+  /* =====================================================================
+     ENDEREÇO DO CADASTRO (tabela endereco no Supabase) → COORDENADAS
+     ===================================================================== */
+  function carregarEnderecoCadastro(){
+    if(!supabaseClient) return Promise.reject(new Error('SEM_SUPABASE'));
+    return supabaseClient
+      .from('endereco')
+      .select('logradouro, numero, bairro, cidade, estado, cep')
+      .eq('usuario_id', Number(ID_USUARIO))
+      .limit(1)
+      .then(function(r){
+        if(r.error){ console.error('Erro ao ler o endereço do cadastro:', r.error); throw new Error('BANCO_FALHOU'); }
+        var end = r.data && r.data[0];
+        if(!end || soDigitos(end.cep).length !== 8) throw new Error('SEM_ENDERECO');
+        return end;
+      }, function(e){ if(e && /SEM_|BANCO_/.test(e.message)) throw e; throw new Error('BANCO_FALHOU'); });
+  }
+
+  function chaveEndereco(end){
+    return [end.logradouro, end.numero, end.cidade, end.estado, soDigitos(end.cep)].map(function(x){ return String(x || '').trim().toLowerCase(); }).join('|');
+  }
+  function rotuloEndereco(end){
+    return (end.logradouro ? end.logradouro + (end.numero ? ', ' + end.numero : '') + ' – ' : '') + (end.bairro ? end.bairro + ' – ' : '') + (end.cidade || '') + (end.estado ? '/' + end.estado : '');
+  }
+
+  // Rua + número dá um ponto mais preciso que só o CEP. Se não achar, usa o CEP.
+  function enderecoParaCoordenadas(end){
+    var cep = soDigitos(end.cep);
+    var rotulo = rotuloEndereco(end);
+    if(!end.logradouro || !end.cidade) return cepParaCoordenadas(cep);
+    var params = new URLSearchParams({
+      street: end.logradouro, postcode: cep, city: end.cidade, state: end.estado || '', country: 'Brazil',
+      filter: 'countrycode:br', lang: 'pt', limit: '1', format: 'json', apiKey: GEOAPIFY_KEY
+    });
+    if(end.numero) params.set('housenumber', String(end.numero));
+    return buscarJson('https://api.geoapify.com/v1/geocode/search?' + params.toString())
+      .then(function(geo){
+        var r = geo && geo.results && geo.results[0];
+        if(r) return { lat: r.lat, lon: r.lon, rotulo: rotulo, cep: formatarCep(cep) };
+        return cepParaCoordenadas(cep).then(function(o){ o.rotulo = rotulo; return o; });
+      }, function(err){
+        if(err.message === 'LIMITE') throw err;
+        return cepParaCoordenadas(cep).then(function(o){ o.rotulo = rotulo; return o; });
+      });
+  }
+
+  /* =====================================================================
+     3) COORDENADAS → UNIDADES DE SAÚDE PRÓXIMAS (Geoapify Places)
+     ===================================================================== */
+  function buscarUnidades(){
+    var o = estado.origem;
+    if(!o) return;
+    var guardada = lerCache(o);
+    if(guardada){
+      estado.unidades = guardada.unidades;
+      estado.cortado = guardada.cortado;
+      estado.buscaFalhou = false;
+      esconderStatus();
+      desenhar(true);
+      return;
+    }
+    var raioKm = (estado.raio/1000) + ' km';
+    mostrarStatus('info', 'Procurando unidades de saúde em até ' + raioKm + '…', true);
+    elLista.setAttribute('aria-busy', 'true');
+
+    function consulta(categoria){
+      var params = new URLSearchParams({
+        categories: categoria,
+        filter: 'circle:' + o.lon + ',' + o.lat + ',' + estado.raio,
+        bias: 'proximity:' + o.lon + ',' + o.lat,
+        limit: String(LIMITE_RESULTADOS), lang: 'pt', apiKey: GEOAPIFY_KEY
+      });
+      return buscarJson('https://api.geoapify.com/v2/places?' + params.toString());
+    }
+
+    Promise.all([consulta('healthcare.hospital'), consulta('healthcare.clinic_or_praxis')])
+      .then(function(respostas){
+        if(estado.origem !== o) return;           // a pessoa já trocou a busca
+        // se alguma das buscas veio cheia, pode haver mais unidades no raio: avisamos na tela
+        estado.cortado = respostas.some(function(d){ return (d.features || []).length >= LIMITE_RESULTADOS; });
+        var vistos = {};
+        var lista = [];
+        respostas.forEach(function(dados){
+          (dados.features || []).forEach(function(f){
+            var p = f.properties || {};
+            if(p.place_id && vistos[p.place_id]) return;   // o mesmo lugar nas duas buscas
+            if(p.place_id) vistos[p.place_id] = true;
+            var lat = p.lat, lon = p.lon;
+            if(lat == null && f.geometry && f.geometry.coordinates){ lon = f.geometry.coordinates[0]; lat = f.geometry.coordinates[1]; }
+            var raw = (p.datasource && p.datasource.raw) || {};
+            var tipo = classificar(p);
+            if(!tipo || !p.name || lat == null) return;     // sem nome ou setor interno de hospital
+            lista.push({
+              id: p.place_id || (lat + ',' + lon),
+              nome: p.name,
+              tipo: tipo,
+              lat: lat, lon: lon,
+              endereco: p.address_line2 || p.formatted || '',
+              telefones: telefonesValidos(p.contact && p.contact.phone, raw.phone, raw['contact:phone'], raw['contact:mobile']),
+              emergencia: raw.emergency === 'yes',
+              h24: raw.opening_hours === '24/7',
+              horario: raw.opening_hours || '',
+              distancia: distanciaMetros(o.lat, o.lon, lat, lon)
+            });
+          });
+        });
+        lista.sort(function(a,b){ return a.distancia - b.distancia; });
+
+        estado.unidades = removerRepetidos(lista);
+        estado.buscaFalhou = false;
+        gravarCache(o, estado.unidades, estado.cortado);
+        esconderStatus();
+        desenhar(true);
+      })
+      .catch(function(err){
+        estado.unidades = [];
+        estado.buscaFalhou = true;
+        desenhar(false);
+        if(err.message === 'LIMITE') mostrarStatus('aviso', 'Muitas buscas hoje. Tente novamente mais tarde.');
+        else mostrarStatus('erro', 'Não conseguimos buscar as unidades agora. Verifique a internet e tente de novo.');
+      })
+      .then(function(){ elLista.removeAttribute('aria-busy'); });
+  }
+
+  /* =====================================================================
+     DESENHO: MAPA + LISTA
+     ===================================================================== */
+  // Regra do card: no máximo 20 unidades, da mais perto para a mais longe (a lista já vem ordenada por distância).
+  var MAX_EXIBIDOS = 20;
+  function unidadesFiltradas(){
+    return estado.unidades.filter(function(u){ return estado.tipos.indexOf(u.tipo) !== -1; });
+  }
+  function unidadesVisiveis(){
+    return unidadesFiltradas().slice(0, MAX_EXIBIDOS);
+  }
+
+  function htmlTags(u){
+    var t = '<span class="tag" style="background:' + TIPOS[u.tipo].cor + '">' + TIPOS[u.tipo].nome + '</span>';
+    if(u.emergencia && u.tipo !== 'ps') t += '<span class="tag alerta">🚨 Emergência</span>';
+    if(u.h24) t += '<span class="tag leve">Aberto 24h</span>';
+    else {
+      var info = infoHorario(u.horario);
+      if(info && info.situacao) t += '<span class="tag ' + (info.situacao.aberto ? 'aberto' : 'fechado') + '">' + escapar(info.situacao.aberto ? 'Aberto agora' : (/feriado/.test(info.situacao.texto) ? 'Fechado (feriado)' : 'Fechado agora')) + '</span>';
+    }
+    return t;
+  }
+  // Linha do horário: "🕒 Aberto agora · fecha às 21h — Seg a Sex: 7h às 21h · Sáb e Dom: fechado"
+  function htmlHorario(u){
+    var info = infoHorario(u.horario);
+    if(!info) return '';
+    if(info.h24) return '<div class="unidade-horario">🕒 Aberto 24 horas, todos os dias</div>';
+    return '<div class="unidade-horario">🕒 ' + (info.situacao ? '<strong>' + escapar(info.situacao.texto) + '</strong> — ' : '') + escapar(info.resumo) +
+      (info.confirmar ? ' <em>(horário fora do padrão: ligue antes)</em>' : '') + '</div>';
+  }
+  function htmlAcoes(u){
+    var h = '<a class="btn btn-primary" href="' + linkComoChegar(u) + '" target="_blank" rel="noopener">🧭 Como chegar</a>';
+    if(u.telefones.length) h += '<a class="btn btn-secondary" href="' + linkTelefone(u.telefones[0]) + '">📞 Ligar</a>';
+    return h;
+  }
+
+  function desenhar(ajustarZoom){
+    var visiveis = unidadesVisiveis();
+    visiveis.forEach(function(u, i){ u.numero = i + 1; });
+
+    // ----- LISTA -----
+    if(!estado.origem) elContador.textContent = '';
+    else if((estado.cortado || unidadesFiltradas().length > MAX_EXIBIDOS) && visiveis.length){
+      // a busca veio cheia: mostra até onde chegou de verdade, em vez de prometer o raio inteiro
+      var maisLonge = visiveis[visiveis.length - 1].distancia;
+      elContador.textContent = visiveis.length + ' unidades mais próximas (até ' + formatarDistancia(maisLonge) + ')';
+    } else {
+      elContador.textContent = visiveis.length + (visiveis.length === 1 ? ' unidade' : ' unidades') + ' em até ' + (estado.raio/1000) + ' km';
+    }
+    if(!estado.origem){
+      elLista.innerHTML = '<div class="vazio"><span class="ico" aria-hidden="true">🗺️</span>Escolha de onde buscar para ver as unidades.</div>';
+    } else if(!visiveis.length){
+      var podeAumentar = estado.raio < 10000;
+      elLista.innerHTML = '<div class="vazio"><span class="ico" aria-hidden="true">🔍</span>' +
+        (estado.unidades.length ? 'Nenhuma unidade com os filtros escolhidos.' : 'Nenhuma unidade encontrada em até ' + (estado.raio/1000) + ' km.') +
+        (podeAumentar ? '<br><br><button type="button" class="btn btn-secondary" id="btnAumentarRaio">Buscar mais longe</button>' : '') + '</div>';
+      var b = $('btnAumentarRaio');
+      if(b) b.addEventListener('click', function(){ trocarRaio(estado.raio < 5000 ? 5000 : 10000); });
+    } else {
+      elLista.innerHTML = visiveis.map(function(u){
+        return '<article class="unidade" tabindex="0" data-id="' + escapar(u.id) + '" aria-label="' + escapar(u.numero + '. ' + u.nome + ', ' + formatarDistancia(u.distancia)) + '">' +
+          '<span class="num" style="background:' + TIPOS[u.tipo].cor + '" aria-hidden="true">' + u.numero + '</span>' +
+          '<div class="unidade-corpo">' +
+            '<div class="unidade-nome">' + escapar(u.nome) + '</div>' +
+            '<div class="tags">' + htmlTags(u) + '</div>' +
+            '<div class="unidade-end"><span class="unidade-dist">📏 ' + formatarDistancia(u.distancia) + '</span>' +
+              (u.endereco ? ' · ' + escapar(u.endereco) : '') +
+              (u.telefones.length ? '<br>📞 ' + escapar(u.telefones.map(formatarTelefone).join(' · ')) : '') + '</div>' +
+            htmlHorario(u) +
+            '<div class="acoes">' + htmlAcoes(u) + '</div>' +
+          '</div></article>';
+      }).join('');
+    }
+
+    // ----- MAPA -----
+    if(!mapa) return;
+    camadaUnidades.clearLayers();
+    marcadoresPorId = {};
+    if(circuloRaio){ mapa.removeLayer(circuloRaio); circuloRaio = null; }
+    if(marcadorOrigem){ mapa.removeLayer(marcadorOrigem); marcadorOrigem = null; }
+    if(!estado.origem) return;
+
+    var o = estado.origem;
+    circuloRaio = L.circle([o.lat, o.lon], { radius: estado.raio, color:'#2f9e8f', weight:2, fillOpacity:0.06, interactive:false }).addTo(mapa);
+    marcadorOrigem = L.marker([o.lat, o.lon], {
+      icon: L.divIcon({ className:'', html:'<div class="pino-casa">' + (estado.modo === 'gps' ? '📍' : (estado.modo === 'casa' ? '🏠' : '🔎')) + '</div>', iconSize:[44,44], iconAnchor:[22,22] }),
+      zIndexOffset: 1000, keyboard:false, title: 'Ponto de busca'
+    }).addTo(mapa).bindTooltip(estado.modo === 'casa' ? 'Sua casa' : (estado.modo === 'gps' ? 'Você está aqui' : 'CEP buscado'));
+
+    visiveis.forEach(function(u){
+      var m = L.marker([u.lat, u.lon], { icon: iconeUnidade(u, false), title: u.nome, riseOnHover:true });
+      m.bindPopup(
+        '<div class="pop-nome">' + u.numero + '. ' + escapar(u.nome) + '</div>' +
+        '<div class="tags">' + htmlTags(u) + '</div>' +
+        '<div class="pop-info">📏 ' + formatarDistancia(u.distancia) + (u.telefones.length ? ' · 📞 ' + escapar(formatarTelefone(u.telefones[0])) : '') + htmlHorario(u) + '</div>' +
+        '<div class="pop-acoes">' + htmlAcoes(u) + '</div>', { maxWidth: 280 });
+      // cards flutuantes fixos para as mais próximas
+      if(u.numero <= QTD_FLUTUANTES){
+        var nomeCurto = u.nome.length > 24 ? u.nome.slice(0, 22).trim() + '…' : u.nome;
+        m.bindTooltip(escapar(nomeCurto) + '<small>' + TIPOS[u.tipo].nome + ' · ' + formatarDistancia(u.distancia) + '</small>',
+          { permanent:true, direction:'top', className:'flutuante', offset:[0,-2], interactive:true });
+      }
+      m.on('click', function(){ selecionar(u.id, false); });
+      m.addTo(camadaUnidades);
+      marcadoresPorId[u.id] = { marcador: m, unidade: u };
+    });
+
+    if(ajustarZoom){
+      if(visiveis.length){
+        // enquadra a casa + as 5 mais próximas (zoom mais perto = cards flutuantes não se amontoam)
+        var pontos = [[o.lat, o.lon]].concat(visiveis.slice(0, 5).map(function(u){ return [u.lat, u.lon]; }));
+        mapa.fitBounds(L.latLngBounds(pontos), { padding:[60,60], maxZoom:16 });
+      } else {
+        mapa.fitBounds(circuloRaio.getBounds(), { padding:[20,20] });
+      }
+    }
+  }
+
+  function selecionar(id, vindoDaLista){
+    estado.selecionada = id;
+    document.querySelectorAll('.unidade').forEach(function(c){ c.classList.toggle('ativa', c.dataset.id === String(id)); });
+    var item = marcadoresPorId[id];
+    if(!item) return;
+    Object.keys(marcadoresPorId).forEach(function(k){
+      var it = marcadoresPorId[k];
+      it.marcador.setIcon(iconeUnidade(it.unidade, k === String(id)));
+    });
+    if(vindoDaLista){
+      // no celular, sobe a tela até o mapa
+      if(window.innerWidth <= 900) $('mapa').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start' });
+      mapa.setView([item.unidade.lat, item.unidade.lon], Math.max(mapa.getZoom(), 15), { animate:false });
+      item.marcador.openPopup();   // o Leaflet ajusta o mapa para o card caber na tela
+    }
+  }
+
+  elLista.addEventListener('click', function(e){
+    if(e.target.closest('a, button')) return;   // botões Como chegar / Ligar funcionam normalmente
+    var card = e.target.closest('.unidade');
+    if(card) selecionar(card.dataset.id, true);
+  });
+  elLista.addEventListener('keydown', function(e){
+    if((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('unidade')){
+      e.preventDefault(); selecionar(e.target.dataset.id, true);
+    }
+  });
+
+  /* =====================================================================
+     MODOS: CASA / ONDE ESTOU / OUTRO CEP
+     ===================================================================== */
+  function marcarModo(modo){
+    estado.modo = modo;
+    document.querySelectorAll('.modo-btn').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.modo === modo ? 'true' : 'false'); });
+  }
+
+  function atualizarTextoOrigem(){
+    // Logado: o endereço vem do cadastro e muda em Configurações. Visitante: CEP guardado no aparelho.
+    elBtnAlterarCasa.classList.toggle('hidden', LOGADO || !prefs.casa || estado.modo !== 'casa');
+    $('linkConfigEndereco').classList.toggle('hidden', !LOGADO || estado.modo !== 'casa');
+    if(!estado.origem){ elOrigemTexto.innerHTML = 'Escolha de onde buscar'; return; }
+    var icone = estado.modo === 'casa' ? '🏠' : (estado.modo === 'gps' ? '📍' : '🔎');
+    var titulo = estado.modo === 'casa' ? 'Perto da sua casa' : (estado.modo === 'gps' ? 'Perto de onde você está' : 'Perto do CEP ' + escapar(estado.origem.cep || ''));
+    elOrigemTexto.innerHTML = icone + ' Mostrando: ' + titulo + '<small>' + escapar(estado.origem.rotulo || '') + '</small>';
+  }
+
+  function abrirFormCep(tipo){
+    elForm.classList.remove('hidden');
+    elForm.dataset.tipo = tipo;                // 'casa' | 'avulso'
+    elLinhaSalvar.classList.toggle('hidden', tipo === 'casa' || LOGADO);
+    elChkSalvar.checked = false;
+    elLabelCep.textContent = tipo === 'casa' ? 'CEP da sua casa' : 'Digite o CEP';
+    elInputCep.value = (tipo === 'casa' && prefs.casa) ? prefs.casa.cep : '';
+    setTimeout(function(){ elInputCep.focus(); }, 30);
+  }
+  function fecharFormCep(){ elForm.classList.add('hidden'); }
+
+  function avisoCasa(titulo, texto){
+    $('boasVindasTitulo').textContent = titulo;
+    $('boasVindasTexto').innerHTML = texto;
+    elBoasVindas.classList.remove('hidden');
+  }
+
+  function buscarPertoDaCasa(origem){
+    estado.origem = origem;
+    atualizarTextoOrigem();
+    buscarUnidades();
+  }
+
+  function usarCasaDoCadastro(){
+    marcarModo('casa');
+    fecharFormCep();
+    elBoasVindas.classList.add('hidden');
+    estado.origem = null;
+    atualizarTextoOrigem();
+    mostrarStatus('info', 'Buscando o endereço do seu cadastro…', true);
+    var cache = prefs.casaCache;
+    carregarEnderecoCadastro().then(function(end){
+      if(estado.modo !== 'casa') return;
+      var chave = chaveEndereco(end);
+      if(cache && cache.chave === chave){            // mesmo endereço: não gasta crédito do Geoapify
+        buscarPertoDaCasa({ lat: cache.lat, lon: cache.lon, rotulo: cache.rotulo, cep: cache.cep });
+        return;
+      }
+      mostrarStatus('info', 'Localizando seu endereço no mapa…', true);
+      return enderecoParaCoordenadas(end).then(function(o){
+        prefs.casaCache = { chave: chave, cep: o.cep, rotulo: o.rotulo, lat: o.lat, lon: o.lon };
+        salvarPrefs(prefs);
+        if(estado.modo === 'casa') buscarPertoDaCasa(o);
+      });
+    }).catch(function(err){
+      if(estado.modo !== 'casa') return;
+      var m = err && err.message;
+      if(m === 'SEM_ENDERECO'){
+        esconderStatus();
+        avisoCasa('🏠 Seu endereço ainda não está no cadastro',
+          'Complete o endereço em <a href="configuracoes.html">Configurações</a>. Enquanto isso, use <strong>Onde estou</strong> ou <strong>Outro CEP</strong>.');
+      } else if(cache){                                // banco fora do ar: usa a última casa conhecida
+        buscarPertoDaCasa({ lat: cache.lat, lon: cache.lon, rotulo: cache.rotulo, cep: cache.cep });
+        showToast('Sem conexão com o cadastro. Usando o último endereço conhecido.');
+      } else if(m === 'LIMITE'){
+        mostrarStatus('aviso', 'Muitas buscas hoje. Tente novamente mais tarde.');
+      } else if(m === 'CEP_NAO_ENCONTRADO' || m === 'SEM_COORDENADAS'){
+        mostrarStatus('erro', 'Não conseguimos marcar o endereço do seu cadastro no mapa. Confira o CEP em <a href="configuracoes.html">Configurações</a> ou use <strong>Outro CEP</strong>.');
+      } else {
+        mostrarStatus('erro', 'Não conseguimos carregar o endereço do seu cadastro agora. Verifique a internet ou use <strong>Onde estou</strong> / <strong>Outro CEP</strong>.');
+      }
+    });
+  }
+
+  function usarCasa(){
+    if(LOGADO){ usarCasaDoCadastro(); return; }
+    marcarModo('casa');
+    if(!prefs.casa || estado.editandoCasa){
+      $('boasVindasTitulo').textContent = '👋 Qual é o CEP da sua casa?';
+      $('boasVindasTexto').innerHTML = 'Vamos guardar neste aparelho para mostrar sempre os hospitais perto de você. Entre na sua conta para usar o endereço do cadastro.';
+      elBoasVindas.classList.toggle('hidden', !!prefs.casa);
+      abrirFormCep('casa');
+      return;
+    }
+    fecharFormCep();
+    elBoasVindas.classList.add('hidden');
+    estado.origem = { lat: prefs.casa.lat, lon: prefs.casa.lon, rotulo: prefs.casa.rotulo, cep: prefs.casa.cep };
+    atualizarTextoOrigem();
+    buscarUnidades();
+  }
+
+  function usarGps(){
+    marcarModo('gps');
+    fecharFormCep();
+    elBoasVindas.classList.add('hidden');
+    if(!('geolocation' in navigator) || !window.isSecureContext){
+      mostrarStatus('aviso', '📍 A localização não está disponível aqui. Use <strong>Minha casa</strong> ou <strong>Outro CEP</strong>.');
+      return;
+    }
+    mostrarStatus('info', 'Pegando sua localização… Se o aparelho perguntar, toque em <strong>Permitir</strong>.', true);
+    navigator.geolocation.getCurrentPosition(function(pos){
+      estado.origem = { lat: pos.coords.latitude, lon: pos.coords.longitude, rotulo: 'Sua localização atual' };
+      atualizarTextoOrigem();
+      buscarUnidades();
+    }, function(err){
+      var msg = err.code === 1
+        ? '📍 Você não permitiu o uso da localização. Use <strong>Minha casa</strong> ou <strong>Outro CEP</strong>, ou libere a localização nas configurações do navegador.'
+        : '📍 Não conseguimos achar sua localização agora. Use <strong>Minha casa</strong> ou <strong>Outro CEP</strong>.';
+      mostrarStatus('aviso', msg);
+    }, { enableHighAccuracy:true, timeout:15000, maximumAge:60000 });
+  }
+
+  function usarAvulso(){
+    marcarModo('avulso');
+    elBoasVindas.classList.add('hidden');
+    abrirFormCep('avulso');
+  }
+
+  document.querySelectorAll('.modo-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      estado.editandoCasa = false;
+      if(b.dataset.modo === 'casa') usarCasa();
+      else if(b.dataset.modo === 'gps') usarGps();
+      else usarAvulso();
+    });
+  });
+
+  elBtnAlterarCasa.addEventListener('click', function(){
+    estado.editandoCasa = true;
+    usarCasa();
+  });
+
+  elInputCep.addEventListener('input', function(){
+    elInputCep.value = formatarCep(elInputCep.value);
+  });
+
+  elForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    var cep = soDigitos(elInputCep.value);
+    if(cep.length !== 8){
+      mostrarStatus('erro', 'O CEP precisa ter 8 números. Exemplo: 06422-000.');
+      elInputCep.focus();
+      return;
+    }
+    var ehCasa = elForm.dataset.tipo === 'casa';
+    var guardar = !LOGADO && (ehCasa || elChkSalvar.checked);
+    var btn = $('btnBuscarCep');
+    btn.disabled = true;
+    mostrarStatus('info', 'Procurando o endereço do CEP ' + formatarCep(cep) + '…', true);
+
+    cepParaCoordenadas(cep).then(function(o){
+      estado.origem = o;
+      if(guardar){
+        prefs.casa = { cep: o.cep, rotulo: o.rotulo, lat: o.lat, lon: o.lon };
+        salvarPrefs(prefs);
+        marcarModo('casa');
+        showToast('🏠 CEP da sua casa guardado!');
+      }
+      estado.editandoCasa = false;
+      fecharFormCep();
+      elBoasVindas.classList.add('hidden');
+      atualizarTextoOrigem();
+      buscarUnidades();
+    }).catch(function(err){
+      var m = err.message;
+      if(m === 'CEP_NAO_ENCONTRADO') mostrarStatus('erro', 'Não encontramos esse CEP. Confira os números e tente de novo.');
+      else if(m === 'SEM_COORDENADAS') mostrarStatus('erro', 'Achamos o CEP, mas não conseguimos marcar no mapa. Tente um CEP próximo.');
+      else if(m === 'LIMITE') mostrarStatus('aviso', 'Muitas buscas hoje. Tente novamente mais tarde.');
+      else mostrarStatus('erro', 'Não conseguimos consultar o CEP agora. Verifique a internet e tente de novo.');
+    }).then(function(){ btn.disabled = false; });
+  });
+
+  /* =====================================================================
+     FILTROS
+     ===================================================================== */
+  function trocarRaio(raio){
+    estado.raio = raio;
+    prefs.raio = raio; salvarPrefs(prefs);
+    document.querySelectorAll('[data-raio]').forEach(function(b){ b.setAttribute('aria-pressed', Number(b.dataset.raio) === raio ? 'true' : 'false'); });
+    if(estado.origem) buscarUnidades();   // raio muda a busca (nova consulta)
+  }
+  document.querySelectorAll('[data-raio]').forEach(function(b){
+    b.addEventListener('click', function(){ trocarRaio(Number(b.dataset.raio)); });
+  });
+
+  document.querySelectorAll('[data-tipo]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var t = b.dataset.tipo;
+      var ativo = estado.tipos.indexOf(t) !== -1;
+      if(ativo && estado.tipos.length === 1){ showToast('Deixe pelo menos um tipo marcado.'); return; }
+      estado.tipos = ativo ? estado.tipos.filter(function(x){ return x !== t; }) : estado.tipos.concat(t);
+      b.setAttribute('aria-pressed', ativo ? 'false' : 'true');
+      prefs.tipos = estado.tipos; salvarPrefs(prefs);
+      desenhar(true);                       // tipos só filtram o que já veio (sem nova consulta)
+    });
+  });
+
+  function aplicarFiltrosSalvos(){
+    document.querySelectorAll('[data-raio]').forEach(function(b){ b.setAttribute('aria-pressed', Number(b.dataset.raio) === estado.raio ? 'true' : 'false'); });
+    document.querySelectorAll('[data-tipo]').forEach(function(b){ b.setAttribute('aria-pressed', estado.tipos.indexOf(b.dataset.tipo) !== -1 ? 'true' : 'false'); });
+  }
+
+  /* =====================================================================
+     PADRÃO DO APP: RELÓGIO, EMERGÊNCIA, AJUDA, FONTE
+     ===================================================================== */
+  var datetimeEl = $('datetime');
+  function atualizarDataHora(){
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    var diaSemana = agora.toLocaleDateString('pt-BR', {weekday:'long'});
+    diaSemana = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+    var dataFormatada = agora.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+    datetimeEl.textContent = hora + ' - ' + diaSemana + ', ' + dataFormatada;
+  }
+  atualizarDataHora();
+  setInterval(atualizarDataHora, 30000);
+
+  $('btnEmergencia').addEventListener('click', function(){
+    window.location.href = 'emergencia.html';
+  });
+  // Aviso no fim da tela: sobe até o botão Emergência e faz ele piscar, para a pessoa aprender onde ele fica.
+  $('avisoEmergencia').addEventListener('click', function(){
+    var btn = $('btnEmergencia');
+    var suave = !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    window.scrollTo({ top: 0, behavior: suave ? 'smooth' : 'auto' });
+    btn.classList.remove('destaque'); void btn.offsetWidth; btn.classList.add('destaque');
+    setTimeout(function(){ btn.focus({ preventScroll: true }); }, suave ? 450 : 0);
+    setTimeout(function(){ btn.classList.remove('destaque'); }, 3200);
+  });
+
+  var modalAjuda = $('modalAjuda');
+  $('btnAjuda').addEventListener('click', function(){ modalAjuda.classList.remove('hidden'); $('fecharAjuda').focus(); });
+  $('fecharAjuda').addEventListener('click', function(){ modalAjuda.classList.add('hidden'); });
+  modalAjuda.addEventListener('click', function(e){ if(e.target === modalAjuda) modalAjuda.classList.add('hidden'); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') modalAjuda.classList.add('hidden'); });
+
+  var CHAVE_FONTE = 'techsaude_fonte';
+  var botoesFonte = document.querySelectorAll('.toolbar-acessibilidade .font-btn');
+  function escalaAtual(){ return parseFloat(document.documentElement.style.fontSize) || 100; }
+  function marcarBotaoFonte(){
+    var atual = escalaAtual();
+    botoesFonte.forEach(function(btn){
+      var ativo = Number(btn.dataset.scale) === atual;
+      btn.classList.toggle('active', ativo);
+      btn.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+    });
+  }
+  function aplicarFonte(escala, salvar){
+    document.documentElement.style.fontSize = escala + '%';
+    if(salvar){
+      try{ localStorage.setItem(CHAVE_FONTE, String(escala)); }catch(e){}
+    }
+    marcarBotaoFonte();
+    window.dispatchEvent(new Event('techsaude:fonte'));
+  }
+  botoesFonte.forEach(function(btn){
+    btn.addEventListener('click', function(){ aplicarFonte(Number(btn.dataset.scale), true); });
+  });
+  window.addEventListener('techsaude:fonte', marcarBotaoFonte);
+  window.addEventListener('storage', function(e){
+    if(e.key === CHAVE_FONTE && e.newValue) aplicarFonte(parseFloat(e.newValue) || 100, false);
+  });
+  marcarBotaoFonte();
+
+  /* =====================================================================
+     INTERNET: QUANDO CAI E QUANDO VOLTA
+     ===================================================================== */
+  // Sem internet, as imagens do mapa não carregam. Quando a conexão volta, o mapa e a busca voltam sozinhos.
+  var avisoSemInternet = false;
+  window.addEventListener('offline', function(){
+    avisoSemInternet = true;
+    mostrarStatus('aviso', '📶 Sem internet. O mapa e a lista voltam sozinhos quando a conexão voltar.');
+  });
+  function carregarLeaflet(pronto){
+    if(typeof L !== 'undefined'){ pronto(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    s.onload = pronto;
+    document.head.appendChild(s);
+  }
+  window.addEventListener('online', function(){
+    if(avisoSemInternet){ avisoSemInternet = false; esconderStatus(); }
+    carregarLeaflet(function(){
+      if(!mapa){ esconderStatus(); iniciarMapa(); if(mapa && estado.origem) desenhar(true); }
+      else { mapa.invalidateSize(); if(camadaMapa) camadaMapa.redraw(); }   // pede de novo as partes do mapa que falharam
+      if(estado.origem && estado.buscaFalhou) buscarUnidades();
+      else if(!estado.origem && estado.modo === 'casa') usarCasa();
+    });
+  });
+
+  /* =====================================================================
+     INÍCIO
+     ===================================================================== */
+  iniciarMapa();
+  aplicarFiltrosSalvos();
+  usarCasa();   // logado: endereço do cadastro. Visitante: CEP guardado no aparelho (ou pede o CEP).
+
+})();
+</script>
+</body>
+</html>
