@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TechSaúde — Termos, Privacidade e Versão</title>
+<title>TechSaúde — Sobre o App</title>
 <script src="navegacao-app.js"></script>
 <script src="lembretes-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -137,6 +137,19 @@
   .doc li{ margin-bottom:6px; }
   .doc .atualizacao{ margin:16px 0 4px; font-size:.8rem; color:var(--text-soft); }
 
+  /* Manual de uso */
+  .doc.manual figure{ margin:10px auto 16px; text-align:center; }
+  .doc.manual figure img{ display:block; width:100%; max-width:240px; height:auto; margin:0 auto; border-radius:16px; border:2px solid var(--line); box-shadow:0 3px 0 rgba(0,0,0,.08); }
+  .doc.manual figcaption{ margin-top:6px; font-size:.8rem; font-weight:700; color:var(--text-soft); }
+  .doc.manual .destaque-manual{ margin:10px 0 4px; padding:12px 14px; border-radius:14px; background:#dcefdf; border:2px solid #9dcbab; color:#1b4332; }
+  .btn-pdf{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:52px; margin:0 0 14px; padding:.7rem 1rem;
+    border-radius:999px; border:2px solid var(--green-deep); background:#fff; color:var(--green-deep); text-decoration:none; text-align:center;
+    font-weight:800; font-size:.95rem; text-transform:uppercase; letter-spacing:.3px;
+  }
+  .btn-pdf:hover{ background:#dcefdf; }
+  .btn-pdf:focus-visible{ outline:3px solid var(--teal); outline-offset:3px; }
+
   /* Versão do app */
   .versao-atual{
     display:flex; gap:16px; align-items:center; padding:18px; border-radius:20px; color:var(--cream);
@@ -252,7 +265,7 @@
 
     <div class="topbar-center">
       <img src="img/logo.png" alt="Logo TechSaúde">
-      <h1 id="tituloTela">Termos, Privacidade e Versão</h1>
+      <h1 id="tituloTela">Sobre o App</h1>
     </div>
 
     <div class="topbar-right">
@@ -296,6 +309,15 @@
       <div class="aviso-primeiro aviso-erro" id="avisoRecusa" hidden></div>
 
       <div class="menu">
+        <button type="button" class="menu-card" data-abrir="manual">
+          <span class="menu-ico" aria-hidden="true">📖</span>
+          <span class="menu-txt">
+            <strong>Manual de Uso</strong>
+            <span>Como usar cada parte do aplicativo, passo a passo.</span>
+          </span>
+          <span class="menu-seta" aria-hidden="true">›</span>
+        </button>
+
         <button type="button" class="menu-card" data-abrir="termos">
           <span class="menu-ico" aria-hidden="true">📜</span>
           <span class="menu-txt">
@@ -449,6 +471,182 @@
       <p class="rodape-versao">TechSaúde · versão 1.0.0</p>
     </section>
 
+    <!-- ===== 5) MANUAL DE USO ===== -->
+    <section class="view" id="view-manual" hidden>
+      <h2 class="view-title">Manual de Uso</h2>
+      <p class="view-sub">Um guia simples, passo a passo, para usar o TechSaúde no dia a dia.</p>
+
+      <a class="btn-pdf" href="docs/Manual_de_Uso_TechSaude.pdf" target="_blank" rel="noopener">📄 Ver em PDF (imprimir ou guardar)</a>
+
+      <article class="doc manual">
+        <h3>Como o TechSaúde ajuda você</h3>
+        <p>O TechSaúde é um aplicativo de saúde feito para a pessoa idosa: letras grandes, botões grandes e poucos passos. Ele reúne num só lugar o que mais pesa na rotina de cuidados.</p>
+        <ul>
+          <li><b>Remédios na hora certa:</b> o celular avisa com som quando chega a hora de cada dose.</li>
+          <li><b>Consultas sem esquecer:</b> você anota a consulta e recebe um aviso antes do dia.</li>
+          <li><b>Tudo num calendário:</b> consultas, remédios, aniversários e compromissos no mesmo lugar.</li>
+          <li><b>Hospitais perto de você:</b> um mapa mostra hospitais, UPAs e postos de saúde próximos, com o caminho e o telefone.</li>
+          <li><b>Ajuda rápida:</b> um toque liga para uma pessoa de confiança, para o SAMU, a Polícia ou os Bombeiros.</li>
+          <li><b>Falar em vez de digitar:</b> o Comando de Voz responde a perguntas como “qual é o meu próximo remédio?”.</li>
+          <li><b>Mente ativa:</b> dicas do dia a dia e jogos simples para exercitar a memória.</li>
+        </ul>
+        <p class="destaque-manual"><b>Nosso objetivo</b> é mostrar que a tecnologia pode ser extremamente útil e fácil de usar, para todos. Você não precisa entender de celular: basta seguir os passos deste manual, no seu ritmo.</p>
+
+        <h3>Antes de começar</h3>
+        <p>O TechSaúde funciona no navegador do celular ou do computador, sem instalar nada.</p>
+        <ol>
+          <li>Abra o navegador (por exemplo, o Chrome) e digite o endereço <b>techsaude-steel.vercel.app</b>.</li>
+          <li>Para achar mais rápido depois, use a opção <b>Adicionar à tela inicial</b> do navegador. O ícone do TechSaúde fica junto dos seus aplicativos.</li>
+        </ol>
+        <p>Três botões aparecem no alto de todas as telas:</p>
+        <ul>
+          <li><b>A · A+ · A++</b>: deixa a letra normal, maior ou bem maior. A escolha fica guardada para todas as telas.</li>
+          <li><b>❔ Ajuda</b>: explica, em poucos passos, como usar a tela em que você está.</li>
+          <li><b>Emergência</b> (vermelho): abre na hora a tela de ligações de emergência.</li>
+        </ul>
+        <p>Nas telas internas também há <b>Voltar</b> (volta uma tela) e <b>Início</b> (volta para a tela inicial).</p>
+
+        <h3>Criar sua conta</h3>
+        <p>Na primeira tela, toque em <b>Criar nova conta</b>. O cadastro tem 3 etapas curtas; uma barra no alto mostra em qual você está.</p>
+        <ol>
+          <li><b>Dados pessoais:</b> nome, CPF, data de nascimento, telefone, e-mail e senha. A foto e o RG são opcionais. A senha precisa de pelo menos 8 caracteres, com 1 letra e 1 número; os itens ficam verdes quando a regra é cumprida. Toque em <b>Próximo</b>.</li>
+          <li><b>Endereço:</b> digite o CEP e a rua, o bairro e a cidade aparecem sozinhos. Complete o número. O endereço serve para achar hospitais perto da sua casa.</li>
+          <li><b>Contatos de emergência:</b> cadastre até 3 pessoas de confiança (nome, parentesco e telefone). Leia e aceite os Termos de Uso e conclua.</li>
+        </ol>
+        <p>Se algum campo estiver errado, o aplicativo mostra o aviso logo abaixo dele, em palavras simples.</p>
+
+        <h3>Entrar no aplicativo</h3>
+        <ol>
+          <li>Na primeira tela, toque em <b>Entrar na sua conta</b>.</li>
+          <li>Digite seu <b>CPF</b> (só os números) <b>ou</b> seu <b>e-mail</b>.</li>
+          <li>Digite sua <b>senha</b>. O botão com o olho (<b>👁</b>) mostra o que você digitou, para conferir.</li>
+          <li>Toque em <b>Entrar na sua conta</b>.</li>
+        </ol>
+        <p>Você continua conectado por até 90 dias no mesmo aparelho. Por segurança, depois de 5 senhas erradas o acesso fica bloqueado por 15 minutos; se não lembrar a senha, use a recuperação abaixo.</p>
+        <figure><img src="img/manual/entrar.jpg" alt="Tela Entrar no TechSaúde" loading="lazy"><figcaption>Tela de entrar</figcaption></figure>
+
+        <h3>Esqueci minha senha</h3>
+        <p>Na tela de entrar, toque em <b>Recuperar a Senha? Clique aqui.</b></p>
+        <ol>
+          <li>Digite o <b>e-mail do seu cadastro</b> e toque em enviar.</li>
+          <li>Abra seu e-mail: chega um <b>código de 6 números</b>. Digite o código no aplicativo. Ele vale por 15 minutos.</li>
+          <li>Crie a <b>nova senha</b> (8 caracteres ou mais, com letra e número), repita e salve. Pronto: entre com a senha nova.</li>
+        </ol>
+        <p>O aplicativo mostra o e-mail para onde mandou o código. Se ele estiver errado, toque em <b>Corrigir o e-mail</b>. Se o código não chegar, olhe a caixa de <b>Spam</b> ou <b>Lixo eletrônico</b> e peça outro. Para desistir, toque em <b>Voltar para o login</b>.</p>
+        <figure><img src="img/manual/recuperar.jpg" alt="Tela Verificar código, com o e-mail informado e o botão Corrigir o e-mail" loading="lazy"><figcaption>Digitando o código recebido por e-mail</figcaption></figure>
+
+        <h3>A tela inicial</h3>
+        <p>Depois de entrar, você chega à tela inicial. Cada quadrado grande abre uma função; basta tocar nele.</p>
+        <ul>
+          <li><b>Alarme de Medicamento:</b> avisa a hora de cada remédio.</li>
+          <li><b>Lembrete de Consultas:</b> guarda suas consultas e avisa antes.</li>
+          <li><b>Calendário de Saúde:</b> mostra tudo do mês num calendário.</li>
+          <li><b>Hospitais e Unidades de Saúde:</b> mapa dos serviços de saúde perto de você.</li>
+          <li><b>Comando de Voz:</b> você fala e o aplicativo responde.</li>
+          <li><b>Dicas Úteis:</b> recados e vídeos curtos para o dia a dia.</li>
+          <li><b>Mini Jogos Intuitivos:</b> Caça-Palavras e Jogo da Memória.</li>
+          <li><b>Configurações:</b> seus dados, foto, senha e contatos.</li>
+        </ul>
+        <p>No alto, o botão vermelho <b>Emergência</b> fica à esquerda e <b>Sair</b> fica à direita. A data e a hora aparecem sempre.</p>
+        <figure><img src="img/manual/inicio.jpg" alt="Tela inicial com os quadrados das funções" loading="lazy"><figcaption>Tela inicial</figcaption></figure>
+
+        <h3>Alarme de Medicamento</h3>
+        <p>O aplicativo avisa com som e mensagem na hora de cada dose.</p>
+        <ol>
+          <li>Toque em <b>+ Adicionar novo alarme</b>.</li>
+          <li>Escreva o nome do remédio e a dose. Se tomar mais de um no mesmo horário, toque em <b>+ Adicionar outro medicamento</b>.</li>
+          <li>Escolha a <b>data e o horário da 1ª dose</b>.</li>
+          <li>Escolha o <b>intervalo</b>: de 6 em 6h, de 8 em 8h, de 12 em 12h ou 1 vez ao dia.</li>
+          <li>Escolha a <b>duração</b>: por dias, por número de doses ou contínuo (sem data para terminar).</li>
+          <li>Toque em <b>Salvar alarme</b>. O app programa sozinho as próximas doses.</li>
+        </ol>
+        <p>Na hora do remédio aparece o aviso <b>Hora do remédio!</b>. Toque em <b>Já tomei, obrigado</b> ou em <b>Adiar 5 minutos</b>. No alto da tela fica sempre o <b>Próximo remédio</b>. Para receber o aviso mesmo com o app fechado, ative a <b>Notificação no celular</b> e deixe o volume ligado.</p>
+
+        <h3>Lembrete de Consultas</h3>
+        <ol>
+          <li>Toque em <b>Incluir Nova Consulta</b>.</li>
+          <li>Preencha o <b>local</b> (clínica ou hospital), a <b>especialidade</b> (a lista explica cada uma, como “Cardiologia (coração)”), o <b>médico</b> e o <b>dia e hora</b>.</li>
+          <li>Em <b>Avisos da consulta</b>, escolha quando quer ser lembrado antes do dia.</li>
+          <li>Se quiser, escreva <b>Observações</b> (por exemplo, “levar exames”) e toque em <b>Salvar na Agenda</b>.</li>
+        </ol>
+        <p>Em <b>Minhas Consultas</b> você vê as próximas consultas, pode alterar ou excluir e abrir <b>Ver consultas anteriores</b>. O botão <b>Ver no Calendário de Saúde</b> mostra a consulta no calendário.</p>
+
+        <h3>Calendário de Saúde</h3>
+        <p>O calendário junta suas consultas, seus remédios e outros compromissos. O dia de hoje aparece destacado e os feriados também.</p>
+        <ul>
+          <li>Toque em um <b>dia</b> para ver o que está marcado nele.</li>
+          <li>Use as setas para trocar de mês e <b>Voltar para hoje</b> para voltar ao mês atual.</li>
+          <li><b>+ Consulta</b> e <b>+ Remédio</b> levam às telas próprias, com lembretes no horário.</li>
+          <li><b>+ Evento</b> guarda outros compromissos, como exame, vacina ou aniversário. Marque <b>Repetir todo ano</b> para datas que voltam todo ano.</li>
+        </ul>
+        <figure><img src="img/manual/calendario.jpg" alt="Calendário de Saúde com os botões + Consulta, + Remédio e + Evento" loading="lazy"><figcaption>Calendário de Saúde</figcaption></figure>
+
+        <h3>Hospitais próximos</h3>
+        <p>Um mapa mostra hospitais, pronto-socorros e UPAs, postos de saúde e clínicas perto de você.</p>
+        <ol>
+          <li>Escolha <b>de onde buscar</b>: <b>🏠 Minha casa</b> (perto do endereço do seu cadastro), <b>📍 Onde estou</b> (usa a localização do celular; na primeira vez, toque em <b>Permitir</b>) ou <b>🔎 Outro CEP</b> (perto de qualquer endereço, sem mudar o da sua casa).</li>
+          <li>Escolha a <b>distância</b> (2, 5 ou 10 km) e o <b>tipo</b> de unidade que quer ver.</li>
+          <li>Toque em um pino do mapa ou em um cartão da lista. <b>Como chegar</b> abre o caminho no Google Maps e <b>Ligar</b> chama a unidade, quando ela tem telefone.</li>
+        </ol>
+        <p>Os dados vêm de uma base pública e podem estar desatualizados: na dúvida, ligue antes de ir. Em emergência, use o botão <b>Emergência</b>.</p>
+        <figure><img src="img/manual/hospitais.jpg" alt="Mapa de hospitais próximos com as opções Minha casa, Onde estou e Outro CEP" loading="lazy"><figcaption>Hospitais próximos</figcaption></figure>
+
+        <h3>Emergência</h3>
+        <p>O botão vermelho <b>Emergência</b> fica no alto de todas as telas. Ele abre uma tela só com ligações, e cada botão já liga com um toque.</p>
+        <ul>
+          <li><b>Números de confiança:</b> ligar para as pessoas que você cadastrou.</li>
+          <li><b>SAMU – 192:</b> urgência médica (mal-estar forte, queda, falta de ar).</li>
+          <li><b>Polícia – 190:</b> roubo, ameaça ou violência.</li>
+          <li><b>Bombeiros – 193:</b> incêndio, resgate ou acidente.</li>
+        </ul>
+        <p>No celular, o toque abre o aplicativo de telefone com o número pronto; é só confirmar a chamada.</p>
+        <figure><img src="img/manual/emergencia.jpg" alt="Tela Emergência com os botões de ligar" loading="lazy"><figcaption>Tela de Emergência</figcaption></figure>
+
+        <h3>Comando de Voz</h3>
+        <p>Com o Comando de Voz você fala e o assistente <b>Téc</b> responde em voz alta. Toque em <b>Comando de Voz</b> na tela inicial, toque no <b>microfone</b> e fale com calma. Na primeira vez, permita o uso do microfone. Exemplos:</p>
+        <ul>
+          <li>“Qual é o meu <b>próximo remédio</b>?” ou “Minha <b>próxima consulta</b>”.</li>
+          <li>“<b>Adicionar remédio</b>”: o Téc faz as perguntas e cadastra o alarme.</li>
+          <li>“Abrir <b>calendário</b>”, “abrir <b>consultas</b>”, “<b>jogar</b>”.</li>
+          <li>“<b>Que horas são</b>?”, “Que dia é hoje?”, “<b>Aumentar letra</b>”.</li>
+          <li>“<b>Emergência</b>”: o Téc pergunta se você confirma antes de agir.</li>
+        </ul>
+        <p>Diga “<b>ajuda</b>” para ouvir tudo o que ele sabe fazer, ou “<b>cancelar</b>” para desistir. Funciona melhor no Chrome, no Edge e no Safari.</p>
+
+        <h3>Dicas Úteis e Mini Jogos</h3>
+        <p><b>Dicas Úteis</b> tem duas abas. Em <b>Dicas úteis</b> ficam recados curtos de cuidado, como conferir o nome e o valor antes de um PIX ou não passar a senha para ninguém. Em <b>Tutoriais</b> ficam aulas com vídeo e passo a passo.</p>
+        <p><b>Mini Jogos</b> exercita a mente, sem tempo limite e sem pontuação:</p>
+        <ul>
+          <li><b>Caça-Palavras:</b> escolha o nível e encontre as palavras escondidas na grade de letras.</li>
+          <li><b>Jogo da Memória:</b> vire as cartas, uma de cada vez, e encontre os pares de figuras iguais.</li>
+        </ul>
+
+        <h3>Configurações e Perfil</h3>
+        <p>Aqui ficam seus dados. Tudo o que você muda é salvo na hora.</p>
+        <ul>
+          <li><b>Foto:</b> toque em <b>Trocar foto ou avatar</b> e escolha <b>Tirar foto agora</b>, <b>Escolher da galeria</b> ou um avatar pronto. Na câmera, olhe para a tela e toque no botão vermelho.</li>
+          <li><b>Meus dados:</b> toque em <b>Alterar</b> ao lado do dado (nome, telefone, e-mail…), corrija e toque em <b>Salvar</b>.</li>
+          <li><b>Endereço:</b> toque em <b>Alterar</b> e digite o CEP; o resto se preenche sozinho. É o endereço usado em “Minha casa”.</li>
+          <li><b>Contatos de emergência:</b> até 3 pessoas, que aparecem na tela Emergência. Dá para incluir, alterar ou excluir.</li>
+          <li><b>🔑 Senha:</b> toque em <b>Alterar</b>, digite a senha atual e a nova duas vezes.</li>
+          <li><b>ℹ️ Sobre o App:</b> este Manual, os Termos de Uso, a Privacidade e a versão do aplicativo.</li>
+        </ul>
+        <figure><img src="img/manual/configuracoes.jpg" alt="Tela Configurações e Perfil com foto e Meus dados (conta de teste)" loading="lazy"><figcaption>Configurações e Perfil (conta de teste)</figcaption></figure>
+
+        <h3>Sair e dicas de segurança</h3>
+        <p>Para sair, toque em <b>Sair</b> no alto da tela inicial, ou em <b>Sair da conta</b> nas Configurações. Faça isso sempre que usar um aparelho de outra pessoa.</p>
+        <ul>
+          <li>Sua senha é só sua: quem ajuda pode estar do lado, mas quem digita é você.</li>
+          <li>Seus dados ficam protegidos: cada conta só enxerga as próprias informações.</li>
+          <li>Deixe o volume do celular ligado durante o dia para ouvir os alarmes.</li>
+          <li>O aplicativo ajuda, mas não substitui o médico. Em risco real, ligue para o <b>SAMU (192)</b>.</li>
+          <li>Ficou com dúvida em alguma tela? Toque em <b>❔ Ajuda</b>.</li>
+        </ul>
+
+        <p class="atualizacao">Última atualização: novembro de 2026. Equipe TechSaúde — FATEC Barueri.</p>
+      </article>
+    </section>
+
     <!-- ===== ACEITE (só aparece no primeiro acesso) ===== -->
     <section class="aceite" id="aceite" hidden aria-labelledby="aceiteTitulo">
       <p class="falta-ler" id="faltaLer" hidden role="status">
@@ -571,9 +769,10 @@
   var origem = params.get('de') || 'home.html';
 
   var $ = function(id){ return document.getElementById(id); };
-  var views = { menu: $('view-menu'), termos: $('view-termos'), privacidade: $('view-privacidade'), versao: $('view-versao') };
+  var views = { menu: $('view-menu'), termos: $('view-termos'), privacidade: $('view-privacidade'), versao: $('view-versao'), manual: $('view-manual') };
   var titulos = {
-    menu: 'Termos, Privacidade e Versão',
+    menu: 'Sobre o App',
+    manual: 'Manual de Uso',
     termos: 'Termos de Uso',
     privacidade: 'Política de Privacidade',
     versao: 'Versão do App'
@@ -606,8 +805,8 @@
       lidos[nome] = true;
       atualizarSelos();
     }
-    // O aceite aparece no menu, nos Termos e na Política (nunca na Versão)
-    $('aceite').hidden = !(pendente && nome !== 'versao');
+    // O aceite aparece no menu, nos Termos e na Política (nunca na Versão nem no Manual)
+    $('aceite').hidden = !(pendente && nome !== 'versao' && nome !== 'manual');
     window.scrollTo(0, 0);
     marcarAjuda();
   }
@@ -695,7 +894,7 @@
   });
 
   // ---------- VOLTAR AO MENU DENTRO DO DOCUMENTO (janela das Configurações) ----------
-  ['termos', 'privacidade', 'versao'].forEach(function(k){
+  ['termos', 'privacidade', 'versao', 'manual'].forEach(function(k){
     ['inicio', 'fim'].forEach(function(lugar){
       var b = document.createElement('button');
       b.type = 'button';
@@ -765,7 +964,7 @@
   var AJUDA = {
     menu: {
       titulo: 'Como usar esta tela',
-      intro: 'Aqui ficam os Termos de Uso, a Política de Privacidade e a Versão do aplicativo.',
+      intro: 'Aqui ficam o Manual de Uso, os Termos de Uso, a Política de Privacidade e a Versão do aplicativo.',
       passos: [
         'Toque em um dos <b>quadrados</b> para abrir o documento que você quer ler.',
         'Para voltar a esta escolha, toque em <b>Voltar ao menu</b>.'
@@ -789,6 +988,17 @@
       passos: ['Para escolher outro documento, toque em <b>Voltar ao menu</b>.'],
       dica: 'Você já aceitou estes documentos. Eles ficam aqui para consulta quando quiser.'
     },
+    manual: {
+      titulo: 'Como ler o manual',
+      intro: 'O manual explica, passo a passo, como usar cada parte do TechSaúde.',
+      passos: [
+        'Role a tela para baixo. Cada parte do aplicativo tem um título em verde.',
+        'As imagens mostram como a tela aparece no celular.',
+        'Para imprimir ou guardar, toque em <b>Ver em PDF</b>.',
+        'Para escolher outro documento, toque em <b>Voltar ao menu</b>.'
+      ],
+      dica: 'Leia só a parte que precisar, quando precisar. 💚'
+    },
     versao: {
       titulo: 'Como ler a versão do app',
       intro: 'Esta tela mostra qual versão do TechSaúde você está usando.',
@@ -806,6 +1016,7 @@
   function conteudoAjuda(){
     if (atual === 'menu') return AJUDA.menu;
     if (atual === 'versao') return AJUDA.versao;
+    if (atual === 'manual') return AJUDA.manual;
     return pendente ? AJUDA.leitura : AJUDA.leituraLivre;
   }
   function marcarAjuda(){ /* conteúdo é montado ao abrir */ }
