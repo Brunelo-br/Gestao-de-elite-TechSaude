@@ -145,19 +145,20 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
 .caixa{ background:#fff; border:2px solid var(--line); border-radius:18px; overflow:hidden; }
 
 /* Linhas de dado */
-.dado{ display:flex; align-items:center; gap:12px; width:100%; min-height:64px; padding:12px 14px; background:none; border:none; border-top:1.5px solid #ece4cb; text-align:left; cursor:pointer; font-family:inherit; color:inherit; }
+.dado{ display:flex; align-items:center; gap:12px; width:100%; min-height:64px; padding:12px 14px; background:none; border:none; border-top:1.5px solid #ece4cb; text-align:left; cursor:default; font-family:inherit; color:inherit; }
 .caixa > .dado:first-child{ border-top:none; }
-.dado:hover{ background:#fbf8ee; }
-.dado:focus-visible{ outline:3px solid var(--teal); outline-offset:-3px; }
 .dado-ico{ font-size:1.25rem; width:28px; text-align:center; flex-shrink:0; }
 .dado-corpo{ flex:1; min-width:0; }
 .dado-rotulo{ display:block; font-size:.7rem; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--text-soft); }
 .dado-valor{ display:block; margin-top:2px; font-size:1rem; font-weight:700; color:var(--text); line-height:1.3; overflow-wrap:anywhere; }
 .dado-valor.vazio{ color:#9a8f6e; font-weight:600; font-style:italic; }
-.dado-acao{ flex-shrink:0; padding:7px 12px; min-height:36px; border-radius:999px; border:2px solid var(--green-deep); color:var(--green-deep); font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.3px; display:inline-flex; align-items:center; }
+.dado-acao{ flex-shrink:0; padding:7px 14px; min-height:44px; min-width:44px; border-radius:999px; border:2px solid var(--green-deep); background:#fff; color:var(--green-deep); font-family:inherit; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.3px; display:inline-flex; align-items:center; justify-content:center; }
+button.dado-acao{ cursor:pointer; }
+button.dado-acao:hover{ background:#eef7f1; }
+button.dado-acao:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
 .dado.bloqueado{ cursor:default; background:#f7f4ea; }
 .dado.bloqueado:hover{ background:#f7f4ea; }
-.dado.bloqueado .dado-acao{ border-color:transparent; color:var(--text-soft); padding:7px 4px; }
+.dado.bloqueado .dado-acao{ border-color:transparent; background:transparent; color:var(--text-soft); padding:7px 4px; }
 
 /* Contatos de emergência */
 .contatos{ display:flex; flex-direction:column; gap:10px; }
@@ -314,7 +315,7 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
       <!-- MEUS DADOS -->
       <section class="secao" aria-labelledby="t-dados">
         <div class="secao-topo"><span class="secao-ico verde" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></span>
-          <div><h2 id="t-dados">Meus dados</h2><p>Toque em um dado para alterar.</p></div></div>
+          <div><h2 id="t-dados">Meus dados</h2><p>Toque em ALTERAR para editar um dado.</p></div></div>
         <div class="caixa" id="lista-dados"></div>
       </section>
 
@@ -323,11 +324,11 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
         <div class="secao-topo"><span class="secao-ico azul" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span>
           <div><h2 id="t-endereco">Endereço</h2><p>Usado em Hospitais próximos (“Minha casa”).</p></div></div>
         <div class="caixa">
-          <button type="button" class="dado" onclick="abrirEndereco()">
+          <div class="dado">
             <span class="dado-ico" aria-hidden="true">📍</span>
             <span class="dado-corpo"><span class="dado-rotulo">Endereço de casa</span><span class="dado-valor" id="valor-endereco">—</span></span>
-            <span class="dado-acao">Alterar</span>
-          </button>
+            <button type="button" class="dado-acao" id="acao-endereco" onclick="abrirEndereco()" aria-label="Alterar endereço de casa">Alterar</button>
+          </div>
         </div>
       </section>
     </div>
@@ -345,16 +346,16 @@ h1,h2{color:var(--green-deep);font-weight:900;text-transform:uppercase;}
         <div class="secao-topo"><span class="secao-ico roxo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
           <div><h2 id="t-conta">Segurança e aplicativo</h2><p>Senha, termos e versão do app.</p></div></div>
         <div class="caixa">
-          <button type="button" class="dado" onclick="abrirSenha()">
+          <div class="dado">
             <span class="dado-ico" aria-hidden="true">🔑</span>
             <span class="dado-corpo"><span class="dado-rotulo">Senha</span><span class="dado-valor">••••••••</span></span>
-            <span class="dado-acao">Alterar</span>
-          </button>
-          <button type="button" class="dado" onclick="abrirSobre()">
+            <button type="button" class="dado-acao" onclick="abrirSenha()" aria-label="Alterar senha">Alterar</button>
+          </div>
+          <div class="dado">
             <span class="dado-ico" aria-hidden="true">ℹ️</span>
             <span class="dado-corpo"><span class="dado-rotulo">Sobre o App</span><span class="dado-valor">Termos de Uso, Privacidade e Versão</span></span>
-            <span class="dado-acao">Abrir</span>
-          </button>
+            <button type="button" class="dado-acao" onclick="abrirSobre()" aria-label="Abrir Sobre o App: Termos de Uso, Privacidade e Versão">Abrir</button>
+          </div>
         </div>
       </section>
       <button type="button" class="btn-sair" onclick="sairDaConta()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></svg>Sair da conta</button>
@@ -757,15 +758,18 @@ function desenhar(){
         <span class="dado-acao" aria-hidden="true">🔒</span></div>`;
     }
     const acao = l.valor ? 'Alterar' : 'Incluir';
-    return `<button type="button" class="dado" data-campo="${l.campo}" aria-label="${acao} ${esc(l.rotulo)}"><span class="dado-ico" aria-hidden="true">${l.ico}</span>
-      <span class="dado-corpo"><span class="dado-rotulo">${esc(l.rotulo)}</span>${valor}</span><span class="dado-acao">${acao}</span></button>`;
+    return `<div class="dado"><span class="dado-ico" aria-hidden="true">${l.ico}</span>
+      <span class="dado-corpo"><span class="dado-rotulo">${esc(l.rotulo)}</span>${valor}</span><button type="button" class="dado-acao" data-campo="${l.campo}" aria-label="${acao} ${esc(l.rotulo.toLowerCase())}">${acao}</button></div>`;
   }).join('');
   $('lista-dados').querySelectorAll('[data-campo]').forEach(b => b.addEventListener('click', () => abrirCampo(b.dataset.campo)));
 
   const txtEnd = textoEndereco(endereco);
   const vEnd = $('valor-endereco');
-  vEnd.textContent = txtEnd || 'Não informado. Toque para incluir.';
+  vEnd.textContent = txtEnd || 'Não informado. Toque em INCLUIR.';
   vEnd.classList.toggle('vazio', !txtEnd);
+  const bEnd = $('acao-endereco');
+  bEnd.textContent = txtEnd ? 'Alterar' : 'Incluir';
+  bEnd.setAttribute('aria-label', (txtEnd ? 'Alterar' : 'Incluir') + ' endereço de casa');
 
   desenharContatos();
 }
@@ -1224,11 +1228,11 @@ carregar();
     "intro": "Aqui ficam seus dados, sua foto e as pessoas que o app chama numa emergência.",
     "passos": [
       "Toque na sua <b>foto</b> (ou no botão da câmera) para <b>tirar uma foto agora</b>, <b>escolher da galeria</b> ou usar um <b>avatar</b>.",
-      "Em <b>Meus dados</b>, toque em um dado (nome, telefone, e-mail, nascimento ou RG), escreva o novo valor e toque em <b>Salvar</b>. Pronto, já fica salvo.",
+      "Em <b>Meus dados</b>, toque no botão <b>ALTERAR</b> do dado que quer mudar (nome, telefone, e-mail, nascimento ou RG), escreva o novo valor e toque em <b>Salvar</b>. Pronto, já fica salvo.",
       "O <b>CPF</b> tem um cadeado 🔒: ele identifica sua conta e não muda por aqui.",
       "Para mudar o <b>endereço</b>, digite o CEP: a rua, o bairro e a cidade aparecem sozinhos. Depois informe o número.",
       "Em <b>Contatos de emergência</b> você pode <b>adicionar</b> até 3 pessoas, <b>editar</b>, <b>excluir</b> ou <b>ligar</b> direto.",
-      "Para trocar a senha, toque em <b>Senha</b>, digite a atual e a nova duas vezes."
+      "Para trocar a senha, toque em <b>ALTERAR</b> ao lado de <b>Senha</b>, digite a atual e a nova duas vezes."
     ],
     "dica": "Não existe botão “Salvar tudo”: cada janela salva sozinha quando você toca em Salvar. 💚"
   }
